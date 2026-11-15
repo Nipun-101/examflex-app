@@ -3,11 +3,13 @@ import { describe, expect, it } from "vitest";
 import AnalysisPage from "@/app/(app)/analysis/page";
 
 describe("AnalysisPage", () => {
-  it("renders the analysis placeholder", () => {
+  it("renders the Analysis possibilities experience", () => {
     render(<AnalysisPage />);
 
     expect(
-      screen.getByRole("heading", { name: "Analysis" })
+      screen.getByRole("heading", { name: "Your possibilities" })
     ).toBeInTheDocument();
+    expect(screen.getByText("548 / 720")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "MBBS" })).toBeInTheDocument();
   });
 });

@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/study/placeholder-page";
+import { AnalysisView } from "@/components/analysis/analysis-view";
+import { ANALYSIS_PAGE_DATA } from "@/lib/analysis/static-data";
 
 export const metadata: Metadata = {
   title: "Analysis",
+  description:
+    "Illustrative marks-only outlook for your latest mock — static Analysis until the API is connected.",
 };
 
 export default function AnalysisPage() {
-  return (
-    <PlaceholderPage
-      title="Analysis"
-      description="Subject trends, attempt history, and fix-next insights will live here. Static placeholder until the analysis API is connected."
-    />
-  );
+  return <AnalysisView data={ANALYSIS_PAGE_DATA} />;
 }
