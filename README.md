@@ -23,3 +23,15 @@ Open [http://localhost:3002](http://localhost:3002).
 - TypeScript + Tailwind CSS 4
 - React Compiler enabled
 - Turbopack for local dev
+- Vitest + Testing Library (mirrors examflex-admin)
+
+## Scripts
+
+```bash
+npm run lint
+npm test
+npm run test:watch
+npm run test:coverage
+```
+
+Coverage thresholds are 100% for application source. Cursor rules live in `.cursor/rules/`.

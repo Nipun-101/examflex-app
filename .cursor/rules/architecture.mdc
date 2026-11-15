@@ -1,0 +1,26 @@
+---
+description: Architecture, SoC, and design patterns
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Architecture
+
+## Layers
+
+| Layer | Location | Responsibility |
+| --- | --- | --- |
+| Routes / pages | `app/` | Composition, metadata, routing only |
+| UI | `components/` | Presentational + interactive UI |
+| Hooks | `hooks/` | Client state/effects reusable across UI |
+| Domain types | `types/` | Shared contracts |
+| Pure logic | `lib/` | Helpers, constants, mappers, validators |
+
+## Patterns
+
+- Keep components focused; extract when a file mixes data shaping + heavy UI.
+- Prefer composition over prop drilling; lift state only as needed.
+- Side effects (fetch, storage, timers) live in hooks or server modules — not in presentational leaves.
+- Validate external data at boundaries (`unknown` → typed).
+- Avoid god components and circular imports.
+- Feature folders under `components/` by domain (e.g. `landing/`, later `auth/`, `tests/`).

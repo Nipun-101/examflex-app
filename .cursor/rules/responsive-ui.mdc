@@ -1,0 +1,17 @@
+---
+description: Mobile-first responsive UI standards
+globs: **/*.{tsx,css}
+alwaysApply: false
+---
+
+# Responsive UI
+
+- **Mobile first**: base styles for phones; enhance with `sm:`, `md:`, `lg:`.
+- Breakpoints to verify: ~390 (phone), ~768 (tablet), ≥1024 (desktop).
+- No horizontal scroll on common viewports.
+- Sticky headers/footers: use `scroll-mt-*` for in-page anchors.
+- Touch-friendly controls; avoid hover-only critical actions.
+- Images/media: responsive sizing; prefer Next.js `Image` when real assets land.
+- Prefer CSS/Tailwind layout over JS measurement.
+- Safe areas: respect `env(safe-area-inset-*)` for fixed bottom UI.
+- Cards/sections: stack on mobile; multi-column from `md`/`lg` up.

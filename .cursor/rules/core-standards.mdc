@@ -1,0 +1,23 @@
+---
+description: Core ExamFlex app standards for every change
+alwaysApply: true
+---
+
+# ExamFlex App — Core Standards
+
+Student-facing NEET/JEE prep web app (Next.js App Router). Mobile-first, also tablet and desktop.
+
+## Non-negotiables
+
+- **TypeScript strict**: no `any`, no untyped escapes. Prefer explicit types, `unknown` + narrowing, and discriminated unions.
+- **Tests with every change**: new/changed behavior ships with unit and/or component tests. Aim for **full coverage** of touched code; do not merge untested logic.
+- **Separation of concerns**: UI in `components/`, domain types in `types/`, pure helpers in `lib/`, hooks in `hooks/`. Keep pages thin.
+- **Responsive by default**: design mobile first (`base` → `sm` → `md` → `lg`). Touch targets ≥ 44px. Verify layouts at ~390px, ~768px, and ≥1024px.
+- **Accessible**: semantic HTML, labels, keyboard support, sensible contrast.
+- **ExamFlex naming**: use ExamFlex / `examflex` in new code and copy. Do not invent alternate product names.
+
+## Stack conventions
+
+- Next.js App Router + React 19 + Tailwind 4 + Lucide icons
+- Colocate tests as `*.test.ts` / `*.test.tsx` next to the source
+- Prefer Server Components; add `"use client"` only when needed

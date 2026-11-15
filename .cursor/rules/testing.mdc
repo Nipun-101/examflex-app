@@ -1,0 +1,29 @@
+---
+description: Testing requirements — Vitest + Testing Library, full coverage
+globs: **/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Testing
+
+Stack mirrors **examflex-admin**: Vitest + jsdom + Testing Library + coverage-v8.
+
+## Rules
+
+- Every new module/component gets a colocated `*.test.ts(x)`.
+- Cover happy path, edge cases, and failure states for logic.
+- Components: assert accessible roles/names, not implementation details.
+- Mock Next.js boundaries (`next/font`, `next/navigation`, network) in setup or per-file.
+- Pure `lib/` functions: unit test without rendering when possible.
+- Do not ship without `npm run test` and `npm run test:coverage` passing locally for touched areas.
+
+## Commands
+
+- `npm test` — single run
+- `npm run test:watch` — watch mode
+- `npm run test:coverage` — coverage with thresholds
+
+## Coverage
+
+- Target **100%** statements/branches/functions/lines for application source under coverage.
+- Exclude generated files, configs, and type-only modules as configured in `vitest.config.mts`.
