@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/study/placeholder-page";
+import { MistakeBookView } from "@/components/mistake-book/mistake-book-view";
+import { MISTAKE_BOOK_DATA } from "@/lib/mistake-book/static-data";
 
 export const metadata: Metadata = {
   title: "Mistake Book",
+  description:
+    "Review saved mock mistakes one card at a time — static Mistake Book until the API is connected.",
 };
 
 export default function MistakeBookPage() {
-  return (
-    <PlaceholderPage
-      title="Mistake Book"
-      description="Saved mistakes and review sessions will live here. Static placeholder until the mistake book API is connected."
-    />
-  );
+  return <MistakeBookView data={MISTAKE_BOOK_DATA} />;
 }

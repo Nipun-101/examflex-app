@@ -36,6 +36,8 @@
   --study-mint: #e6efde;
   --study-mint-bar: #d7e4d7;
   --study-lilac: #eae7f5;
+  --study-peach: #f3ddd0;
+  --study-peach-ink: #8b4930;
   --study-divider: #dee2d9;
   --study-on-dark: #d3e0d8;
   --gradient-hero: linear-gradient(
@@ -97,6 +99,8 @@
   --color-study-mint: #e6efde;
   --color-study-mint-bar: #d7e4d7;
   --color-study-lilac: #eae7f5;
+  --color-study-peach: #f3ddd0;
+  --color-study-peach-ink: #8b4930;
   --color-study-divider: #dee2d9;
   --color-study-on-dark: #d3e0d8;
   --font-sans: var(--font-plus-jakarta);
