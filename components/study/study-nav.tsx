@@ -1,9 +1,12 @@
 "use client";
 
 import { Menu, UserRound, X } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import {
+  StudyButton,
+  StudyControlLink,
+} from "@/components/study/study-button";
 import { StudyWordmark } from "@/components/study/study-wordmark";
 import {
   APP_NAV_ITEMS,
@@ -30,34 +33,34 @@ export function StudyNav() {
             const active = isAppNavActive(pathname, item.href);
 
             return (
-              <Link
+              <StudyControlLink
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`inline-flex h-[42px] items-center justify-center rounded-[10px] px-4 text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-study-ink text-white"
-                    : "text-study-muted hover:bg-white hover:text-study-ink"
-                }`}
+                variant={active ? "ink" : "rail"}
+                className={`inline-flex h-[42px] items-center justify-center rounded-[10px] px-4 text-sm font-medium ${
+                  active ? "" : "text-study-muted"
+                }`.trim()}
               >
                 {item.label}
-              </Link>
+              </StudyControlLink>
             );
           })}
         </nav>
 
         <div className="flex items-center justify-self-end gap-2">
-          <Link
+          <StudyControlLink
             href={PROFILE_HREF}
-            className="inline-flex h-[42px] items-center justify-center gap-2 rounded-[10px] border border-study-divider bg-white px-4 text-sm font-medium text-study-ink transition-colors hover:bg-study-mint"
+            variant="surface"
+            className="inline-flex h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium"
           >
             <UserRound className="h-4 w-4 shrink-0" aria-hidden />
             <span>Profile</span>
-          </Link>
+          </StudyControlLink>
 
-          <button
-            type="button"
-            className="grid h-[42px] w-[42px] place-items-center rounded-[10px] border border-study-divider bg-white text-study-ink lg:hidden"
+          <StudyButton
+            variant="surface"
+            className="grid h-[42px] w-[42px] place-items-center rounded-[10px] lg:hidden"
             aria-expanded={open}
             aria-controls="study-mobile-nav"
             aria-label={open ? "Close menu" : "Open menu"}
@@ -68,7 +71,7 @@ export function StudyNav() {
             ) : (
               <Menu className="h-5 w-5" aria-hidden />
             )}
-          </button>
+          </StudyButton>
         </div>
       </div>
 
@@ -82,19 +85,18 @@ export function StudyNav() {
               const active = isAppNavActive(pathname, item.href);
 
               return (
-                <Link
+                <StudyControlLink
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
+                  variant={active ? "ink" : "rail"}
                   className={`rounded-[10px] px-3 py-3 text-sm font-medium ${
-                    active
-                      ? "bg-study-ink text-white"
-                      : "text-study-muted hover:bg-study-mint hover:text-study-ink"
-                  }`}
+                    active ? "" : "text-study-muted"
+                  }`.trim()}
                   onClick={() => setOpen(false)}
                 >
                   {item.label}
-                </Link>
+                </StudyControlLink>
               );
             })}
           </nav>

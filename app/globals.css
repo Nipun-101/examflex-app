@@ -213,3 +213,41 @@ h4 {
 .animate-fade-up-delay-3 {
   animation: fade-up 0.75s ease-out 0.26s both;
 }
+
+@keyframes study-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes study-loader-pulse {
+  0%,
+  100% {
+    transform: scale(0.88);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.study-loader-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: study-loader-spin 0.7s linear infinite;
+  will-change: transform;
+}
+
+.study-loader-pulse {
+  transform-origin: center;
+  animation: study-loader-pulse 1.05s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-loader-spin,
+  .study-loader-pulse {
+    animation: study-loader-pulse 1.35s ease-in-out infinite;
+  }
+}
