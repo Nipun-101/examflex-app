@@ -26,6 +26,18 @@
   --jee-soft: oklch(94% 0.035 300);
   --success: oklch(46% 0.11 165);
   --warning: oklch(76% 0.12 105);
+  /* Study area tokens aligned to ExamFlex Design (Today • web) */
+  --study-canvas: #f7f6f1;
+  --study-ink: #173d36;
+  --study-muted: #6b746f;
+  --study-muted-soft: #66716b;
+  --study-green: #176b56;
+  --study-lime: #daec9b;
+  --study-mint: #e6efde;
+  --study-mint-bar: #d7e4d7;
+  --study-lilac: #eae7f5;
+  --study-divider: #dee2d9;
+  --study-on-dark: #d3e0d8;
   --gradient-hero: linear-gradient(
     135deg,
     oklch(98% 0.008 95),
@@ -75,6 +87,18 @@
   --color-jee-soft: var(--jee-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  /* Literal hex so Tailwind v4 emits utilities reliably */
+  --color-study-canvas: #f7f6f1;
+  --color-study-ink: #173d36;
+  --color-study-muted: #6b746f;
+  --color-study-muted-soft: #66716b;
+  --color-study-green: #176b56;
+  --color-study-lime: #daec9b;
+  --color-study-mint: #e6efde;
+  --color-study-mint-bar: #d7e4d7;
+  --color-study-lilac: #eae7f5;
+  --color-study-divider: #dee2d9;
+  --color-study-on-dark: #d3e0d8;
   --font-sans: var(--font-plus-jakarta);
   --font-display: var(--font-bricolage);
   --radius-lg: var(--radius);

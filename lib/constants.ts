@@ -1,5 +1,6 @@
 export const APP_NAME = "ExamFlex";
 export const APP_TAGLINE = "Rise above cutoffs.";
+export const APP_STUDY_TAGLINE = "A little better, every attempt.";
 export const APP_DESCRIPTION =
   "Exam-level mock tests, focused practice and analytics for NEET & JEE students across India.";
 export const APP_DOMAIN = "examflex.in";
