@@ -1,4 +1,12 @@
 export const APP_NAME = "ExamFlex";
-export const APP_TAGLINE = "NEET & JEE prep that feels clear, fast, and focused.";
+export const APP_TAGLINE = "Rise above cutoffs.";
 export const APP_DESCRIPTION =
-  "Mobile-first exam preparation platform for NEET and JEE students — mock tests, analysis, and practice.";
+  "Exam-level mock tests, focused practice and analytics for NEET & JEE students across India.";
+export const APP_DOMAIN = "examflex.in";
+
+export const NAV_LINKS = [
+  { href: "#", label: "Home" },
+  { href: "#courses", label: "Courses" },
+  { href: "#tests", label: "Tests" },
+  { href: "#performance", label: "Performance" },
+] as const;

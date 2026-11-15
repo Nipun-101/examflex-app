@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
-import { AppShell } from "@/components/layout/app-shell";
-import { APP_DESCRIPTION, APP_NAME } from "@/lib/constants";
+import { Bricolage_Grotesque, Plus_Jakarta_Sans } from "next/font/google";
+import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from "@/lib/constants";
 import "./globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
@@ -10,15 +9,15 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: APP_NAME,
+    default: `${APP_NAME} — NEET & JEE Preparation | ${APP_TAGLINE.replace(/\.$/, "")}`,
     template: `%s · ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f766e",
+  themeColor: "#1a4d42",
   viewportFit: "cover",
 };
 
@@ -36,11 +35,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${outfit.variable} h-full antialiased`}
+      className={`${plusJakarta.variable} ${bricolage.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
-        <AppShell>{children}</AppShell>
-      </body>
+      <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
   );
 }
