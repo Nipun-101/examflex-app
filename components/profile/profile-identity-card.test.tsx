@@ -1,0 +1,57 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { ProfileIdentityCard } from "@/components/profile/profile-identity-card";
+
+describe("ProfileIdentityCard", () => {
+  it("shows identity copy without a photo control", () => {
+    render(
+      <ProfileIdentityCard
+        name="Aarav Mehta"
+        examTrack="NEET · Class 12"
+        memberSinceLabel="On ExamFlex since Mock 1"
+        identityHint="Google photo when you sign in with Google"
+        avatarUrl={null}
+      />
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Aarav Mehta" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("NEET · Class 12")).toBeInTheDocument();
+    expect(screen.getByText("AM")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/photo/i)).not.toBeInTheDocument();
+  });
+
+  it("falls back to Your name when the draft name is blank", () => {
+    render(
+      <ProfileIdentityCard
+        name="   "
+        examTrack="NEET · Class 12"
+        memberSinceLabel="On ExamFlex since Mock 1"
+        identityHint="Hint"
+        avatarUrl={null}
+      />
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Your name" })
+    ).toBeInTheDocument();
+  });
+
+  it("renders a Google profile photo when provided", () => {
+    const { container } = render(
+      <ProfileIdentityCard
+        name="Aarav Mehta"
+        examTrack="NEET · Class 12"
+        memberSinceLabel="On ExamFlex since Mock 1"
+        identityHint="Hint"
+        avatarUrl="https://lh3.googleusercontent.com/a/photo"
+      />
+    );
+
+    expect(container.querySelector("img")).toHaveAttribute(
+      "src",
+      "https://lh3.googleusercontent.com/a/photo"
+    );
+  });
+});

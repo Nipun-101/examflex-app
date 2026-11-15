@@ -1,15 +1,13 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/study/placeholder-page";
+import { ProfileView } from "@/components/profile/profile-view";
+import { PROFILE_PAGE_DATA } from "@/lib/profile/static-data";
 
 export const metadata: Metadata = {
   title: "Profile",
+  description:
+    "Your ExamFlex desk — name, phone, email, and prep pulse placeholders until the profile API is connected.",
 };
 
 export default function ProfilePage() {
-  return (
-    <PlaceholderPage
-      title="Profile"
-      description="Account settings and exam preferences will live here. Static placeholder until auth and profile APIs are connected."
-    />
-  );
+  return <ProfileView data={PROFILE_PAGE_DATA} />;
 }
