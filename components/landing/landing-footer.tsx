@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrandMark } from "@/components/landing/brand-mark";
 import { APP_DOMAIN } from "@/lib/constants";
+import { SUPPORT_PATHS } from "@/lib/support/support-links";
 
 const FOOTER_COLUMNS = [
   {
@@ -14,17 +15,19 @@ const FOOTER_COLUMNS = [
   {
     title: "Support",
     links: [
-      { label: "Help centre", href: "#" },
-      { label: "Contact us", href: "#" },
-      { label: "FAQs", href: "#" },
+      { label: "Help centre", href: SUPPORT_PATHS.help },
+      { label: "Contact us", href: SUPPORT_PATHS.contact },
+      { label: "FAQs", href: SUPPORT_PATHS.faqs },
     ],
   },
   {
     title: "Legal",
     links: [
-      { label: "Privacy", href: "#" },
-      { label: "Terms", href: "#" },
-      { label: "Refunds", href: "#" },
+      { label: "Privacy", href: "/privacy-policy" },
+      { label: "Terms", href: "/terms" },
+      { label: "User Policy", href: "/user-policy" },
+      { label: "Refunds", href: "/terms#refunds" },
+      { label: "Delete account", href: "/delete-account" },
     ],
   },
 ] as const;

@@ -142,9 +142,13 @@ export function getAuthToken(): string | null {
  */
 export function setAuthTokens(
   accessToken: string,
-  _refreshToken?: string | null,
-  _expiresInSec?: number
+  refreshToken?: string | null,
+  expiresInSec?: number
 ): void {
+  // Refresh stays HttpOnly (`examflex_rt`); expiresIn is reserved for call-site parity.
+  void refreshToken;
+  void expiresInSec;
+
   if (!getWindow()) return;
   wipeLegacyAuthStorage();
   memoryAccessToken = accessToken;

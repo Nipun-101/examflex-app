@@ -10,18 +10,27 @@ type MistakeReviewTimerProps = {
   resetKey: string;
 };
 
+type MistakeReviewTimerInnerProps = {
+  label: string;
+  hint: string;
+};
+
 export function MistakeReviewTimer({
   label,
   hint,
   resetKey,
 }: MistakeReviewTimerProps) {
+  return (
+    <MistakeReviewTimerInner key={resetKey} label={label} hint={hint} />
+  );
+}
+
+function MistakeReviewTimerInner({
+  label,
+  hint,
+}: MistakeReviewTimerInnerProps) {
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(false);
-
-  useEffect(() => {
-    setSeconds(0);
-    setRunning(false);
-  }, [resetKey]);
 
   useEffect(() => {
     if (!running) {

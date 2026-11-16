@@ -97,6 +97,30 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/terms-of-service",
+        destination: "/terms",
+        permanent: true,
+      },
+      {
+        source: "/help-centre",
+        destination: "/help",
+        permanent: true,
+      },
+      {
+        source: "/contact-us",
+        destination: "/contact",
+        permanent: true,
+      },
+      {
+        source: "/faq",
+        destination: "/faqs",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

@@ -3,7 +3,7 @@
 import { AlertCircle, Phone, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { BrandMark } from "@/components/landing/brand-mark";
 import { verifyOtp } from "@/lib/api/auth";
@@ -84,14 +84,11 @@ export function LoginPanel() {
     },
   });
 
-  const mountOtpWidget = () => {
+  const mountOtpWidget = useEffectEvent(() => {
     if (typeof window.initSendOTP === "function") {
       window.initSendOTP(getOtpWidgetConfig());
     }
-  };
-
-  const mountOtpWidgetRef = useRef(mountOtpWidget);
-  mountOtpWidgetRef.current = mountOtpWidget;
+  });
 
   const close = () => {
     router.push("/");
@@ -129,7 +126,7 @@ export function LoginPanel() {
     const mountExisting = () => {
       if (typeof window.initSendOTP === "function") {
         setIsScriptLoaded(true);
-        mountOtpWidgetRef.current();
+        mountOtpWidget();
         return true;
       }
       return false;
@@ -144,7 +141,7 @@ export function LoginPanel() {
     script.async = true;
     script.onload = () => {
       setIsScriptLoaded(true);
-      mountOtpWidgetRef.current();
+      mountOtpWidget();
     };
     document.body.appendChild(script);
     scriptRef.current = script;

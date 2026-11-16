@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { StudyLoader } from "@/components/study/study-loader";
 import {
@@ -16,6 +16,8 @@ type StudyLoadingOverlayProps = {
   className?: string;
 };
 
+const subscribeNoop = () => () => {};
+
 export function StudyLoadingOverlay({
   open,
   label,
@@ -23,11 +25,11 @@ export function StudyLoadingOverlay({
   className = "",
 }: StudyLoadingOverlayProps) {
   const resolvedLabel = resolveStudyLoadingLabel(label);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false
+  );
 
   useEffect(() => {
     if (!open || scope !== "viewport") {
