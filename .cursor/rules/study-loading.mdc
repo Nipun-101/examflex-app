@@ -1,0 +1,76 @@
+---
+description: Blocking client API calls must use the study loading overlay
+globs: "{app,components,hooks}/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Study loading overlay
+
+Protected study UI is wrapped by `StudyLoadingProvider` ([`components/study/study-loading-provider.tsx`](components/study/study-loading-provider.tsx)). Use the shared overlay ([`StudyLoadingOverlay`](components/study/study-loading-overlay.tsx)) for **blocking** client API work — anything the user must wait on before continuing (initial page load, save, retry, submit).
+
+The overlay **is** the loader. Never add a second spinner (`StudyLoader`, “Loading…” copy, section loaders) for the same wait.
+
+## Two valid ways to open it
+
+### 1. Declarative (preferred for initial / route loading)
+
+Tie `open` to loading UI state so the overlay is present on the **first render** (and SSR), not after a `useEffect`:
+
+```tsx
+if (authStatus === "loading" || profileStatus === "loading") {
+  return (
+    <>
+      <Header />
+      <StudyLoadingOverlay open scope="viewport" label="Loading your desk..." />
+    </>
+  );
+}
+```
+
+Do **not** also call `show()` / `run()` for that same wait (double overlay).
+
+### 2. Imperative `run()` (saves / retries while the page is already visible)
+
+```tsx
+const studyLoading = useStudyLoadingOverlay();
+
+await studyLoading.run(
+  () => updateMyProfile(payload),
+  { label: "Saving your details..." }
+);
+```
+
+Call `run` from event handlers. Do not assign `ref.current` during render. For initial route loads, prefer declarative `open` so the overlay paints before effects run.
+
+## Do not overlay
+
+- **Background** work (prefetch, silent revalidate, analytics, fire-and-forget).
+- Pure local state with no network.
+- Server Components / route handlers.
+
+## Anti-patterns
+
+```tsx
+// ❌ BAD — empty shell first; show() only in useEffect (flash)
+useEffect(() => {
+  studyLoading.show({ label: "Loading..." });
+  void load();
+}, []);
+if (loading) return <Header />; // no overlay in the tree
+
+// ❌ BAD — overlay + second StudyLoader
+<>
+  <StudyLoadingOverlay open />
+  <StudyLoader label="Loading..." />
+</>
+
+// ✅ GOOD — overlay open on the loading render
+if (loading) {
+  return (
+    <>
+      <Header />
+      <StudyLoadingOverlay open label="Loading your desk..." />
+    </>
+  );
+}
+```

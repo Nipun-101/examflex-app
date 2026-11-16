@@ -91,11 +91,9 @@ export function StudyLoadingOverlay({
     </div>
   );
 
-  if (scope === "viewport") {
-    if (!mounted) {
-      return null;
-    }
-
+  // Before hydration/portal mount, still paint the overlay in-tree so blocking
+  // waits are visible on the first frame (and in SSR HTML). Portal after mount.
+  if (scope === "viewport" && mounted) {
     return createPortal(overlay, document.body);
   }
 

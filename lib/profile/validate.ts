@@ -10,9 +10,16 @@ export function normalizePhoneDigits(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
+export type ValidateProfileContactOptions = {
+  /** When true, phone is identity and not validated for edits. */
+  phoneLocked?: boolean;
+};
+
 export function validateProfileContact(
-  contact: ProfileContact
+  contact: ProfileContact,
+  options: ValidateProfileContactOptions = {}
 ): ProfileFieldErrors {
+  const { phoneLocked = false } = options;
   const errors: ProfileFieldErrors = {};
   const name = contact.name.trim();
   const email = contact.email.trim();
@@ -24,10 +31,10 @@ export function validateProfileContact(
     errors.name = "Name needs at least 2 characters.";
   }
 
-  if (phoneDigits.length === 0) {
-    errors.phone = "Add a 10-digit mobile number.";
-  } else if (!PHONE_DIGITS_PATTERN.test(phoneDigits)) {
-    errors.phone = "Use a 10-digit Indian mobile number.";
+  if (!phoneLocked) {
+    if (phoneDigits.length > 0 && !PHONE_DIGITS_PATTERN.test(phoneDigits)) {
+      errors.phone = "Use a 10-digit Indian mobile number.";
+    }
   }
 
   if (email.length === 0) {

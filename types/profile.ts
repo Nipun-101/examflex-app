@@ -1,3 +1,6 @@
+import type { BadgesSummary } from "@/types/analytics";
+import type { MembershipTier } from "@/types/user";
+
 export type ProfileContact = {
   name: string;
   phone: string;
@@ -12,6 +15,9 @@ export type ProfileUser = ProfileContact & {
   signInMethod: ProfileSignInMethod;
   examTrack: string;
   memberSinceLabel: string;
+  membershipTier: MembershipTier;
+  /** True when phone came from the API and must stay read-only. */
+  phoneLocked: boolean;
 };
 
 export type ProfileSnapshotStat = {
@@ -30,7 +36,7 @@ export type ProfileFieldKey = keyof ProfileContact;
 
 export type ProfileFieldErrors = Partial<Record<ProfileFieldKey, string>>;
 
-export type ProfilePageData = {
+export type ProfilePageChrome = {
   title: string;
   tagline: string;
   examBadge: string;
@@ -42,6 +48,14 @@ export type ProfilePageData = {
   privacyNote: ProfilePrivacyNote;
   saveLabel: string;
   resetLabel: string;
+};
+
+export type ProfilePageData = ProfilePageChrome & {
   user: ProfileUser;
   snapshot: readonly ProfileSnapshotStat[];
 };
+
+export type ProfileBadgesState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; summary: BadgesSummary };

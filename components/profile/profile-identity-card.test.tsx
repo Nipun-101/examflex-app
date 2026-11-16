@@ -7,8 +7,8 @@ describe("ProfileIdentityCard", () => {
     render(
       <ProfileIdentityCard
         name="Aarav Mehta"
-        examTrack="NEET · Class 12"
-        memberSinceLabel="On ExamFlex since Mock 1"
+        examTrack="ExamFlex"
+        memberSinceLabel="On ExamFlex since March 2025"
         identityHint="Google photo when you sign in with Google"
         avatarUrl={null}
       />
@@ -17,7 +17,7 @@ describe("ProfileIdentityCard", () => {
     expect(
       screen.getByRole("heading", { name: "Aarav Mehta" })
     ).toBeInTheDocument();
-    expect(screen.getByText("NEET · Class 12")).toBeInTheDocument();
+    expect(screen.getByText("ExamFlex")).toBeInTheDocument();
     expect(screen.getByText("AM")).toBeInTheDocument();
     expect(screen.queryByLabelText(/photo/i)).not.toBeInTheDocument();
   });
@@ -26,8 +26,8 @@ describe("ProfileIdentityCard", () => {
     render(
       <ProfileIdentityCard
         name="   "
-        examTrack="NEET · Class 12"
-        memberSinceLabel="On ExamFlex since Mock 1"
+        examTrack="ExamFlex"
+        memberSinceLabel="On ExamFlex since March 2025"
         identityHint="Hint"
         avatarUrl={null}
       />
@@ -42,8 +42,8 @@ describe("ProfileIdentityCard", () => {
     const { container } = render(
       <ProfileIdentityCard
         name="Aarav Mehta"
-        examTrack="NEET · Class 12"
-        memberSinceLabel="On ExamFlex since Mock 1"
+        examTrack="ExamFlex"
+        memberSinceLabel="On ExamFlex since March 2025"
         identityHint="Hint"
         avatarUrl="https://lh3.googleusercontent.com/a/photo"
       />

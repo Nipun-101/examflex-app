@@ -4,7 +4,7 @@ import type { EquationBookPageData } from "@/types/equation-book";
 export const EQUATION_BOOK_DATA: EquationBookPageData = {
   title: "Equation Book",
   tagline: "A few cards. A clearer head.",
-  examBadge: "NEET  /  examflex",
+  examBadge: "examflex",
   subjects: [
     { id: "physics", label: "Physics" },
     { id: "chemistry", label: "Chemistry" },

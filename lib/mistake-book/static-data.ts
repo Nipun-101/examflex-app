@@ -3,7 +3,7 @@ import type { MistakeBookPageData } from "@/types/mistake-book";
 /** Static Mistake Book content — replace with API payloads later. */
 export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
   title: "Mistake Book",
-  examBadge: "NEET  /  examflex",
+  examBadge: "examflex",
   mockLabel: "Mock 12",
   subjects: [
     { id: "all", label: "All subjects" },
