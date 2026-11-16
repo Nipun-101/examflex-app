@@ -9,11 +9,15 @@ import type { PaperListItemBase } from "@/types/mock-test";
 const getMockTestsByExam = vi.fn();
 const getFullMockTests = vi.fn();
 const getSprintTests = vi.fn();
+const getSubjectsForExam = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+vi.mock("@/lib/api/exams", () => ({
+  getSubjectsForExam: (...args: unknown[]) => getSubjectsForExam(...args),
+}));
 vi.mock("@/lib/api/mock-tests", () => ({
   getMockTestsByExam: (...args: unknown[]) => getMockTestsByExam(...args),
 }));
@@ -59,6 +63,8 @@ describe("paper tab lists", () => {
     getMockTestsByExam.mockReset();
     getFullMockTests.mockReset();
     getSprintTests.mockReset();
+    getSubjectsForExam.mockReset();
+    getSubjectsForExam.mockResolvedValue({ ok: true, data: [] });
   });
 
   it("Chapter Wise loads TOPIC_WISE papers for the exam", async () => {
@@ -90,6 +96,7 @@ describe("paper tab lists", () => {
       page: 1,
       limit: 12,
     });
+    expect(getSubjectsForExam).toHaveBeenCalledWith("ex1");
   });
 
   it("Full Mocks loads papers for the exam", async () => {

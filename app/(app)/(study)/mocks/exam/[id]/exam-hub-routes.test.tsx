@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ExamLayout from "@/app/(app)/(study)/mocks/exam/[id]/layout";
 import { ExamHubLayoutClient } from "@/app/(app)/(study)/mocks/exam/[id]/exam-hub-layout-client";
-import ExamOverviewPage, {
-  metadata as overviewMetadata,
+import ExamHubIndexPage, {
+  metadata as hubMetadata,
 } from "@/app/(app)/(study)/mocks/exam/[id]/page";
 import ChapterWisePage, {
   metadata as chapterMetadata,
@@ -16,9 +16,13 @@ import SprintTestsPage, {
 } from "@/app/(app)/(study)/mocks/exam/[id]/sprint-tests/page";
 
 const useParams = vi.fn(() => ({ id: "6ac1335993fbfb809bc99def" }));
+const redirect = vi.fn((href: string) => {
+  throw new Error(`NEXT_REDIRECT:${href}`);
+});
 
 vi.mock("next/navigation", () => ({
   useParams: () => useParams(),
+  redirect: (href: string) => redirect(href),
 }));
 
 vi.mock("@/components/mocks/exam-hub-shell", () => ({
@@ -33,9 +37,6 @@ vi.mock("@/components/mocks/exam-hub-shell", () => ({
       {children}
     </div>
   ),
-}));
-vi.mock("@/components/mocks/exam-overview", () => ({
-  ExamOverview: () => <p>overview</p>,
 }));
 vi.mock("@/components/mocks/chapter-wise-list", () => ({
   ChapterWiseList: () => <p>chapter</p>,
@@ -71,10 +72,9 @@ describe("exam hub routes", () => {
       "data-exam-id",
       "6ac1335993fbfb809bc99def"
     );
-    expect(screen.getByText("inner")).toBeInTheDocument();
   });
 
-  it("shows a friendly message for invalid route ids", () => {
+  it("shows a friendly message for invalid route ids and keeps children mounted", () => {
     useParams.mockReturnValueOnce({ id: "not-an-id" });
     render(
       <ExamHubLayoutClient>
@@ -84,24 +84,28 @@ describe("exam hub routes", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       /exam link is invalid/i
     );
-    expect(screen.queryByTestId("shell")).not.toBeInTheDocument();
+    expect(screen.getByText("inner")).toBeInTheDocument();
   });
 
-  it("waits when the route id is not ready yet", () => {
-    useParams.mockReturnValueOnce({ id: undefined });
+  it("keeps children mounted when the route id is briefly missing", () => {
+    useParams.mockReturnValueOnce({});
     render(
       <ExamHubLayoutClient>
         <p>inner</p>
       </ExamHubLayoutClient>
     );
-    expect(screen.getByText("Loading exam...")).toBeInTheDocument();
-    expect(screen.queryByTestId("shell")).not.toBeInTheDocument();
+    expect(screen.getByText("inner")).toBeInTheDocument();
   });
 
-  it("renders the overview", () => {
-    render(<ExamOverviewPage />);
-    expect(screen.getByText("overview")).toBeInTheDocument();
-    expect(overviewMetadata.title).toBe("Exam overview");
+  it("redirects the hub root to chapter-wise", async () => {
+    await expect(
+      ExamHubIndexPage({
+        params: Promise.resolve({ id: "6ac1335993fbfb809bc99def" }),
+      })
+    ).rejects.toThrow(
+      "NEXT_REDIRECT:/mocks/exam/6ac1335993fbfb809bc99def/chapter-wise"
+    );
+    expect(hubMetadata.title).toBe("Chapter Wise");
   });
 
   it("renders Chapter Wise without awaiting params", () => {

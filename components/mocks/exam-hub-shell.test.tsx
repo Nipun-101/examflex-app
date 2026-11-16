@@ -27,14 +27,16 @@ describe("ExamHubShell", () => {
     getExamById.mockReset();
   });
 
-  it("hides tab children until the exam finishes loading", () => {
+  it("keeps tab children mounted but hidden until the exam finishes loading", () => {
     getExamById.mockReturnValue(new Promise(() => {}));
     render(
       <ExamHubShell examId="ex1">
         <p>tab content</p>
       </ExamHubShell>
     );
-    expect(screen.queryByText("tab content")).not.toBeInTheDocument();
+    const tab = screen.getByText("tab content");
+    expect(tab).toBeInTheDocument();
+    expect(tab.parentElement).toHaveClass("hidden");
   });
 
   it("shows the exam name, tabs and children once loaded", async () => {
@@ -72,10 +74,13 @@ describe("ExamHubShell", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Could not load this exam."
     );
-    expect(screen.queryByText("tab content")).not.toBeInTheDocument();
+    expect(screen.getByText("tab content").parentElement).toHaveClass("hidden");
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
 
     await user.click(screen.getByRole("button", { name: /Try again/ }));
     expect(await screen.findByText("tab content")).toBeInTheDocument();
+    expect(screen.getByText("tab content").parentElement).not.toHaveClass(
+      "hidden"
+    );
   });
 });

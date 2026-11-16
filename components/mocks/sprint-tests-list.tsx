@@ -38,7 +38,7 @@ export function SprintTestsList({ examId: examIdProp }: SprintTestsListProps) {
     <PaperList
       title="Sprint Tests"
       description="Short timed papers for quick revision."
-      emptyMessage="Sprint Tests for this exam will show up here soon."
+      paperType="SPRINT"
       fetchPage={fetchPage}
     />
   );

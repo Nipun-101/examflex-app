@@ -1,19 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Lock, RefreshCw } from "lucide-react";
 import { PaperCard } from "@/components/mocks/paper-card";
+import { PapersEmptyState } from "@/components/mocks/papers-empty-state";
 import { ViewPlansDialog } from "@/components/mocks/view-plans-dialog";
 import { StudyButton } from "@/components/study/study-button";
 import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { ExamPageContext } from "@/hooks/use-exam-page";
 import { useLaunchAttempt } from "@/hooks/use-launch-attempt";
 import { launchErrorPlansTestId } from "@/lib/mocks/launch-error";
 import type { FetchPaperPage, PaperPage } from "@/lib/mocks/paper-page";
+import type { PaperType } from "@/types/mock-test";
 
 type PaperListProps = {
   title: string;
   description: string;
-  emptyMessage: string;
+  paperType: PaperType;
   fetchPage: FetchPaperPage;
 };
 
@@ -25,18 +28,22 @@ type ListState =
 export function PaperList({
   title,
   description,
-  emptyMessage,
+  paperType,
   fetchPage,
 }: PaperListProps) {
   const { startingTestId, startError, launch, clearError } =
     useLaunchAttempt();
+  const examPage = useContext(ExamPageContext);
+  const shellPaused = Boolean(examPage?.loading || examPage?.error);
   const [state, setState] = useState<ListState>({ status: "loading" });
   const [pageNumber, setPageNumber] = useState(1);
   const [reloadKey, setReloadKey] = useState(0);
   const [plansPaperId, setPlansPaperId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (shellPaused) return;
     let cancelled = false;
+    setState({ status: "loading" });
     void fetchPage(pageNumber).then((result) => {
       if (cancelled) return;
       setState(
@@ -48,7 +55,7 @@ export function PaperList({
     return () => {
       cancelled = true;
     };
-  }, [fetchPage, pageNumber, reloadKey]);
+  }, [fetchPage, pageNumber, reloadKey, shellPaused]);
 
   function goToPage(next: number) {
     setState({ status: "loading" });
@@ -69,15 +76,17 @@ export function PaperList({
     </header>
   );
 
-  if (state.status === "loading") {
+  if (shellPaused || state.status === "loading") {
     return (
       <>
         {header}
-        <StudyLoadingOverlay
-          open
-          scope="viewport"
-          label={`Loading ${title}...`}
-        />
+        {!shellPaused ? (
+          <StudyLoadingOverlay
+            open
+            scope="viewport"
+            label={`Loading ${title}...`}
+          />
+        ) : null}
       </>
     );
   }
@@ -141,9 +150,7 @@ export function PaperList({
       ) : null}
 
       {items.length === 0 ? (
-        <p className="rounded-[14px] border border-study-divider bg-white px-4 py-8 text-center text-sm text-study-muted-soft">
-          {emptyMessage}
-        </p>
+        <PapersEmptyState paperType={paperType} />
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {items.map((paper) => (

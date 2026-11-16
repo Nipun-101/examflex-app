@@ -61,7 +61,7 @@ function renderList(fetchPage: FetchPaperPage) {
       <PaperList
         title="Chapter Wise"
         description="Focused papers."
-        emptyMessage="Nothing yet."
+        paperType="TOPIC_WISE"
         fetchPage={fetchPage}
       />
     </StudyLoadingProvider>
@@ -92,7 +92,12 @@ describe("PaperList", () => {
 
   it("shows the empty state", async () => {
     renderList(vi.fn<FetchPaperPage>().mockResolvedValue({ ok: true, data: page([]) }));
-    expect(await screen.findByText("Nothing yet.")).toBeInTheDocument();
+    expect(await screen.findByTestId("papers-empty-state")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: /Nothing here yet, but it's on the way/i,
+      })
+    ).toBeInTheDocument();
   });
 
   it("shows an error and retries", async () => {

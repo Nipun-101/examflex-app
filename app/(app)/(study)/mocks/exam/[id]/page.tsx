@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import { ExamOverview } from "@/components/mocks/exam-overview";
+import { redirect } from "next/navigation";
+import { examTestListPath } from "@/lib/mocks/exam-test-routes";
 
 export const metadata: Metadata = {
-  title: "Exam overview",
+  title: "Chapter Wise",
 };
 
-export default function ExamOverviewPage() {
-  return <ExamOverview />;
+/** Redirect needs the URL id; allow a blocking segment for this leaf only. */
+export const instant = false;
+
+type PageProps = {
+  params: Promise<{ id: string }>;
+};
+
+/** Hub root redirects to Chapter Wise (default paper tab). */
+export default async function ExamHubIndexPage({ params }: PageProps) {
+  const { id } = await params;
+  redirect(examTestListPath(id, "TOPIC_WISE"));
 }

@@ -90,6 +90,7 @@ export interface GetMockTestsByExamParams {
   limit?: number;
   search?: string;
   subjectId?: string;
+  topicId?: string;
 }
 
 export interface GetFullMockTestsParams {

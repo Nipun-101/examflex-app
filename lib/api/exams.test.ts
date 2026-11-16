@@ -2,10 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getExamById,
   getExamsByCategory,
+  getSubjectsForExam,
   parseExam,
   parseExamCategory,
   parseExamDetail,
   parseExamsByCategory,
+  parseSubjectForExam,
+  parseSubjectsForExam,
 } from "@/lib/api/exams";
 
 vi.mock("@/lib/auth/tokens", () => ({
@@ -17,11 +20,15 @@ vi.mock("@/lib/auth/tokens", () => ({
 const exam = {
   id: "e1",
   title: "NEET",
+  description: "National Eligibility cum Entrance Test",
+  imageUrl: "https://img.test/neet.png",
   fullName: "National Eligibility cum Entrance Test",
   duration: "3h 20min",
   totalQuestions: 180,
   totalMarks: 720,
+  statsLabel: "180 QUESTIONS · 200 MINUTES · 720 MARKS · +4 / -1",
   testsCount: 12,
+  paperCounts: { chapterWise: 12, fullMocks: 1, sprint: 0 },
   subjectsCount: 3,
   trending: true,
 };
@@ -85,11 +92,15 @@ describe("parseExam", () => {
     expect(parseExam({ id: "e1", title: "NEET" })).toEqual({
       id: "e1",
       title: "NEET",
+      description: "",
+      imageUrl: "",
       fullName: "",
       duration: null,
       totalQuestions: null,
       totalMarks: null,
+      statsLabel: "Practice papers available",
       testsCount: 0,
+      paperCounts: { chapterWise: 0, fullMocks: 0, sprint: 0 },
       subjectsCount: 0,
       trending: false,
     });
@@ -205,14 +216,25 @@ describe("getExamsByCategory / getExamById", () => {
     });
   }
 
-  it("loads categories", async () => {
+  it("loads a paginated category page", async () => {
+    const pagination = {
+      total: 1,
+      page: 1,
+      limit: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPrevPage: false,
+    };
     vi.mocked(fetch).mockResolvedValue(
-      jsonResponse({ message: "ok", data: [category] })
+      jsonResponse({ message: "ok", data: [category], pagination })
     );
-    const result = await getExamsByCategory();
-    expect(result).toEqual({ ok: true, data: [category] });
+    const result = await getExamsByCategory({ page: 1, limit: 1 });
+    expect(result).toEqual({
+      ok: true,
+      data: { categories: [category], pagination },
+    });
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/exams/by-category",
+      "http://localhost:3000/api/v1/exams/by-category?page=1&limit=1",
       expect.objectContaining({ method: "GET" })
     );
   });
@@ -271,5 +293,73 @@ describe("getExamsByCategory / getExamById", () => {
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ data: { id: 1 } }));
     const bad = await getExamById("e1");
     expect(bad.ok).toBe(false);
+  });
+});
+
+const subjectForExam = {
+  id: "s1",
+  name: "Physics",
+  topics: [
+    { id: "t1", name: "Units" },
+    { id: "t2", name: "Motion" },
+  ],
+  description: "Mechanics-heavy",
+};
+
+describe("parseSubjectForExam / parseSubjectsForExam", () => {
+  it("parses subjects with topics", () => {
+    expect(parseSubjectForExam(subjectForExam)).toEqual(subjectForExam);
+    expect(parseSubjectsForExam([subjectForExam])).toEqual([subjectForExam]);
+  });
+
+  it("defaults topics and drops invalid topic rows", () => {
+    expect(parseSubjectForExam({ id: "s1", name: "Physics" })).toEqual({
+      id: "s1",
+      name: "Physics",
+      topics: [],
+    });
+    expect(
+      parseSubjectForExam({
+        id: "s1",
+        name: "Physics",
+        topics: [{ id: "t1", name: "Units" }, { id: 1 }],
+      })?.topics
+    ).toEqual([{ id: "t1", name: "Units" }]);
+  });
+
+  it("rejects invalid subjects", () => {
+    expect(parseSubjectForExam(null)).toBeNull();
+    expect(parseSubjectForExam({ id: "s1" })).toBeNull();
+    expect(parseSubjectsForExam({})).toBeNull();
+  });
+});
+
+describe("getSubjectsForExam", () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000";
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function jsonResponse(body: unknown, status = 200): Response {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  it("loads subjects for an exam and encodes the id", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ message: "ok", data: [subjectForExam] })
+    );
+    const result = await getSubjectsForExam("e 1");
+    expect(result).toEqual({ ok: true, data: [subjectForExam] });
+    expect(fetch).toHaveBeenCalledWith(
+      "http://localhost:3000/api/v1/subjects/exam/e%201",
+      expect.objectContaining({ method: "GET" })
+    );
   });
 });

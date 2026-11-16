@@ -116,7 +116,7 @@ describe("getMockTestsByExam", () => {
     );
   });
 
-  it("sends page, limit, search and subject filters", async () => {
+  it("sends page, limit, search, subject and topic filters", async () => {
     vi.mocked(fetch).mockResolvedValue(
       jsonResponse({ message: "ok", data: [], pagination })
     );
@@ -125,9 +125,10 @@ describe("getMockTestsByExam", () => {
       limit: 5,
       search: "anti nym",
       subjectId: "s1",
+      topicId: "t1",
     });
     expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/api/v1/mock-tests/exam/e%2F1?page=2&limit=5&search=anti+nym&subjectId=s1",
+      "http://localhost:3000/api/v1/mock-tests/exam/e%2F1?page=2&limit=5&search=anti+nym&subjectId=s1&topicId=t1",
       expect.objectContaining({ method: "GET" })
     );
   });

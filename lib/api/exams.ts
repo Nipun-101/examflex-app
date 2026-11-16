@@ -7,14 +7,31 @@ import {
   readString,
   readStringOrNull,
 } from "@/lib/api/parse-fields";
-import { requestParsed } from "@/lib/api/request";
+import { parsePagination } from "@/lib/api/paper-list";
+import { buildQueryString, requestParsed } from "@/lib/api/request";
 import type {
+  ApiCategoryPagination,
   ApiExam,
   ApiExamCategory,
   ApiExamDetail,
+  ApiExamPaperCounts,
   ApiExamPerformanceBand,
   ApiExamSubject,
+  ApiExamsByCategoryPage,
+  ApiSubjectForExam,
+  ApiSubjectTopic,
 } from "@/types/exam";
+
+function parsePaperCounts(value: unknown): ApiExamPaperCounts {
+  if (!isApiRecord(value)) {
+    return { chapterWise: 0, fullMocks: 0, sprint: 0 };
+  }
+  return {
+    chapterWise: readNumber(value.chapterWise) ?? 0,
+    fullMocks: readNumber(value.fullMocks) ?? 0,
+    sprint: readNumber(value.sprint) ?? 0,
+  };
+}
 
 /** Parse one exam card from `GET /exams/by-category`. */
 export function parseExam(value: unknown): ApiExam | null {
@@ -22,14 +39,23 @@ export function parseExam(value: unknown): ApiExam | null {
   if (typeof value.id !== "string" || typeof value.title !== "string") {
     return null;
   }
+  const description =
+    readString(value.description) ?? readString(value.fullName) ?? "";
+  const paperCounts = parsePaperCounts(value.paperCounts);
+  const testsCount = readNumber(value.testsCount) ?? paperCounts.chapterWise;
   return {
     id: value.id,
     title: value.title,
-    fullName: readString(value.fullName) ?? "",
+    description,
+    imageUrl: readString(value.imageUrl) ?? "",
+    fullName: readString(value.fullName) ?? description,
     duration: readStringOrNull(value.duration),
     totalQuestions: readNumberOrNull(value.totalQuestions),
     totalMarks: readNumberOrNull(value.totalMarks),
-    testsCount: readNumber(value.testsCount) ?? 0,
+    statsLabel:
+      readString(value.statsLabel) ?? "Practice papers available",
+    testsCount,
+    paperCounts,
     subjectsCount: readNumber(value.subjectsCount) ?? 0,
     trending: value.trending === true,
   };
@@ -53,6 +79,17 @@ export function parseExamCategory(value: unknown): ApiExamCategory | null {
 /** Parse the `data` array of `GET /exams/by-category`. */
 export function parseExamsByCategory(value: unknown): ApiExamCategory[] | null {
   return parseList(value, parseExamCategory);
+}
+
+export function parseExamsByCategoryPage(
+  data: unknown,
+  raw: unknown
+): ApiExamsByCategoryPage | null {
+  const categories = parseExamsByCategory(data);
+  if (!categories || !isApiRecord(raw)) return null;
+  const pagination = parsePagination(raw.pagination) as ApiCategoryPagination | null;
+  if (!pagination) return null;
+  return { categories, pagination };
 }
 
 function parseExamSubject(value: unknown): ApiExamSubject | null {
@@ -84,6 +121,33 @@ function parsePerformanceBand(value: unknown): ApiExamPerformanceBand | null {
   return { key: value.key, minPercent };
 }
 
+function parseSubjectTopic(value: unknown): ApiSubjectTopic | null {
+  if (!isApiRecord(value)) return null;
+  if (typeof value.id !== "string" || typeof value.name !== "string") {
+    return null;
+  }
+  return { id: value.id, name: value.name };
+}
+
+export function parseSubjectForExam(value: unknown): ApiSubjectForExam | null {
+  if (!isApiRecord(value)) return null;
+  if (typeof value.id !== "string" || typeof value.name !== "string") {
+    return null;
+  }
+  return {
+    id: value.id,
+    name: value.name,
+    topics: parseList(value.topics, parseSubjectTopic) ?? [],
+    ...optionalField("description", readString(value.description)),
+  };
+}
+
+export function parseSubjectsForExam(
+  value: unknown
+): ApiSubjectForExam[] | null {
+  return parseList(value, parseSubjectForExam);
+}
+
 /** Parse the `data` object of `GET /exams/:id`. */
 export function parseExamDetail(value: unknown): ApiExamDetail | null {
   if (!isApiRecord(value)) return null;
@@ -110,14 +174,23 @@ export function parseExamDetail(value: unknown): ApiExamDetail | null {
   };
 }
 
-/** Central exams grouped by category (state / scope params are not used in v1). */
-export async function getExamsByCategory(): Promise<
-  ApiResult<ApiExamCategory[]>
-> {
+export type GetExamsByCategoryParams = {
+  page?: number;
+  limit?: number;
+};
+
+/** Paginated exams grouped by category for the mocks hub. */
+export async function getExamsByCategory(
+  params: GetExamsByCategoryParams = {}
+): Promise<ApiResult<ApiExamsByCategoryPage>> {
+  const query = buildQueryString({
+    page: params.page ?? 1,
+    limit: params.limit ?? 1,
+  });
   return requestParsed(
-    "/api/v1/exams/by-category",
+    `/api/v1/exams/by-category${query}`,
     { method: "GET" },
-    parseExamsByCategory,
+    parseExamsByCategoryPage,
     "Could not load exams. Please try again."
   );
 }
@@ -130,5 +203,17 @@ export async function getExamById(
     { method: "GET" },
     parseExamDetail,
     "Could not load this exam. Please try again."
+  );
+}
+
+/** Exam-scoped subjects with topics for chapter-wise filters. */
+export async function getSubjectsForExam(
+  examId: string
+): Promise<ApiResult<ApiSubjectForExam[]>> {
+  return requestParsed(
+    `/api/v1/subjects/exam/${encodeURIComponent(examId)}`,
+    { method: "GET" },
+    parseSubjectsForExam,
+    "Could not load subjects for this exam. Please try again."
   );
 }

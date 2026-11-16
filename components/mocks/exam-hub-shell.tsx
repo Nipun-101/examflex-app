@@ -62,8 +62,16 @@ function ExamHubShellInner({
         </div>
       ) : null}
 
-      {/* Wait for the exam shell before mounting tab lists so overlays do not stack. */}
-      {!loading && !error ? children : null}
+      {/*
+        Always keep tab pages in the tree so Instant Soft Nav can validate them.
+        Hide while the exam shell loads / errors; lists pause fetching via context.
+      */}
+      <div
+        className={loading || error ? "hidden" : undefined}
+        aria-hidden={loading || Boolean(error)}
+      >
+        {children}
+      </div>
     </div>
   );
 }

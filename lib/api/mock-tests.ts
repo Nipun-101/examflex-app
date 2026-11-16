@@ -58,6 +58,7 @@ export async function getMockTestsByExam(
     limit: params.limit,
     search: params.search,
     subjectId: params.subjectId,
+    topicId: params.topicId,
   });
   return requestParsed(
     `/api/v1/mock-tests/exam/${encodeURIComponent(examId)}${query}`,

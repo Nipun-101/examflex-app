@@ -38,7 +38,7 @@ export function FullMocksList({ examId: examIdProp }: FullMocksListProps) {
     <PaperList
       title="Full Mocks"
       description="Full-length papers that mirror the real exam."
-      emptyMessage="Full Mocks for this exam will show up here soon."
+      paperType="FULL_EXAM"
       fetchPage={fetchPage}
     />
   );

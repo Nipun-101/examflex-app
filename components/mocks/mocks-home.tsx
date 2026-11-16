@@ -1,70 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
-import { CategorySection } from "@/components/mocks/category-section";
+import {
+  CategoryPager,
+  categoryPagerHint,
+} from "@/components/mocks/category-pager";
+import { ExamFeatureCard } from "@/components/mocks/exam-feature-card";
+import { MocksStaticSections } from "@/components/mocks/mocks-static-sections";
 import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
 import { useStudyLoadingOverlay } from "@/components/study/study-loading-provider";
 import { getExamsByCategory } from "@/lib/api/exams";
-import type { ApiExamCategory } from "@/types/exam";
+import type {
+  ApiCategoryPagination,
+  ApiExamCategory,
+} from "@/types/exam";
 
 type LoadState =
   | { status: "loading" }
   | { status: "error"; message: string }
   | {
       status: "ready";
-      categories: ApiExamCategory[];
-      /** True when the API returned categories but none had student-visible exams. */
-      hiddenExamsOnly: boolean;
+      category: ApiExamCategory | null;
+      pagination: ApiCategoryPagination;
     };
 
-function toReadyState(categories: ApiExamCategory[]): Extract<
-  LoadState,
-  { status: "ready" }
-> {
-  const withExams = categories.filter((category) => category.exams.length > 0);
-  return {
-    status: "ready",
-    categories: withExams,
-    hiddenExamsOnly: withExams.length === 0 && categories.length > 0,
-  };
+function readPage(searchParams: URLSearchParams): number {
+  const raw = Number(searchParams.get("page") || "1");
+  if (!Number.isFinite(raw) || raw < 1) return 1;
+  return Math.floor(raw);
 }
 
 export function MocksHome() {
   const studyLoading = useStudyLoadingOverlay();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const page = readPage(searchParams);
   const [state, setState] = useState<LoadState>({ status: "loading" });
+
+  const load = useCallback(async (nextPage: number) => {
+    const result = await getExamsByCategory({ page: nextPage, limit: 1 });
+    if (!result.ok) {
+      return { status: "error" as const, message: result.message };
+    }
+    return {
+      status: "ready" as const,
+      category: result.data.categories[0] ?? null,
+      pagination: result.data.pagination,
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    void getExamsByCategory().then((result) => {
-      if (cancelled) return;
-      if (!result.ok) {
-        setState({ status: "error", message: result.message });
-        return;
-      }
-      setState(toReadyState(result.data));
+    setState({ status: "loading" });
+    void load(page).then((next) => {
+      if (!cancelled) setState(next);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [load, page]);
+
+  function goToPage(nextPage: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextPage <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", String(nextPage));
+    }
+    const query = params.toString();
+    router.push(query ? `${pathname}?${query}` : pathname);
+  }
 
   async function handleRetry() {
     setState({ status: "loading" });
-    const result = await studyLoading.run(() => getExamsByCategory(), {
+    const next = await studyLoading.run(() => load(page), {
       label: "Loading mock exams...",
     });
-    if (!result.ok) {
-      setState({ status: "error", message: result.message });
-      return;
-    }
-    setState(toReadyState(result.data));
+    setState(next);
   }
+
+  const pager =
+    state.status === "ready" ? (
+      <CategoryPager
+        page={state.pagination.page}
+        totalPages={state.pagination.totalPages}
+        hasPrevPage={state.pagination.hasPrevPage}
+        hasNextPage={state.pagination.hasNextPage}
+        onPrev={() => goToPage(state.pagination.page - 1)}
+        onNext={() => goToPage(state.pagination.page + 1)}
+      />
+    ) : null;
+
+  const hint =
+    state.status === "ready" && state.pagination.totalPages > 1
+      ? categoryPagerHint(state.pagination.page, state.pagination.totalPages)
+      : null;
 
   if (state.status === "loading") {
     return (
       <>
-        <MocksHomeHeader />
+        <MocksHomeHeader pager={null} hint={null} />
         <StudyLoadingOverlay
           open
           scope="viewport"
@@ -77,7 +115,7 @@ export function MocksHome() {
   if (state.status === "error") {
     return (
       <div className="space-y-6">
-        <MocksHomeHeader />
+        <MocksHomeHeader pager={null} hint={null} />
         <div
           role="alert"
           className="rounded-[14px] border border-study-divider bg-white px-4 py-6 text-center"
@@ -96,41 +134,71 @@ export function MocksHome() {
     );
   }
 
-  if (state.categories.length === 0) {
+  if (!state.category) {
     return (
-      <div className="space-y-6">
-        <MocksHomeHeader />
+      <div className="space-y-8">
+        <MocksHomeHeader pager={pager} hint={hint} />
         <p className="rounded-[14px] border border-study-divider bg-white px-4 py-8 text-center text-sm text-study-muted-soft">
-          {state.hiddenExamsOnly
-            ? "Exams exist for these categories, but none are marked “Show in student app” yet. Turn that on in admin to list them here."
-            : "Mock exams will show up here once they are published."}
+          Mock exams will show up here once they are published.
         </p>
+        <MocksStaticSections />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      <MocksHomeHeader />
-      {state.categories.map((category) => (
-        <CategorySection key={category.id} category={category} />
-      ))}
+      <MocksHomeHeader pager={pager} hint={hint} />
+
+      <section aria-labelledby="mocks-category-heading" className="space-y-4">
+        <h2
+          id="mocks-category-heading"
+          className="font-display text-sm font-bold tracking-wide text-study-ink uppercase sm:text-base"
+        >
+          {state.category.name}
+        </h2>
+        <ul className="grid gap-4 md:grid-cols-2">
+          {state.category.exams.map((exam) => (
+            <li key={exam.id} className="min-w-0">
+              <ExamFeatureCard exam={exam} />
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <MocksStaticSections />
     </div>
   );
 }
 
-function MocksHomeHeader() {
+function MocksHomeHeader({
+  pager,
+  hint,
+}: {
+  pager: ReactNode;
+  hint: string | null;
+}) {
   return (
-    <header>
-      <p className="text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase">
-        Practice
-      </p>
-      <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-study-ink sm:text-[2rem]">
-        Mocks
-      </h1>
-      <p className="mt-2 max-w-xl text-sm text-study-muted-soft">
+    <header className="space-y-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase">
+            Practice
+          </p>
+          <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-study-ink sm:text-[2rem]">
+            Mocks
+          </h1>
+        </div>
+        {pager}
+      </div>
+      <p className="max-w-xl text-sm text-study-muted-soft">
         Pick an exam to open chapter-wise papers, full mocks, and sprint tests.
       </p>
+      {hint ? (
+        <p className="text-xs text-study-muted-soft" role="note">
+          {hint}
+        </p>
+      ) : null}
     </header>
   );
 }
