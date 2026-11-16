@@ -1,3 +1,4 @@
+import { GoogleSignInPrompt } from "@/components/auth/google-sign-in-prompt";
 import { CtaSection } from "@/components/landing/cta-section";
 import { ExamsSection } from "@/components/landing/exams-section";
 import { FeaturesSection } from "@/components/landing/features-section";
@@ -20,6 +21,7 @@ export function MarketingLanding() {
         <CtaSection />
       </main>
       <LandingFooter />
+      <GoogleSignInPrompt />
     </>
   );
 }

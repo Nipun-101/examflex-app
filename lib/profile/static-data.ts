@@ -1,16 +1,16 @@
 import type { ProfilePageData } from "@/types/profile";
 
-/** Static Profile content — replace with API payloads later. */
+/** Chrome copy + fixture profile for tests. Live data comes from the API. */
 export const PROFILE_PAGE_DATA: ProfilePageData = {
   title: "Your desk",
   tagline: "A quiet corner for the details that travel with you.",
-  examBadge: "NEET  /  examflex",
+  examBadge: "examflex",
   identityHint:
     "Google photo when you sign in with Google · initials for mobile OTP.",
   contactSectionTitle: "How we reach you",
-  contactSectionSubtitle: "Name, phone, and email — placeholders for now.",
+  contactSectionSubtitle: "Name, phone, and email for your ExamFlex account.",
   snapshotTitle: "Prep pulse",
-  snapshotSubtitle: "Sample signals from your recent mocks.",
+  snapshotSubtitle: "Badges and tier from your recent prep.",
   privacyNote: {
     title: "KEPT LIGHT ON PURPOSE",
     body: "ExamFlex only needs what helps your prep. Rank, category, and counselling details stay out of this screen until you choose to add them later.",
@@ -23,27 +23,10 @@ export const PROFILE_PAGE_DATA: ProfilePageData = {
     email: "aarav.mehta@example.com",
     avatarUrl: null,
     signInMethod: "otp",
-    examTrack: "NEET · Class 12",
-    memberSinceLabel: "On ExamFlex since Mock 1",
+    examTrack: "ExamFlex",
+    memberSinceLabel: "On ExamFlex since March 2025",
+    membershipTier: "none",
+    phoneLocked: true,
   },
-  snapshot: [
-    {
-      id: "mocks",
-      label: "MOCKS LOGGED",
-      value: "12",
-      hint: "Sample count",
-    },
-    {
-      id: "streak",
-      label: "STUDY STREAK",
-      value: "5 days",
-      hint: "Placeholder rhythm",
-    },
-    {
-      id: "focus",
-      label: "FOCUS",
-      value: "Physics",
-      hint: "From last week",
-    },
-  ],
+  snapshot: [],
 };

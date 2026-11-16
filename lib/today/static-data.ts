@@ -5,7 +5,7 @@ export const TODAY_PAGE_DATA: TodayPageData = {
   eyebrow: "YOUR STUDY SPACE",
   headline: "One good step at a time.",
   subhead: "Not more things to study. A clearer idea of what to do next.",
-  paceBadge: "NEET  /  Your pace, your plan",
+  paceBadge: "examflex  /  Your pace, your plan",
   nextStep: {
     eyebrow: "PICK UP WHERE YOU LEFT OFF",
     title: "Your mistakes have a next chapter.",

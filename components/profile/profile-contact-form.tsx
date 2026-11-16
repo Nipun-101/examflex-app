@@ -11,6 +11,8 @@ type ProfileContactFormProps = {
   values: ProfileContact;
   errors: ProfileFieldErrors;
   dirty: boolean;
+  phoneLocked: boolean;
+  saving?: boolean;
   saveLabel: string;
   resetLabel: string;
   onChange: (field: ProfileFieldKey, value: string) => void;
@@ -57,6 +59,8 @@ export function ProfileContactForm({
   values,
   errors,
   dirty,
+  phoneLocked,
+  saving = false,
   saveLabel,
   resetLabel,
   onChange,
@@ -84,6 +88,7 @@ export function ProfileContactForm({
         {FIELDS.map((field) => {
           const error = errors[field.key];
           const fieldId = `profile-${field.key}`;
+          const readOnly = field.key === "phone" && phoneLocked;
 
           return (
             <div key={field.key} className="flex flex-col gap-1.5">
@@ -101,10 +106,19 @@ export function ProfileContactForm({
                 inputMode={field.inputMode}
                 placeholder={field.placeholder}
                 value={values[field.key]}
+                readOnly={readOnly}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? `${fieldId}-error` : undefined}
-                onChange={(event) => onChange(field.key, event.target.value)}
-                className="h-12 rounded-[10px] border border-study-divider bg-study-canvas px-3 text-sm text-study-ink placeholder:text-study-muted-soft/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green"
+                onChange={
+                  readOnly
+                    ? undefined
+                    : (event) => onChange(field.key, event.target.value)
+                }
+                className={`h-12 rounded-[10px] border border-study-divider px-3 text-sm text-study-ink placeholder:text-study-muted-soft/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green ${
+                  readOnly
+                    ? "cursor-default bg-study-canvas/70 text-study-muted-soft"
+                    : "bg-study-canvas"
+                }`}
               />
               {error ? (
                 <p
@@ -124,15 +138,15 @@ export function ProfileContactForm({
             type="submit"
             variant="ink"
             className="inline-flex h-11 min-w-[9.5rem] items-center justify-center rounded-[10px] px-5 text-sm font-medium"
-            disabled={!dirty}
+            disabled={!dirty || saving}
           >
-            {saveLabel}
+            {saving ? "Saving…" : saveLabel}
           </StudyButton>
           <StudyButton
             type="button"
             variant="outline"
             className="inline-flex h-11 items-center justify-center rounded-[10px] px-5 text-sm font-medium"
-            disabled={!dirty}
+            disabled={!dirty || saving}
             onClick={onReset}
           >
             {resetLabel}

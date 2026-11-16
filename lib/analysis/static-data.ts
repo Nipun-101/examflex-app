@@ -4,7 +4,7 @@ import type { AnalysisPageData } from "@/types/analysis";
 export const ANALYSIS_PAGE_DATA: AnalysisPageData = {
   title: "Your possibilities",
   tagline: "Explore a path, not a promise.",
-  examBadge: "NEET  /  examflex",
+  examBadge: "examflex",
   outlookLabel: "ILLUSTRATIVE MARKS-ONLY OUTLOOK",
   performance: {
     label: "LATEST PERFORMANCE · MOCK 12",

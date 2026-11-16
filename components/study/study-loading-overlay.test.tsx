@@ -10,6 +10,13 @@ describe("StudyLoadingOverlay", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("paints immediately when open, including before portal mount", () => {
+    render(<StudyLoadingOverlay open label="Booting" />);
+    expect(
+      screen.getByRole("alertdialog", { name: "Booting" })
+    ).toBeInTheDocument();
+  });
+
   it("blocks interaction and shows the default label when open", async () => {
     const user = userEvent.setup();
     const behindClick = vi.fn();

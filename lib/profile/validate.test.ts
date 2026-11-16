@@ -25,29 +25,51 @@ describe("validateProfileContact", () => {
   });
 
   it("flags empty and short names", () => {
-    expect(validateProfileContact({ name: " ", phone: "9876543210", email: "a@b.co" }).name).toBe(
-      "Add your name."
-    );
-    expect(validateProfileContact({ name: "A", phone: "9876543210", email: "a@b.co" }).name).toBe(
-      "Name needs at least 2 characters."
-    );
+    expect(
+      validateProfileContact({ name: " ", phone: "9876543210", email: "a@b.co" })
+        .name
+    ).toBe("Add your name.");
+    expect(
+      validateProfileContact({ name: "A", phone: "9876543210", email: "a@b.co" })
+        .name
+    ).toBe("Name needs at least 2 characters.");
   });
 
-  it("flags phone problems", () => {
-    expect(validateProfileContact({ name: "Aa", phone: "", email: "a@b.co" }).phone).toBe(
-      "Add a 10-digit mobile number."
-    );
+  it("allows empty phone when unlocked and validates partial digits", () => {
     expect(
-      validateProfileContact({ name: "Aa", phone: "12345", email: "a@b.co" }).phone
+      validateProfileContact(
+        { name: "Aa", phone: "", email: "a@b.co" },
+        { phoneLocked: false }
+      )
+    ).toEqual({});
+    expect(
+      validateProfileContact(
+        { name: "Aa", phone: "12345", email: "a@b.co" },
+        { phoneLocked: false }
+      ).phone
     ).toBe("Use a 10-digit Indian mobile number.");
   });
 
-  it("flags email problems", () => {
-    expect(validateProfileContact({ name: "Aa", phone: "9876543210", email: " " }).email).toBe(
-      "Add an email address."
-    );
+  it("skips phone validation when locked", () => {
     expect(
-      validateProfileContact({ name: "Aa", phone: "9876543210", email: "nope" }).email
+      validateProfileContact(
+        { name: "Aa", phone: "", email: "a@b.co" },
+        { phoneLocked: true }
+      )
+    ).toEqual({});
+  });
+
+  it("flags email problems", () => {
+    expect(
+      validateProfileContact({ name: "Aa", phone: "9876543210", email: " " })
+        .email
+    ).toBe("Add an email address.");
+    expect(
+      validateProfileContact({
+        name: "Aa",
+        phone: "9876543210",
+        email: "nope",
+      }).email
     ).toBe("That email does not look right.");
   });
 });
@@ -66,9 +88,9 @@ describe("isProfileContactDirty", () => {
       phone: "9876543210",
       email: "aarav@example.com",
     };
-    expect(isProfileContactDirty({ ...saved, name: " Aarav Mehta " }, saved)).toBe(
-      false
-    );
+    expect(
+      isProfileContactDirty({ ...saved, name: " Aarav Mehta " }, saved)
+    ).toBe(false);
     expect(
       isProfileContactDirty({ ...saved, phone: "98765-43210" }, saved)
     ).toBe(false);
