@@ -11,7 +11,7 @@ describe("HeroSection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Start Preparing/i })
-    ).toHaveAttribute("href", "#signup");
+    ).toHaveAttribute("href", "/login");
     expect(
       screen.getByRole("link", { name: /Explore Tests/i })
     ).toHaveAttribute("href", "#tests");

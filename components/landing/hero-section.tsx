@@ -28,7 +28,7 @@ export function HeroSection() {
 
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
             <Link
-              href="#signup"
+              href="/login"
               className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-gradient-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lift transition-[filter] hover:brightness-110"
             >
               Start Preparing

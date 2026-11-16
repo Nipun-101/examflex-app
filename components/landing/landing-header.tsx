@@ -34,13 +34,13 @@ export function LandingHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           <Link
-            href="#login"
+            href="/login"
             className="rounded-full px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
           >
             Log in
           </Link>
           <Link
-            href="#signup"
+            href="/login"
             className="inline-flex h-10 items-center rounded-full bg-gradient-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-[filter] hover:brightness-110"
           >
             Sign up free
@@ -78,14 +78,14 @@ export function LandingHeader() {
           </nav>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Link
-              href="#login"
+              href="/login"
               className="rounded-full border border-border px-4 py-2.5 text-center text-sm font-semibold"
               onClick={() => setOpen(false)}
             >
               Log in
             </Link>
             <Link
-              href="#signup"
+              href="/login"
               className="rounded-full bg-gradient-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
               onClick={() => setOpen(false)}
             >

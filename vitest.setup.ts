@@ -3,6 +3,8 @@ import type { AnchorHTMLAttributes, PropsWithChildren, ReactNode } from "react";
 import { createElement } from "react";
 import { vi } from "vitest";
 
+process.env.NEXT_PUBLIC_API_URL ??= "http://localhost:3000";
+
 vi.mock("next/font/google", () => {
   const font = (name: string) => () => ({
     className: `font-${name}`,

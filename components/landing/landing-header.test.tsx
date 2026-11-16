@@ -11,7 +11,11 @@ describe("LandingHeader", () => {
     expect(screen.getByRole("navigation", { name: "Primary" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Sign up free" })).toHaveAttribute(
       "href",
-      "#signup"
+      "/login"
+    );
+    expect(screen.getByRole("link", { name: "Log in" })).toHaveAttribute(
+      "href",
+      "/login"
     );
   });
 

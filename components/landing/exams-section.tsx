@@ -66,7 +66,7 @@ export function ExamsSection() {
           return (
             <Link
               key={exam.title}
-              href="#signup"
+              href="/login"
               className="card-base card-hover group relative overflow-hidden p-6 md:p-8"
             >
               <div

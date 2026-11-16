@@ -11,9 +11,33 @@ describe("LandingFooter", () => {
     expect(screen.getByRole("heading", { name: "Support" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Legal" })).toBeInTheDocument();
     expect(screen.getByText(/© 2026 ExamFlex/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Help centre" })).toHaveAttribute(
+      "href",
+      "/help"
+    );
+    expect(screen.getByRole("link", { name: "Contact us" })).toHaveAttribute(
+      "href",
+      "/contact"
+    );
+    expect(screen.getByRole("link", { name: "FAQs" })).toHaveAttribute(
+      "href",
+      "/faqs"
+    );
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute(
       "href",
-      "#"
+      "/privacy-policy"
+    );
+    expect(screen.getByRole("link", { name: "Terms" })).toHaveAttribute(
+      "href",
+      "/terms"
+    );
+    expect(screen.getByRole("link", { name: "Refunds" })).toHaveAttribute(
+      "href",
+      "/terms#refunds"
+    );
+    expect(screen.getByRole("link", { name: "Delete account" })).toHaveAttribute(
+      "href",
+      "/delete-account"
     );
   });
 });

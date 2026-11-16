@@ -16,7 +16,7 @@ export function CtaSection() {
           </p>
           <div className="mt-8 flex justify-center">
             <Link
-              href="#signup"
+              href="/login"
               className="inline-flex items-center justify-center gap-2 rounded-full bg-card px-7 py-3.5 text-base font-semibold text-primary-deep transition-colors hover:bg-primary-soft"
             >
               Start practicing free

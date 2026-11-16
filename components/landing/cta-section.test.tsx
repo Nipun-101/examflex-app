@@ -13,6 +13,6 @@ describe("CtaSection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Start practicing free/i })
-    ).toHaveAttribute("href", "#signup");
+    ).toHaveAttribute("href", "/login");
   });
 });
