@@ -36,8 +36,12 @@
   --study-mint: #e6efde;
   --study-mint-bar: #d7e4d7;
   --study-lilac: #eae7f5;
+  --study-lilac-ink: #4f446c;
   --study-peach: #f3ddd0;
   --study-peach-ink: #8b4930;
+  /* Neutral selection accent (not success-green — avoids “correct answer” vibe). */
+  --study-select: #2f5ea8;
+  --study-select-soft: #e7eef8;
   --study-divider: #dee2d9;
   --study-on-dark: #d3e0d8;
   --gradient-hero: linear-gradient(
@@ -99,8 +103,11 @@
   --color-study-mint: #e6efde;
   --color-study-mint-bar: #d7e4d7;
   --color-study-lilac: #eae7f5;
+  --color-study-lilac-ink: #4f446c;
   --color-study-peach: #f3ddd0;
   --color-study-peach-ink: #8b4930;
+  --color-study-select: #2f5ea8;
+  --color-study-select-soft: #e7eef8;
   --color-study-divider: #dee2d9;
   --color-study-on-dark: #d3e0d8;
   --font-sans: var(--font-plus-jakarta);
@@ -254,4 +261,69 @@ h4 {
   .study-loader-pulse {
     animation: study-loader-pulse 1.35s ease-in-out infinite;
   }
+}
+
+/*
+ * Question body zoom — font-size, not CSS `zoom` / transform.
+ * CSS `zoom` scales already-painted MathJax SVG and looks pixelated.
+ * Font-size keeps SVG in vector units (ex/em) so formulas stay sharp.
+ */
+.question-zoom {
+  --question-zoom: 1;
+  font-size: calc(0.875rem * var(--question-zoom));
+}
+
+@media (min-width: 640px) {
+  .question-zoom {
+    font-size: calc(1rem * var(--question-zoom));
+  }
+}
+
+.question-zoom-copy {
+  font-size: 1em;
+}
+
+.question-zoom img {
+  /* Raster art still needs a larger paint box when zoomed in. */
+  max-width: min(100%, calc(22rem * var(--question-zoom)));
+}
+
+/* Mathpix markdown rendering (attempt runner + answer key) */
+.mathpix-content p {
+  margin: 0;
+}
+
+.mathpix-content p + p {
+  margin-top: 0.5rem;
+}
+
+.mathpix-content .math-inline,
+.mathpix-content mjx-container[jax="SVG"][display="false"] {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.mathpix-content mjx-container[jax="SVG"][display="true"] {
+  margin: 0.5rem 0;
+}
+
+.mathpix-content mjx-container[jax="SVG"] > svg {
+  /* Prefer crisp vector edges over the soft bitmap look CSS zoom caused. */
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+.mathpix-inline,
+.mathpix-inline > div,
+.mathpix-inline p {
+  display: inline;
+}
+
+.mathpix-inline p {
+  margin: 0;
+}
+
+.mathpix-content .mathjax_md_help,
+.mathpix-content .mathpix-render-elem {
+  background: transparent;
 }

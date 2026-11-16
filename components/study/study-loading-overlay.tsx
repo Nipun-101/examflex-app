@@ -16,7 +16,7 @@ type StudyLoadingOverlayProps = {
   className?: string;
 };
 
-const subscribeNoop = () => () => {};
+const subscribeNoop = () => () => undefined;
 
 export function StudyLoadingOverlay({
   open,
@@ -25,6 +25,8 @@ export function StudyLoadingOverlay({
   className = "",
 }: StudyLoadingOverlayProps) {
   const resolvedLabel = resolveStudyLoadingLabel(label);
+  // Keep SSR and the first client render identical (in-tree overlay). Portal
+  // only after mount so we do not trip a hydration mismatch.
   const mounted = useSyncExternalStore(
     subscribeNoop,
     () => true,

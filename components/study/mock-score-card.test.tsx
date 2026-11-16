@@ -19,5 +19,9 @@ describe("MockScoreCard", () => {
     expect(
       screen.getByRole("img", { name: "Mock 12: 548 of 720" })
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Open mocks/i })).toHaveAttribute(
+      "href",
+      "/mocks"
+    );
   });
 });

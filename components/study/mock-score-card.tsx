@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { buildScoreBars } from "@/lib/today/score-bars";
 import type { TodayLatestMock } from "@/types/today";
 
@@ -35,6 +36,12 @@ export function MockScoreCard({ data }: MockScoreCardProps) {
           <p className="mt-5 text-xs leading-[1.4] whitespace-pre-wrap text-study-muted-soft">
             {data.breakdown}
           </p>
+          <Link
+            href="/mocks"
+            className="mt-5 inline-flex text-[0.8125rem] font-semibold text-study-green transition-colors hover:text-study-ink"
+          >
+            Open mocks →
+          </Link>
         </div>
 
         <div
