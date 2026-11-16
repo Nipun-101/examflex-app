@@ -10,7 +10,6 @@ import {
 import { ExamFeatureCard } from "@/components/mocks/exam-feature-card";
 import { MocksStaticSections } from "@/components/mocks/mocks-static-sections";
 import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
-import { useStudyLoadingOverlay } from "@/components/study/study-loading-provider";
 import { getExamsByCategory } from "@/lib/api/exams";
 import type {
   ApiCategoryPagination,
@@ -19,11 +18,12 @@ import type {
 
 type LoadState =
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; fetchKey: string }
   | {
       status: "ready";
       category: ApiExamCategory | null;
       pagination: ApiCategoryPagination;
+      fetchKey: string;
     };
 
 function readPage(searchParams: URLSearchParams): number {
@@ -33,35 +33,41 @@ function readPage(searchParams: URLSearchParams): number {
 }
 
 export function MocksHome() {
-  const studyLoading = useStudyLoadingOverlay();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = readPage(searchParams);
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [reloadKey, setReloadKey] = useState(0);
+  const fetchKey = `${page}:${reloadKey}`;
 
-  const load = useCallback(async (nextPage: number) => {
+  const load = useCallback(async (nextPage: number, key: string) => {
     const result = await getExamsByCategory({ page: nextPage, limit: 1 });
     if (!result.ok) {
-      return { status: "error" as const, message: result.message };
+      return {
+        status: "error" as const,
+        message: result.message,
+        fetchKey: key,
+      };
     }
     return {
       status: "ready" as const,
       category: result.data.categories[0] ?? null,
       pagination: result.data.pagination,
+      fetchKey: key,
     };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading" });
-    void load(page).then((next) => {
+    const key = fetchKey;
+    void load(page, key).then((next) => {
       if (!cancelled) setState(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [load, page]);
+  }, [load, page, fetchKey]);
 
   function goToPage(nextPage: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -74,13 +80,12 @@ export function MocksHome() {
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  async function handleRetry() {
-    setState({ status: "loading" });
-    const next = await studyLoading.run(() => load(page), {
-      label: "Loading mock exams...",
-    });
-    setState(next);
+  function handleRetry() {
+    setReloadKey((value) => value + 1);
   }
+
+  const isLoading =
+    state.status === "loading" || state.fetchKey !== fetchKey;
 
   const pager =
     state.status === "ready" ? (
@@ -99,7 +104,7 @@ export function MocksHome() {
       ? categoryPagerHint(state.pagination.page, state.pagination.totalPages)
       : null;
 
-  if (state.status === "loading") {
+  if (isLoading) {
     return (
       <>
         <MocksHomeHeader pager={null} hint={null} />
@@ -123,7 +128,7 @@ export function MocksHome() {
           <p className="text-sm text-study-ink">{state.message}</p>
           <button
             type="button"
-            onClick={() => void handleRetry()}
+            onClick={handleRetry}
             className="mt-4 inline-flex h-11 min-w-[11rem] items-center justify-center gap-2 rounded-[10px] bg-study-green px-4 text-sm font-semibold text-white"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />

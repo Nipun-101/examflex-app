@@ -13,6 +13,8 @@ import type {
 } from "@/types/access";
 import type {
   ApiPaperExamRef,
+  AttemptSummary,
+  AttemptSummaryStatus,
   MockTestsPagination,
   PaginatedList,
   PaperListItemBase,
@@ -24,6 +26,12 @@ const ATTEMPT_ACTIONS: readonly UserAttemptAction[] = [
   "RETAKE",
   "RESUME",
 ];
+const ATTEMPT_SUMMARY_STATUSES: readonly AttemptSummaryStatus[] = [
+  "NONE",
+  "IN_PROGRESS",
+  "PAUSED",
+  "COMPLETED",
+];
 
 export function parseAccessMode(value: unknown): AccessMode | undefined {
   return ACCESS_MODES.find((mode) => mode === value);
@@ -33,6 +41,44 @@ export function parseUserAttemptAction(
   value: unknown
 ): UserAttemptAction | undefined {
   return ATTEMPT_ACTIONS.find((action) => action === value);
+}
+
+export function parseAttemptSummaryStatus(
+  value: unknown
+): AttemptSummaryStatus | undefined {
+  return ATTEMPT_SUMMARY_STATUSES.find((status) => status === value);
+}
+
+/** Optional nested attempt snapshot on authenticated paper list rows. */
+export function parseAttemptSummary(value: unknown): AttemptSummary | undefined {
+  if (!isApiRecord(value)) return undefined;
+  const status = parseAttemptSummaryStatus(value.status);
+  const attemptCount = readNumber(value.attemptCount);
+  if (status === undefined || attemptCount === undefined) return undefined;
+  return {
+    status,
+    attemptCount,
+    ...optionalField("activeAttemptId", readString(value.activeAttemptId)),
+    ...optionalField("answeredCount", readNumber(value.answeredCount)),
+    ...optionalField(
+      "timeRemainingSeconds",
+      readNumber(value.timeRemainingSeconds)
+    ),
+    ...optionalField("timeElapsedSeconds", readNumber(value.timeElapsedSeconds)),
+    ...optionalField("bestScore", readNumber(value.bestScore)),
+    ...optionalField("bestCorrectAnswers", readNumber(value.bestCorrectAnswers)),
+    ...optionalField("lastAttemptId", readString(value.lastAttemptId)),
+    ...optionalField("lastScore", readNumber(value.lastScore)),
+    ...optionalField("lastCorrectAnswers", readNumber(value.lastCorrectAnswers)),
+    ...optionalField(
+      "lastTimeTakenSeconds",
+      readNumber(value.lastTimeTakenSeconds)
+    ),
+    ...optionalField(
+      "lastIncorrectAnswers",
+      readNumber(value.lastIncorrectAnswers)
+    ),
+  };
 }
 
 /** Missing or malformed access means the client does not lock the paper. */
@@ -116,10 +162,12 @@ export function parsePaperListBase(
     isActive: value.isActive,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
+    ...optionalField("totalMarks", readNumber(value.totalMarks)),
     ...optionalField("accessMode", parseAccessMode(value.accessMode)),
     ...optionalField("access", parsePaperAccess(value.access)),
     ...optionalField("userAttemptAction", action),
     ...optionalField("resumeAttemptId", readString(value.resumeAttemptId)),
+    ...optionalField("attemptSummary", parseAttemptSummary(value.attemptSummary)),
   };
 }
 

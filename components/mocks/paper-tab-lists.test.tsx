@@ -88,7 +88,8 @@ describe("paper tab lists", () => {
     expect(
       await screen.findByRole("heading", { name: "Paper One" })
     ).toBeInTheDocument();
-    expect(screen.getByText("Physics · Kinematics")).toBeInTheDocument();
+    // Redesigned cards surface subject/topic as the uppercase eyebrow.
+    expect(screen.getByText("PHYSICS · KINEMATICS")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Chapter Wise" })
     ).toBeInTheDocument();
@@ -116,7 +117,10 @@ describe("paper tab lists", () => {
     });
     wrap(<FullMocksList examId="ex1" />);
 
-    expect(await screen.findByText("Session-wise")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Paper One" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("FULL MOCK")).toBeInTheDocument();
     expect(getFullMockTests).toHaveBeenCalledWith({
       examId: "ex1",
       page: 1,
@@ -131,7 +135,10 @@ describe("paper tab lists", () => {
     });
     wrap(<SprintTestsList examId="ex1" />);
 
-    expect(await screen.findByText("Sprint")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Paper One" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("SPRINT")).toBeInTheDocument();
     expect(getSprintTests).toHaveBeenCalledWith({
       examId: "ex1",
       page: 1,

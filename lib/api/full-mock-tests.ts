@@ -56,7 +56,6 @@ export function parseApiFullMockTest(value: unknown): ApiFullMockTest | null {
     exam: parsePaperExamRef(value.exam),
     isSessionWise: value.isSessionWise === true,
     subjectConfig: parseList(value.subjectConfig, parseSubjectConfig) ?? [],
-    ...optionalField("totalMarks", readNumber(value.totalMarks)),
   };
 }
 

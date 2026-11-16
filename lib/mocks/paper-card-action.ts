@@ -1,4 +1,5 @@
 import { isStartBlocked } from "@/lib/mocks/paper-access";
+import { attemptResultPath } from "@/lib/mocks/exam-test-routes";
 import type { PaperAccessFields, UserAttemptAction } from "@/types/access";
 
 export type LaunchIntent =
@@ -19,9 +20,28 @@ const ATTEMPT_COPY: Record<
   { label: string; loadingLabel: string }
 > = {
   START: { label: "Start", loadingLabel: "Starting..." },
-  RETAKE: { label: "Retake", loadingLabel: "Starting..." },
-  RESUME: { label: "Resume", loadingLabel: "Resuming..." },
+  RETAKE: { label: "Retry", loadingLabel: "Starting..." },
+  RESUME: { label: "Resume →", loadingLabel: "Resuming..." },
 };
+
+export type PaperCardReviewAction = {
+  kind: "review";
+  href: string;
+  label: string;
+};
+
+/** Secondary Review CTA when a completed attempt id is available. */
+export function resolvePaperCardReviewAction(input: {
+  lastAttemptId?: string;
+  status?: "new" | "in_progress" | "completed";
+}): PaperCardReviewAction | null {
+  if (input.status !== "completed" || !input.lastAttemptId) return null;
+  return {
+    kind: "review",
+    href: attemptResultPath(input.lastAttemptId),
+    label: "Review",
+  };
+}
 
 /** RESUME only counts when the API gave us an attempt to resume. */
 export function effectiveAttemptAction(

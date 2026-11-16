@@ -12,11 +12,13 @@ import type { AttemptDetails } from "@/types/attempt";
 
 const replace = vi.fn();
 const push = vi.fn();
+const pathnameRef = { current: "/mocks/attempt/att1" };
 
 const router = { replace, push };
 
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
+  usePathname: () => pathnameRef.current,
 }));
 vi.mock("mathpix-markdown-it", () => mathpixModuleStub());
 vi.mock("@/lib/api/attempts", async (importOriginal) => {
@@ -53,6 +55,7 @@ function inProgress(overrides: Partial<AttemptDetails> = {}): AttemptDetails {
 beforeEach(() => {
   replace.mockClear();
   push.mockClear();
+  pathnameRef.current = "/mocks/attempt/att1";
   getAttemptMock.mockReset();
   submitMock.mockReset();
   submitMock.mockReturnValue(new Promise(() => undefined));
@@ -90,6 +93,50 @@ describe("AttemptPageClient", () => {
     getAttemptMock.mockResolvedValue({ ok: true, data: inProgress({ status: "PAUSED" }) });
     render(<AttemptPageClient attemptId="att1" />);
     expect(await screen.findByRole("dialog", { name: "Test Paused" })).toBeInTheDocument();
+  });
+
+  it("hides fixed overlays while Soft Nav keeps the page inactive", async () => {
+    getAttemptMock.mockResolvedValue({
+      ok: true,
+      data: inProgress({ status: "PAUSED" }),
+    });
+    const { rerender } = render(<AttemptPageClient attemptId="att1" />);
+    expect(
+      await screen.findByRole("dialog", { name: "Test Paused" })
+    ).toBeInTheDocument();
+
+    pathnameRef.current = "/mocks/exam/exam1/chapter-wise";
+    rerender(<AttemptPageClient attemptId="att1" />);
+    expect(screen.queryByRole("dialog", { name: "Test Paused" })).toBeNull();
+    expect(screen.queryByText("Loading your test...")).toBeNull();
+  });
+
+  it("reloads from the server when Soft Nav returns to the attempt", async () => {
+    getAttemptMock
+      .mockResolvedValueOnce({
+        ok: true,
+        data: inProgress({ status: "PAUSED" }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        data: inProgress({ status: "IN_PROGRESS", timeRemaining: 1700 }),
+      });
+    const { rerender } = render(<AttemptPageClient attemptId="att1" />);
+    expect(
+      await screen.findByRole("dialog", { name: "Test Paused" })
+    ).toBeInTheDocument();
+
+    pathnameRef.current = "/mocks/exam/exam1/chapter-wise";
+    rerender(<AttemptPageClient attemptId="att1" />);
+    pathnameRef.current = "/mocks/attempt/att1";
+    rerender(<AttemptPageClient attemptId="att1" />);
+
+    expect(await screen.findByRole("timer")).toHaveAttribute(
+      "aria-label",
+      "Time left 28:20"
+    );
+    expect(screen.queryByRole("dialog", { name: "Test Paused" })).toBeNull();
+    expect(getAttemptMock).toHaveBeenCalledTimes(2);
   });
 
   it("redirects finished attempts to results and drops the cache", async () => {

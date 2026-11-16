@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AttemptErrorState } from "@/components/attempt/attempt-error-state";
 import { preloadMathpix } from "@/components/attempt/mathpix-boundary";
 import { MockTestRunner } from "@/components/attempt/mock-test-runner";
@@ -25,29 +25,59 @@ type AttemptPageClientProps = {
 type LoadState =
   | { status: "loading" }
   | { status: "redirecting" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; fetchKey: string }
   | {
       status: "ready";
       data: StartAttemptData;
       initialSeconds: number;
       initialPaused: boolean;
+      fetchKey: string;
+      /** Bumps whenever Soft Nav re-activates this route so the runner remounts. */
+      visitId: number;
     };
 
 const LINK_CLASS =
   "inline-flex h-11 min-w-[11rem] items-center justify-center rounded-[10px] px-4 text-sm font-semibold";
 
+function isAttemptRouteActive(pathname: string, attemptId: string): boolean {
+  const base = `/mocks/attempt/${attemptId}`;
+  return pathname === base || pathname.startsWith(`${base}/`);
+}
+
 /**
  * Loads the authoritative attempt, then hands it to the runner. The
  * sessionStorage cache only rescues a flaky network; the server clock always wins.
+ *
+ * Soft Nav can keep this page mounted after exit. We render nothing while the
+ * route is inactive (so fixed pause modals cannot cover the list), and reload
+ * from the server whenever the route becomes active again.
  */
 export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isActive = isAttemptRouteActive(pathname, attemptId);
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [loadCount, setLoadCount] = useState(0);
+  const [routeEpoch, setRouteEpoch] = useState(0);
+  const [wasActive, setWasActive] = useState(isActive);
+
+  // Soft Nav re-entry: bump epoch during render so the current result is stale
+  // without a synchronous setState inside an effect.
+  if (wasActive !== isActive) {
+    setWasActive(isActive);
+    if (isActive) {
+      setRouteEpoch((epoch) => epoch + 1);
+    }
+  }
+
+  const fetchKey = `${attemptId}:${loadCount}:${routeEpoch}`;
 
   useEffect(() => {
+    if (!isActive) return;
+
     preloadMathpix();
     let cancelled = false;
+    const key = fetchKey;
 
     void getAttempt(attemptId).then((result) => {
       if (cancelled) return;
@@ -67,6 +97,8 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
           initialSeconds:
             details.timeRemaining ?? computeAttemptSecondsLeft(data),
           initialPaused: isAttemptPaused(details.status),
+          fetchKey: key,
+          visitId: Date.now(),
         });
         return;
       }
@@ -81,27 +113,36 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
           data: cached,
           initialSeconds: computeAttemptSecondsLeft(cached),
           initialPaused: false,
+          fetchKey: key,
+          visitId: Date.now(),
         });
         return;
       }
 
-      setState({ status: "error", message: result.message });
+      setState({ status: "error", message: result.message, fetchKey: key });
     });
 
     return () => {
       cancelled = true;
     };
-  }, [attemptId, loadCount, router]);
+  }, [isActive, attemptId, fetchKey, router]);
 
-  if (state.status === "loading" || state.status === "redirecting") {
+  // Soft Nav: keep this tree mounted but inert so fixed overlays cannot leak.
+  if (!isActive) return null;
+
+  const isStale =
+    state.status === "loading" ||
+    (state.status !== "redirecting" && state.fetchKey !== fetchKey);
+
+  if (isStale || state.status === "redirecting") {
     return (
       <StudyLoadingOverlay
         open
         scope="viewport"
         label={
-          state.status === "loading"
-            ? "Loading your test..."
-            : "Opening your results..."
+          state.status === "redirecting"
+            ? "Opening your results..."
+            : "Loading your test..."
         }
       />
     );
@@ -117,10 +158,7 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
             <StudyButton
               variant="solid"
               className={LINK_CLASS}
-              onClick={() => {
-                setState({ status: "loading" });
-                setLoadCount((value) => value + 1);
-              }}
+              onClick={() => setLoadCount((value) => value + 1)}
             >
               Try again
             </StudyButton>
@@ -139,7 +177,7 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
 
   return (
     <MockTestRunner
-      key={state.data.attemptId}
+      key={`${state.data.attemptId}-${state.visitId}`}
       attemptId={state.data.attemptId}
       mockTestData={state.data.mockTestData}
       questions={state.data.questions}

@@ -362,6 +362,11 @@ describe("MockTestRunner pause", () => {
     await user.click(screen.getByRole("button", { name: "Exit to Chapter Wise" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/mocks/exam/exam1/chapter-wise"));
     expect(pauseMock).not.toHaveBeenCalled();
+    // Soft Nav can keep the runner mounted — do not leave "Saving & Exiting...".
+    expect(
+      screen.getByRole("button", { name: "Exit to Chapter Wise" })
+    ).toBeEnabled();
+    expect(screen.queryByText("Saving & Exiting...")).toBeNull();
   });
 
   it("pauses then leaves from the back-button dialog", async () => {

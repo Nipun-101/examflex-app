@@ -7,33 +7,43 @@ import type { PaperCardData } from "@/lib/mocks/paper-card-model";
 const base: PaperCardData = {
   id: "p1",
   title: "Kinematics",
-  subtitle: "Physics",
+  subtitle: "Physics · Kinematics",
+  eyebrow: "PHYSICS · KINEMATICS",
+  kind: "chapter",
+  subjectName: "Physics",
+  topicName: "Kinematics",
   totalQuestions: 20,
   durationInMinutes: 30,
+  totalMarks: 80,
   marksPerQuestion: 4,
   negativeMarking: 1,
+  allowRetake: true,
+  status: "new",
+  attemptCount: 0,
 };
 
 const denied = { allowed: false, reason: "ENTITLEMENT_REQUIRED" };
 
 describe("PaperCard", () => {
-  it("shows paper meta", () => {
+  it("renders the new variant with stats and Start", () => {
     render(<PaperCard paper={base} />);
+    expect(screen.getByText("New")).toBeInTheDocument();
+    expect(screen.getByText("PHYSICS · KINEMATICS")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Kinematics" })
     ).toBeInTheDocument();
-    expect(screen.getByText("Physics")).toBeInTheDocument();
-    expect(screen.getByText("20 questions")).toBeInTheDocument();
-    expect(screen.getByText("30 mins")).toBeInTheDocument();
-    expect(screen.getByText("4 marks/Q")).toBeInTheDocument();
+    expect(screen.getByText("Questions")).toBeInTheDocument();
+    expect(screen.getByText("20")).toBeInTheDocument();
+    expect(screen.getByText("30 min")).toBeInTheDocument();
+    expect(screen.getByText("80")).toBeInTheDocument();
     expect(screen.getByText("−1 marking")).toBeInTheDocument();
-    expect(screen.queryByText("Locked")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
   });
 
-  it("shows no negative marking and omits a missing subtitle", () => {
-    render(<PaperCard paper={{ ...base, subtitle: null, negativeMarking: 0 }} />);
+  it("shows no negative marking and omits marking chip text when zero", () => {
+    render(<PaperCard paper={{ ...base, negativeMarking: 0 }} />);
     expect(screen.getByText("No negative marking")).toBeInTheDocument();
-    expect(screen.queryByText("Physics")).not.toBeInTheDocument();
+    expect(screen.queryByText("−0 marking")).not.toBeInTheDocument();
   });
 
   it("starts the paper", async () => {
@@ -44,24 +54,82 @@ describe("PaperCard", () => {
     expect(onLaunch).toHaveBeenCalledTimes(1);
   });
 
-  it("offers Retake as a start", async () => {
+  it("renders in-progress progress + Resume", async () => {
     const user = userEvent.setup();
     const onLaunch = vi.fn();
     render(
       <PaperCard
-        paper={{ ...base, userAttemptAction: "RETAKE" }}
+        paper={{
+          ...base,
+          status: "in_progress",
+          userAttemptAction: "RESUME",
+          resumeAttemptId: "a1",
+          answeredCount: 4,
+          timeRemainingSeconds: 370,
+        }}
         onLaunch={onLaunch}
       />
     );
-    await user.click(screen.getByRole("button", { name: "Retake" }));
+    expect(screen.getByText("In progress")).toBeInTheDocument();
+    expect(screen.getByText("4 of 20 answered")).toBeInTheDocument();
+    expect(screen.getByText("6:10 left")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Resume →" }));
     expect(onLaunch).toHaveBeenCalledTimes(1);
   });
 
-  it("does nothing on a plain click without handlers", async () => {
-    const user = userEvent.setup();
-    render(<PaperCard paper={base} />);
-    await user.click(screen.getByRole("button", { name: "Start" }));
-    expect(screen.getByRole("button", { name: "Start" })).toBeEnabled();
+  it("renders completed Retry + Review and Mistake Book strip", () => {
+    render(
+      <PaperCard
+        paper={{
+          ...base,
+          status: "completed",
+          userAttemptAction: "RETAKE",
+          attemptCount: 2,
+          bestScore: 32,
+          bestCorrectAnswers: 8,
+          lastAttemptId: "a9",
+          lastTimeTakenSeconds: 460,
+          lastIncorrectAnswers: 3,
+        }}
+      />
+    );
+    expect(screen.getByText("Completed")).toBeInTheDocument();
+    expect(screen.getByText("Best score · 2 attempts")).toBeInTheDocument();
+    expect(screen.getByText("7:40 taken last time")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Best score 8 out of 20" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: /3 mistakes waiting in your Mistake Book/i,
+      })
+    ).toHaveAttribute("href", "/mistake-book");
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Review" })).toHaveAttribute(
+      "href",
+      "/mocks/attempt/a9/result"
+    );
+    expect(
+      screen.getByText("Review opens your latest attempt")
+    ).toBeInTheDocument();
+  });
+
+  it("hides Retry when retakes are disabled", () => {
+    render(
+      <PaperCard
+        paper={{
+          ...base,
+          status: "completed",
+          userAttemptAction: "RETAKE",
+          allowRetake: false,
+          lastAttemptId: "a9",
+          attemptCount: 1,
+          bestCorrectAnswers: 8,
+        }}
+      />
+    );
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Review" })).toBeInTheDocument();
   });
 
   it("shows View plans and a Locked badge when start is blocked", async () => {
@@ -82,16 +150,23 @@ describe("PaperCard", () => {
     expect(onLaunch).not.toHaveBeenCalled();
   });
 
-  it("blocked retake also shows View plans", () => {
+  it("blocked retry also shows View plans", () => {
     render(
       <PaperCard
-        paper={{ ...base, userAttemptAction: "RETAKE", access: denied }}
+        paper={{
+          ...base,
+          status: "completed",
+          userAttemptAction: "RETAKE",
+          access: denied,
+          lastAttemptId: "a9",
+          attemptCount: 1,
+        }}
       />
     );
     expect(
       screen.getByRole("button", { name: /View plans/i })
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Retake" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
   });
 
   it("keeps Resume available when access is denied", async () => {
@@ -101,15 +176,18 @@ describe("PaperCard", () => {
       <PaperCard
         paper={{
           ...base,
+          status: "in_progress",
           userAttemptAction: "RESUME",
           resumeAttemptId: "a1",
           access: denied,
+          answeredCount: 1,
+          timeRemainingSeconds: 100,
         }}
         onLaunch={onLaunch}
       />
     );
     expect(screen.queryByText("Locked")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Resume" }));
+    await user.click(screen.getByRole("button", { name: "Resume →" }));
     expect(onLaunch).toHaveBeenCalledTimes(1);
   });
 
@@ -118,8 +196,11 @@ describe("PaperCard", () => {
       <PaperCard
         paper={{
           ...base,
+          status: "in_progress",
           userAttemptAction: "RESUME",
           resumeAttemptId: "a1",
+          answeredCount: 1,
+          timeRemainingSeconds: 100,
         }}
         isActing
       />

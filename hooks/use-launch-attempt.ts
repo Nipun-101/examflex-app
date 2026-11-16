@@ -28,8 +28,9 @@ export type LaunchAttemptController = {
 
 /**
  * Start or resume a paper, then open the attempt runner.
- * Only one launch runs at a time; further calls are ignored until it fails.
- * On success the lock stays held while the route changes.
+ * Only one launch runs at a time; further calls are ignored until it settles.
+ * The lock always releases after success or failure so Soft Nav / back
+ * navigation cannot leave paper CTAs stuck disabled.
  */
 export function useLaunchAttempt(): LaunchAttemptController {
   const router = useRouter();
@@ -37,6 +38,11 @@ export function useLaunchAttempt(): LaunchAttemptController {
   const lockRef = useRef(false);
   const [startingTestId, setStartingTestId] = useState<string | null>(null);
   const [startError, setStartError] = useState<LaunchError | null>(null);
+
+  const releaseLock = useCallback(() => {
+    lockRef.current = false;
+    setStartingTestId(null);
+  }, []);
 
   const run = useCallback(
     async (
@@ -49,17 +55,19 @@ export function useLaunchAttempt(): LaunchAttemptController {
       setStartingTestId(testId);
       setStartError(null);
 
-      const result = await studyLoading.run(request, { label });
-      if (!result.ok) {
-        setStartError(toLaunchError(result, testId));
-        setStartingTestId(null);
-        lockRef.current = false;
-        return;
+      try {
+        const result = await studyLoading.run(request, { label });
+        if (!result.ok) {
+          setStartError(toLaunchError(result, testId));
+          return;
+        }
+        cacheAttempt(result.data);
+        router.push(attemptPath(result.data.attemptId));
+      } finally {
+        releaseLock();
       }
-      cacheAttempt(result.data);
-      router.push(attemptPath(result.data.attemptId));
     },
-    [router, studyLoading]
+    [releaseLock, router, studyLoading]
   );
 
   const start = useCallback(

@@ -37,12 +37,22 @@ describe("QuestionPalette", () => {
     expect(
       screen.getByRole("button", { name: "Question 4, answered and marked for review" })
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Question 2, not answered" })
-    ).toHaveAttribute("aria-current", "true");
+    const current = screen.getByRole("button", {
+      name: "Question 2, not answered",
+    });
+    expect(current).toHaveAttribute("aria-current", "true");
+    expect(current.className).toContain("bg-study-lime");
     expect(
       screen.getByRole("button", { name: "Question 1, answered" })
-    ).not.toHaveAttribute("aria-current");
+    ).toHaveClass("bg-study-green");
+    expect(
+      screen.getByRole("button", { name: "Question 3, marked for review" })
+    ).toHaveStyle({ backgroundColor: "#4f446c" });
+    expect(
+      screen.getByRole("button", {
+        name: "Question 4, answered and marked for review",
+      })
+    ).toHaveStyle({ backgroundColor: "#4f446c" });
   });
 
   it("selects a question", async () => {

@@ -68,15 +68,15 @@ export function QuestionPanel({
                 onClick={() => onSelectOption(option.id)}
                 className={`flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[12px] border-2 px-3 py-2.5 text-left transition-colors sm:px-4 ${
                   selected
-                    ? "border-study-green bg-study-mint"
-                    : "border-study-divider bg-white hover:border-study-green/50 hover:bg-study-canvas"
+                    ? "border-[#2f5ea8] bg-[#e7eef8]"
+                    : "border-study-divider bg-white hover:border-[#2f5ea8]/40 hover:bg-study-canvas"
                 }`}
               >
                 <span
                   aria-hidden
                   className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 ${
                     selected
-                      ? "border-study-green bg-study-green"
+                      ? "border-[#2f5ea8] bg-[#2f5ea8]"
                       : "border-study-muted"
                   }`}
                 >

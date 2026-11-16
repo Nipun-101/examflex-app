@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   parseAccessMode,
+  parseAttemptSummary,
   parsePaginatedList,
   parsePagination,
   parsePaperAccess,
@@ -106,22 +107,78 @@ describe("parsePaperExamRef", () => {
   });
 });
 
+describe("parseAttemptSummary", () => {
+  it("parses completed and in-progress summaries", () => {
+    expect(
+      parseAttemptSummary({
+        status: "COMPLETED",
+        attemptCount: 2,
+        bestScore: 32,
+        bestCorrectAnswers: 8,
+        lastAttemptId: "a9",
+        lastIncorrectAnswers: 3,
+      })
+    ).toEqual({
+      status: "COMPLETED",
+      attemptCount: 2,
+      bestScore: 32,
+      bestCorrectAnswers: 8,
+      lastAttemptId: "a9",
+      lastIncorrectAnswers: 3,
+    });
+    expect(
+      parseAttemptSummary({
+        status: "IN_PROGRESS",
+        attemptCount: 0,
+        answeredCount: 4,
+        timeRemainingSeconds: 370,
+        activeAttemptId: "a1",
+      })
+    ).toMatchObject({
+      status: "IN_PROGRESS",
+      answeredCount: 4,
+      timeRemainingSeconds: 370,
+      activeAttemptId: "a1",
+    });
+  });
+
+  it("rejects malformed summaries", () => {
+    expect(parseAttemptSummary(null)).toBeUndefined();
+    expect(parseAttemptSummary({ status: "DONE", attemptCount: 1 })).toBeUndefined();
+    expect(parseAttemptSummary({ status: "NONE" })).toBeUndefined();
+  });
+});
+
 describe("parsePaperListBase", () => {
   it("parses a full item", () => {
     expect(
       parsePaperListBase({
         ...baseItem,
+        totalMarks: 80,
         accessMode: "ENTITLED",
         access: { allowed: false, reason: "NO_ENTITLEMENT" },
         userAttemptAction: "RESUME",
         resumeAttemptId: "a1",
+        attemptSummary: {
+          status: "PAUSED",
+          attemptCount: 0,
+          answeredCount: 2,
+          timeRemainingSeconds: 100,
+        },
       })
     ).toEqual({
       ...baseItem,
+      totalMarks: 80,
       accessMode: "ENTITLED",
       access: { allowed: false, reason: "NO_ENTITLEMENT" },
       userAttemptAction: "RESUME",
       resumeAttemptId: "a1",
+      attemptSummary: {
+        status: "PAUSED",
+        attemptCount: 0,
+        answeredCount: 2,
+        timeRemainingSeconds: 100,
+      },
     });
   });
 
@@ -142,6 +199,8 @@ describe("parsePaperListBase", () => {
     expect(parsed).not.toHaveProperty("accessMode");
     expect(parsed).not.toHaveProperty("userAttemptAction");
     expect(parsed).not.toHaveProperty("resumeAttemptId");
+    expect(parsed).not.toHaveProperty("totalMarks");
+    expect(parsed).not.toHaveProperty("attemptSummary");
   });
 
   it.each([

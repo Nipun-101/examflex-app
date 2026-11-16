@@ -20,6 +20,29 @@ export interface PaginatedList<T> {
   pagination: MockTestsPagination;
 }
 
+export type AttemptSummaryStatus =
+  | "NONE"
+  | "IN_PROGRESS"
+  | "PAUSED"
+  | "COMPLETED";
+
+/** Batched attempt snapshot for catalog cards (authenticated lists only). */
+export interface AttemptSummary {
+  status: AttemptSummaryStatus;
+  attemptCount: number;
+  activeAttemptId?: string;
+  answeredCount?: number;
+  timeRemainingSeconds?: number;
+  timeElapsedSeconds?: number;
+  bestScore?: number;
+  bestCorrectAnswers?: number;
+  lastAttemptId?: string;
+  lastScore?: number;
+  lastCorrectAnswers?: number;
+  lastTimeTakenSeconds?: number;
+  lastIncorrectAnswers?: number;
+}
+
 /** Fields common to chapter-wise, full mock and sprint list items. */
 export interface PaperListItemBase extends PaperAccessFields {
   id: string;
@@ -27,6 +50,8 @@ export interface PaperListItemBase extends PaperAccessFields {
   description: string | null;
   totalQuestions: number;
   durationInMinutes: number;
+  /** Present when API sends it; otherwise UI falls back to Q × marks. */
+  totalMarks?: number;
   marksPerQuestion: number;
   negativeMarking: number;
   passingScore: number | null;
@@ -36,6 +61,7 @@ export interface PaperListItemBase extends PaperAccessFields {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  attemptSummary?: AttemptSummary;
 }
 
 export interface ApiPaperExamRef {
@@ -75,7 +101,6 @@ export interface ApiFullMockSubjectConfig {
 }
 
 export interface ApiFullMockTest extends PaperListItemBase {
-  totalMarks?: number;
   isSessionWise: boolean;
   exam: ApiPaperExamRef | null;
   subjectConfig: ApiFullMockSubjectConfig[];

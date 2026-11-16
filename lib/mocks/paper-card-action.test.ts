@@ -3,6 +3,7 @@ import {
   effectiveAttemptAction,
   resolveLaunchIntent,
   resolvePaperCardAction,
+  resolvePaperCardReviewAction,
 } from "@/lib/mocks/paper-card-action";
 
 const denied = { allowed: false, reason: "ENTITLEMENT_REQUIRED" };
@@ -55,7 +56,7 @@ describe("resolveLaunchIntent", () => {
 });
 
 describe("resolvePaperCardAction", () => {
-  it("shows Start, Retake and Resume when access is allowed", () => {
+  it("shows Start, Retry and Resume when access is allowed", () => {
     expect(resolvePaperCardAction({})).toEqual({
       kind: "attempt",
       action: "START",
@@ -67,7 +68,7 @@ describe("resolvePaperCardAction", () => {
         userAttemptAction: "RETAKE",
         access: { allowed: true, reason: "" },
       })
-    ).toMatchObject({ kind: "attempt", action: "RETAKE", label: "Retake" });
+    ).toMatchObject({ kind: "attempt", action: "RETAKE", label: "Retry" });
     expect(
       resolvePaperCardAction({
         userAttemptAction: "RESUME",
@@ -76,11 +77,12 @@ describe("resolvePaperCardAction", () => {
     ).toMatchObject({
       kind: "attempt",
       action: "RESUME",
+      label: "Resume →",
       loadingLabel: "Resuming...",
     });
   });
 
-  it("replaces Start and Retake with View plans when denied", () => {
+  it("replaces Start and Retry with View plans when denied", () => {
     expect(
       resolvePaperCardAction({ userAttemptAction: "START", access: denied })
     ).toEqual({ kind: "view-plans" });
@@ -109,5 +111,32 @@ describe("resolvePaperCardAction", () => {
     expect(resolvePaperCardAction({ accessMode: "ENTITLED" })).toMatchObject({
       kind: "attempt",
     });
+  });
+});
+
+describe("resolvePaperCardReviewAction", () => {
+  it("returns a results href for completed papers with a last attempt", () => {
+    expect(
+      resolvePaperCardReviewAction({
+        status: "completed",
+        lastAttemptId: "a9",
+      })
+    ).toEqual({
+      kind: "review",
+      href: "/mocks/attempt/a9/result",
+      label: "Review",
+    });
+  });
+
+  it("skips Review without a completed last attempt", () => {
+    expect(
+      resolvePaperCardReviewAction({ status: "completed" })
+    ).toBeNull();
+    expect(
+      resolvePaperCardReviewAction({
+        status: "in_progress",
+        lastAttemptId: "a9",
+      })
+    ).toBeNull();
   });
 });

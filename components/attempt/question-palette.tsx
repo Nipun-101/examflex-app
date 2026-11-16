@@ -26,15 +26,33 @@ const STATUS_LABEL: Record<QuestionStatus, string> = {
   "not-visited": "not visited",
 };
 
+/** ExamFlex lilac-ink purple — inline style so marked swatches never paint transparent. */
+const MARKED_FILL = "#4f446c";
+
+/**
+ * Status hues follow ezprep’s palette roles (answered / not-answered / marked /
+ * current) remapped onto ExamFlex study tokens for stronger contrast.
+ */
 const STATUS_CLASS: Record<QuestionStatus, string> = {
   answered: "bg-study-green text-white hover:brightness-110",
-  "not-answered": "bg-study-peach text-study-peach-ink hover:brightness-95",
-  marked: "bg-study-lilac text-study-ink ring-1 ring-study-ink/25 hover:brightness-95",
-  "marked-answered":
-    "bg-study-lilac text-study-ink ring-1 ring-study-ink/25 hover:brightness-95",
+  "not-answered": "bg-study-peach-ink text-white hover:brightness-110",
+  marked: "text-white hover:brightness-110",
+  "marked-answered": "text-white hover:brightness-110",
   "not-visited":
-    "border border-study-divider bg-white text-study-muted-soft hover:bg-study-mint",
+    "border border-study-divider bg-study-mint-bar/60 text-study-ink hover:bg-study-mint",
 };
+
+function statusStyle(
+  status: QuestionStatus
+): { backgroundColor: string } | undefined {
+  if (status === "marked" || status === "marked-answered") {
+    return { backgroundColor: MARKED_FILL };
+  }
+  return undefined;
+}
+
+const CURRENT_CLASS =
+  "bg-study-lime text-study-ink ring-2 ring-study-ink ring-offset-2 hover:brightness-95";
 
 const LEGEND: ReadonlyArray<{ status: QuestionStatus; label: string }> = [
   { status: "answered", label: "Answered" },
@@ -47,7 +65,7 @@ const LEGEND: ReadonlyArray<{ status: QuestionStatus; label: string }> = [
 function MarkedAnsweredBadge() {
   return (
     <Check
-      className="absolute -right-1 -bottom-1 h-3.5 w-3.5 rounded-full bg-study-green p-0.5 text-white"
+      className="absolute right-0 bottom-0 h-3.5 w-3.5 translate-x-1/4 translate-y-1/4 rounded-full bg-study-green p-0.5 text-white shadow-sm"
       strokeWidth={3}
       aria-hidden
     />
@@ -67,7 +85,7 @@ export function QuestionPalette({
 }: QuestionPaletteProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-0.5">
+      <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto px-1">
         <div className="border-b border-study-divider pb-4">
           <p className="truncate font-display text-sm font-semibold text-study-ink">
             {testTitle}
@@ -90,28 +108,31 @@ export function QuestionPalette({
           {isPaused ? "Resume Test" : "Pause Test"}
         </StudyButton>
 
-        <section aria-label="Legend" className="space-y-2">
+        <section aria-label="Legend" className="space-y-2.5">
           <h3 className="text-sm font-bold text-study-ink">Legend</h3>
-          <ul className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
             {LEGEND.map(({ status, label }) => (
-              <li key={status} className="flex items-center gap-2">
+              <li key={status} className="flex min-w-0 items-center gap-2.5">
                 <span
-                  className={`relative grid h-7 w-7 shrink-0 place-items-center rounded-md text-xs font-bold ${STATUS_CLASS[status]}`}
+                  className={`relative grid h-7 w-7 shrink-0 place-items-center rounded-md text-xs font-bold shadow-sm ${STATUS_CLASS[status]}`}
+                  style={statusStyle(status)}
                 >
                   {countStatus(statuses, status)}
                   {status === "marked-answered" ? <MarkedAnsweredBadge /> : null}
                 </span>
-                <span className="font-medium text-study-ink">{label}</span>
+                <span className="leading-snug font-medium text-study-ink">
+                  {label}
+                </span>
               </li>
             ))}
           </ul>
         </section>
 
-        <section aria-label="Question palette" className="space-y-2">
+        <section aria-label="Question palette" className="space-y-2.5">
           <h3 className="text-xs font-semibold text-study-muted-soft">
             {sectionTitle ? `${sectionTitle} :` : "Question Palette:"}
           </h3>
-          <div className="grid max-h-[18.75rem] grid-cols-5 gap-2 overflow-y-auto p-1 pr-2">
+          <div className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5">
             {statuses.map((status, index) => {
               const isCurrent = index === currentIndex;
               return (
@@ -121,11 +142,10 @@ export function QuestionPalette({
                   onClick={() => onSelect(index)}
                   aria-label={`Question ${index + 1}, ${STATUS_LABEL[status]}`}
                   {...(isCurrent ? { "aria-current": "true" as const } : {})}
-                  className={`relative h-11 cursor-pointer rounded-md text-sm font-bold transition-colors lg:h-10 lg:text-[13px] ${
-                    isCurrent
-                      ? "bg-study-ink text-white ring-2 ring-study-green ring-offset-2"
-                      : STATUS_CLASS[status]
+                  className={`relative h-11 cursor-pointer rounded-md text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${
+                    isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]
                   }`}
+                  style={isCurrent ? undefined : statusStyle(status)}
                 >
                   {index + 1}
                   {status === "marked-answered" && !isCurrent ? (

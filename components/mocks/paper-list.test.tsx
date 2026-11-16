@@ -33,11 +33,19 @@ vi.mock("@/lib/api/catalog", async () => {
 const card = (overrides: Partial<PaperCardData> = {}): PaperCardData => ({
   id: "p1",
   title: "Kinematics",
-  subtitle: "Physics",
+  subtitle: "Physics · Kinematics",
+  eyebrow: "PHYSICS · KINEMATICS",
+  kind: "chapter",
+  subjectName: "Physics",
+  topicName: "Kinematics",
   totalQuestions: 20,
   durationInMinutes: 30,
+  totalMarks: 80,
   marksPerQuestion: 4,
   negativeMarking: 1,
+  allowRetake: true,
+  status: "new",
+  attemptCount: 0,
   ...overrides,
 });
 
@@ -158,8 +166,10 @@ describe("PaperList", () => {
 
     expect(startMockTestAttempt).toHaveBeenCalledWith("p1");
     await waitFor(() => expect(push).toHaveBeenCalledWith("/mocks/attempt/att1"));
-    // The other card stays disabled while the route changes.
-    expect(screen.getByRole("button", { name: "Start" })).toBeDisabled();
+    // Launch lock releases after navigation so Soft Nav / back cannot stick CTAs.
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: "Start" })[0]).toBeEnabled();
+    });
   });
 
   it("resumes an in-progress paper", async () => {
@@ -169,11 +179,17 @@ describe("PaperList", () => {
       vi.fn<FetchPaperPage>().mockResolvedValue({
         ok: true,
         data: page([
-          card({ userAttemptAction: "RESUME", resumeAttemptId: "att9" }),
+          card({
+            status: "in_progress",
+            userAttemptAction: "RESUME",
+            resumeAttemptId: "att9",
+            answeredCount: 2,
+            timeRemainingSeconds: 120,
+          }),
         ]),
       })
     );
-    await user.click(await screen.findByRole("button", { name: "Resume" }));
+    await user.click(await screen.findByRole("button", { name: "Resume →" }));
     expect(resumeAttempt).toHaveBeenCalledWith("att9");
     await waitFor(() => expect(push).toHaveBeenCalledWith("/mocks/attempt/att9"));
   });

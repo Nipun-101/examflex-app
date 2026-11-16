@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   chapterPaperToCard,
   fullMockToCard,
+  resolvePaperCardStatus,
+  resolveTotalMarks,
   sprintTestToCard,
   UNTITLED_PAPER,
 } from "@/lib/mocks/paper-card-model";
@@ -39,16 +41,49 @@ const chapter: ApiMockTest = {
   generationMode: "AUTO",
 };
 
+describe("resolvePaperCardStatus", () => {
+  it("maps attempt actions to card status", () => {
+    expect(resolvePaperCardStatus({})).toBe("new");
+    expect(
+      resolvePaperCardStatus({
+        userAttemptAction: "RESUME",
+        resumeAttemptId: "a1",
+      })
+    ).toBe("in_progress");
+    expect(resolvePaperCardStatus({ userAttemptAction: "RETAKE" })).toBe(
+      "completed"
+    );
+  });
+});
+
+describe("resolveTotalMarks", () => {
+  it("uses API totalMarks when present", () => {
+    expect(resolveTotalMarks({ ...base, totalMarks: 72 })).toBe(72);
+  });
+
+  it("falls back to questions × marks", () => {
+    expect(resolveTotalMarks(base)).toBe(80);
+  });
+});
+
 describe("chapterPaperToCard", () => {
-  it("uses the title and Subject · Chapter subtitle", () => {
-    expect(chapterPaperToCard(chapter)).toEqual({
+  it("keeps subject/topic, eyebrow, and totalMarks", () => {
+    expect(chapterPaperToCard(chapter)).toMatchObject({
       id: "p1",
       title: "Paper",
       subtitle: "Physics · Kinematics",
+      eyebrow: "PHYSICS · KINEMATICS",
+      kind: "chapter",
+      subjectName: "Physics",
+      topicName: "Kinematics",
       totalQuestions: 20,
       durationInMinutes: 30,
+      totalMarks: 80,
       marksPerQuestion: 4,
       negativeMarking: 1,
+      allowRetake: true,
+      status: "new",
+      attemptCount: 0,
     });
   });
 
@@ -60,7 +95,35 @@ describe("chapterPaperToCard", () => {
     void _topic;
     const card = chapterPaperToCard({ ...withoutTopic, title: null });
     expect(card.title).toBe("Physics");
-    expect(card.subtitle).toBe("Physics");
+    expect(card.subjectName).toBe("Physics");
+    expect(card.topicName).toBeNull();
+  });
+
+  it("maps attemptSummary onto completed card fields", () => {
+    const card = chapterPaperToCard({
+      ...chapter,
+      userAttemptAction: "RETAKE",
+      totalMarks: 72,
+      attemptSummary: {
+        status: "COMPLETED",
+        attemptCount: 2,
+        bestScore: 32,
+        bestCorrectAnswers: 8,
+        lastAttemptId: "a9",
+        lastScore: 28,
+        lastTimeTakenSeconds: 460,
+        lastIncorrectAnswers: 3,
+      },
+    });
+    expect(card).toMatchObject({
+      status: "completed",
+      totalMarks: 72,
+      attemptCount: 2,
+      bestScore: 32,
+      bestCorrectAnswers: 8,
+      lastAttemptId: "a9",
+      lastIncorrectAnswers: 3,
+    });
   });
 
   it("carries access fields through", () => {
@@ -70,12 +133,21 @@ describe("chapterPaperToCard", () => {
       access: { allowed: false, reason: "ENTITLEMENT_REQUIRED" },
       userAttemptAction: "RESUME",
       resumeAttemptId: "a1",
+      attemptSummary: {
+        status: "IN_PROGRESS",
+        attemptCount: 0,
+        answeredCount: 4,
+        timeRemainingSeconds: 370,
+      },
     });
     expect(card).toMatchObject({
       accessMode: "ENTITLED",
       access: { allowed: false, reason: "ENTITLEMENT_REQUIRED" },
       userAttemptAction: "RESUME",
       resumeAttemptId: "a1",
+      status: "in_progress",
+      answeredCount: 4,
+      timeRemainingSeconds: 370,
     });
   });
 });
@@ -88,8 +160,13 @@ describe("fullMockToCard", () => {
     subjectConfig: [],
   };
 
-  it("labels single and session-wise papers", () => {
-    expect(fullMockToCard(full).subtitle).toBe("Full paper");
+  it("labels full mocks without a subject theme", () => {
+    expect(fullMockToCard(full)).toMatchObject({
+      eyebrow: "FULL MOCK",
+      kind: "full",
+      subjectName: null,
+      subtitle: "Full paper",
+    });
     expect(fullMockToCard({ ...full, isSessionWise: true }).subtitle).toBe(
       "Session-wise"
     );
@@ -110,6 +187,8 @@ describe("sprintTestToCard", () => {
     expect(sprintTestToCard(sprint)).toMatchObject({
       title: "Paper",
       subtitle: "Sprint",
+      eyebrow: "SPRINT",
+      kind: "sprint",
     });
   });
 

@@ -343,17 +343,22 @@ export function MockTestRunner({
   async function handlePauseAndExit() {
     setIsExiting(true);
     setExitError(null);
-    if (!isPaused) {
-      const result = await pauseAttempt(attemptId);
-      if (!result.ok) {
-        setExitError(result.message);
-        setIsExiting(false);
-        return;
+    try {
+      if (!isPaused) {
+        const result = await pauseAttempt(attemptId);
+        if (!result.ok) {
+          setExitError(result.message);
+          return;
+        }
       }
+      disarm();
+      clearCachedAttempt(attemptId);
+      router.push(exitHref);
+    } finally {
+      // Soft Nav may keep this tree mounted after navigation — never leave
+      // the pause overlay stuck on "Saving & Exiting...".
+      setIsExiting(false);
     }
-    disarm();
-    clearCachedAttempt(attemptId);
-    router.push(exitHref);
   }
 
   if (!currentQuestion) {

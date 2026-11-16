@@ -39,7 +39,11 @@ describe("QuestionPanel", () => {
 
   it("reports option selection and exposes checked state", async () => {
     const { onSelectOption } = setup({ selectedOptionId: "q1-b" });
-    expect(screen.getByRole("radio", { name: "B of q1" })).toBeChecked();
+    const selected = screen.getByRole("radio", { name: "B of q1" });
+    expect(selected).toBeChecked();
+    expect(selected.className).toContain("border-[#2f5ea8]");
+    expect(selected.className).toContain("bg-[#e7eef8]");
+    expect(selected.className).not.toContain("border-study-green");
     expect(screen.getByRole("radio", { name: "A of q1" })).not.toBeChecked();
     await userEvent.click(screen.getByRole("radio", { name: "A of q1" }));
     expect(onSelectOption).toHaveBeenCalledWith("q1-a");

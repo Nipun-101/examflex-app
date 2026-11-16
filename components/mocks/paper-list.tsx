@@ -22,8 +22,8 @@ type PaperListProps = {
 
 type ListState =
   | { status: "loading" }
-  | { status: "error"; message: string }
-  | { status: "ready"; page: PaperPage };
+  | { status: "error"; message: string; fetchKey: string }
+  | { status: "ready"; page: PaperPage; fetchKey: string };
 
 export function PaperList({
   title,
@@ -39,33 +39,37 @@ export function PaperList({
   const [pageNumber, setPageNumber] = useState(1);
   const [reloadKey, setReloadKey] = useState(0);
   const [plansPaperId, setPlansPaperId] = useState<string | null>(null);
+  const fetchKey = `${pageNumber}:${reloadKey}`;
 
   useEffect(() => {
     if (shellPaused) return;
     let cancelled = false;
-    setState({ status: "loading" });
+    const key = fetchKey;
     void fetchPage(pageNumber).then((result) => {
       if (cancelled) return;
       setState(
         result.ok
-          ? { status: "ready", page: result.data }
-          : { status: "error", message: result.message }
+          ? { status: "ready", page: result.data, fetchKey: key }
+          : { status: "error", message: result.message, fetchKey: key }
       );
     });
     return () => {
       cancelled = true;
     };
-  }, [fetchPage, pageNumber, reloadKey, shellPaused]);
+  }, [fetchPage, pageNumber, fetchKey, shellPaused]);
 
   function goToPage(next: number) {
-    setState({ status: "loading" });
     setPageNumber(next);
   }
 
   function retry() {
-    setState({ status: "loading" });
     setReloadKey((key) => key + 1);
   }
+
+  const isLoading =
+    shellPaused ||
+    state.status === "loading" ||
+    state.fetchKey !== fetchKey;
 
   const header = (
     <header>
@@ -76,7 +80,7 @@ export function PaperList({
     </header>
   );
 
-  if (shellPaused || state.status === "loading") {
+  if (isLoading) {
     return (
       <>
         {header}

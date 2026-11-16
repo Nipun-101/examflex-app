@@ -48,8 +48,8 @@ describe("useLaunchAttempt", () => {
     expect(startMockTestAttempt).toHaveBeenCalledWith("t1");
     expect(push).toHaveBeenCalledWith("/mocks/attempt/att1");
     expect(result.current.startError).toBeNull();
-    // Lock stays held while the route changes.
-    expect(result.current.startingTestId).toBe("t1");
+    // Soft Nav can keep the list mounted — release so CTAs are not stuck.
+    expect(result.current.startingTestId).toBeNull();
   });
 
   it("resumes an in-progress attempt", async () => {
@@ -119,6 +119,7 @@ describe("useLaunchAttempt", () => {
       await first;
     });
     expect(push).toHaveBeenCalledTimes(1);
+    expect(result.current.startingTestId).toBeNull();
   });
 
   it("shows the entitlement message and releases the lock on failure", async () => {

@@ -7,9 +7,21 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 type ScoreRingProps = {
   earned: number;
   max: number;
+  className?: string;
+  /** Override the default large svg sizing (e.g. compact card ring). */
+  svgClassName?: string;
+  valueClassName?: string;
+  ofClassName?: string;
 };
 
-export function ScoreRing({ earned, max }: ScoreRingProps) {
+export function ScoreRing({
+  earned,
+  max,
+  className = "",
+  svgClassName = "h-24 w-24 sm:h-28 sm:w-28",
+  valueClassName = "font-display text-2xl font-bold text-study-ink sm:text-3xl",
+  ofClassName = "text-xs text-study-muted-soft",
+}: ScoreRingProps) {
   const percentage = scorePercentage(earned, max);
   const isFull = max > 0 && earned + 1e-6 >= max;
   const color = scoreRingColor(isFull ? 100 : percentage);
@@ -19,9 +31,9 @@ export function ScoreRing({ earned, max }: ScoreRingProps) {
     <div
       role="img"
       aria-label={`Score ${formatScore(earned)} out of ${formatScore(max)}`}
-      className="relative shrink-0"
+      className={`relative shrink-0 ${className}`.trim()}
     >
-      <svg className="h-24 w-24 sm:h-28 sm:w-28" viewBox="0 0 100 100" aria-hidden>
+      <svg className={svgClassName} viewBox="0 0 100 100" aria-hidden>
         <circle
           cx="50"
           cy="50"
@@ -47,10 +59,8 @@ export function ScoreRing({ earned, max }: ScoreRingProps) {
         ) : null}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-2xl font-bold text-study-ink sm:text-3xl">
-          {formatScore(earned)}
-        </span>
-        <span className="text-xs text-study-muted-soft">of {formatScore(max)}</span>
+        <span className={valueClassName}>{formatScore(earned)}</span>
+        <span className={ofClassName}>of {formatScore(max)}</span>
       </div>
     </div>
   );
