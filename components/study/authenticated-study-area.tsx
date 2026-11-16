@@ -7,8 +7,8 @@ type AuthenticatedStudyAreaProps = {
 };
 
 /**
- * Request-time auth gate for the study shell.
- * Must render inside `<Suspense>` (Cache Components + cookies()).
+ * @deprecated Prefer `AuthenticatedAppArea` + `(study)/layout` StudyShell.
+ * Kept for tests and legacy composition that needs auth + study chrome together.
  */
 export async function AuthenticatedStudyArea({
   children,

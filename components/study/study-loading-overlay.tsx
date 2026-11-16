@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { StudyLoader } from "@/components/study/study-loader";
 import {
@@ -16,8 +16,6 @@ type StudyLoadingOverlayProps = {
   className?: string;
 };
 
-const subscribeNoop = () => () => {};
-
 export function StudyLoadingOverlay({
   open,
   label,
@@ -25,11 +23,13 @@ export function StudyLoadingOverlay({
   className = "",
 }: StudyLoadingOverlayProps) {
   const resolvedLabel = resolveStudyLoadingLabel(label);
-  const mounted = useSyncExternalStore(
-    subscribeNoop,
-    () => true,
-    () => false
-  );
+  // Keep SSR and the first client render identical (in-tree overlay). Portal
+  // only after mount so we do not trip a hydration mismatch.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open || scope !== "viewport") {

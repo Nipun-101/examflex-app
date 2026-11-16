@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense, type ReactNode } from "react";
-import { AuthenticatedStudyArea } from "@/components/study/authenticated-study-area";
+import { AuthenticatedAppArea } from "@/components/study/authenticated-app-area";
 import { StudyAuthFallback } from "@/components/study/study-auth-fallback";
 import { APP_NAME } from "@/lib/constants";
 
@@ -16,13 +16,13 @@ type AppLayoutProps = {
 };
 
 /**
- * Signed-in study area. Session cookie read streams behind Suspense so the
- * route can still ship an instant shell under Cache Components.
+ * Signed-in app area. Session cookie read streams behind Suspense.
+ * Study nav vs attempt chrome comes from nested route-group layouts.
  */
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <Suspense fallback={<StudyAuthFallback />}>
-      <AuthenticatedStudyArea>{children}</AuthenticatedStudyArea>
+      <AuthenticatedAppArea>{children}</AuthenticatedAppArea>
     </Suspense>
   );
 }
