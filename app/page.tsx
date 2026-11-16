@@ -1,25 +1,19 @@
-import { CtaSection } from "@/components/landing/cta-section";
-import { ExamsSection } from "@/components/landing/exams-section";
-import { FeaturesSection } from "@/components/landing/features-section";
-import { HeroSection } from "@/components/landing/hero-section";
-import { LandingFooter } from "@/components/landing/landing-footer";
-import { LandingHeader } from "@/components/landing/landing-header";
-import { PerformanceSection } from "@/components/landing/performance-section";
-import { TestsSection } from "@/components/landing/tests-section";
+import { Suspense } from "react";
+import { HomeContent } from "@/app/home-content";
+import { MarketingLanding } from "@/components/landing/marketing-landing";
 
-export default function HomePage() {
+type HomePageProps = {
+  searchParams: Promise<{ code?: string; error?: string; state?: string }>;
+};
+
+/**
+ * Landing is the Suspense fallback (static shell). OAuth return / marketing
+ * choice streams after searchParams resolve under Cache Components.
+ */
+export default function HomePage({ searchParams }: HomePageProps) {
   return (
-    <>
-      <LandingHeader />
-      <main className="flex-1">
-        <HeroSection />
-        <ExamsSection />
-        <FeaturesSection />
-        <TestsSection />
-        <PerformanceSection />
-        <CtaSection />
-      </main>
-      <LandingFooter />
-    </>
+    <Suspense fallback={<MarketingLanding />}>
+      <HomeContent searchParams={searchParams} />
+    </Suspense>
   );
 }

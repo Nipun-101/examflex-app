@@ -2,19 +2,21 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import AppLayout from "@/app/(app)/layout";
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/today",
+vi.mock("@/components/study/authenticated-study-area", () => ({
+  AuthenticatedStudyArea: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="authenticated-study-area">{children}</div>
+  ),
 }));
 
 describe("AppLayout", () => {
-  it("gates the study shell behind requireSession and renders children", async () => {
-    const ui = await AppLayout({
-      children: <p>Protected child</p>,
-    });
+  it("wraps the authenticated study area in Suspense", () => {
+    render(
+      <AppLayout>
+        <p>Protected child</p>
+      </AppLayout>
+    );
 
-    render(ui);
-
+    expect(screen.getByTestId("authenticated-study-area")).toBeInTheDocument();
     expect(screen.getByText("Protected child")).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Study" })).toBeInTheDocument();
   });
 });

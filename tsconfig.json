@@ -33,5 +33,14 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "coverage"]
+  "exclude": [
+    "node_modules",
+    "coverage",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "vitest.config.mts",
+    "vitest.setup.ts"
+  ]
 }

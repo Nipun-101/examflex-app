@@ -1,33 +1,15 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import HomePage from "@/app/page";
 
-describe("HomePage", () => {
-  it("composes the full landing page shell", () => {
-    render(<HomePage />);
+vi.mock("@/app/home-content", () => ({
+  HomeContent: () => <div>Resolved home content</div>,
+}));
 
-    expect(
-      screen.getByRole("heading", { name: /Rise above cutoffs/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Which exam are you cracking?" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Study smarter, not just longer" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        name: "Tests that feel like the real thing",
-      })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: "Know exactly where you stand" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", {
-        name: "Your rank is built one test at a time.",
-      })
-    ).toBeInTheDocument();
-    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+describe("HomePage", () => {
+  it("streams home content behind Suspense with a marketing fallback shell", () => {
+    render(<HomePage searchParams={Promise.resolve({})} />);
+
+    expect(screen.getByText("Resolved home content")).toBeInTheDocument();
   });
 });

@@ -4,14 +4,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StudyNav } from "@/components/study/study-nav";
 
 const usePathname = vi.fn(() => "/today");
+const logout = vi.fn();
 
 vi.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
 }));
 
+vi.mock("@/lib/auth/tokens", () => ({
+  logout: (...args: unknown[]) => logout(...args),
+}));
+
 describe("StudyNav", () => {
   beforeEach(() => {
     usePathname.mockReturnValue("/today");
+    logout.mockReset();
   });
 
   it("renders study destinations, Analysis, and Profile", () => {
@@ -72,5 +78,25 @@ describe("StudyNav", () => {
     expect(
       screen.queryByRole("navigation", { name: "Study mobile" })
     ).not.toBeInTheDocument();
+  });
+
+  it("logs out from the desktop control", async () => {
+    const user = userEvent.setup();
+    logout.mockResolvedValue(undefined);
+    render(<StudyNav />);
+
+    await user.click(screen.getByRole("button", { name: "Log out" }));
+    expect(logout).toHaveBeenCalledTimes(1);
+  });
+
+  it("logs out from the mobile menu", async () => {
+    const user = userEvent.setup();
+    logout.mockResolvedValue(undefined);
+    render(<StudyNav />);
+
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    const mobileNav = screen.getByRole("navigation", { name: "Study mobile" });
+    await user.click(within(mobileNav).getByRole("button", { name: "Log out" }));
+    expect(logout).toHaveBeenCalled();
   });
 });

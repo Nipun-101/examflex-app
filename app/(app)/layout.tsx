@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { StudyShell } from "@/components/study/study-shell";
-import { requireSession } from "@/lib/auth/session";
+import { Suspense, type ReactNode } from "react";
+import { AuthenticatedStudyArea } from "@/components/study/authenticated-study-area";
+import { StudyAuthFallback } from "@/components/study/study-auth-fallback";
 import { APP_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -16,11 +16,13 @@ type AppLayoutProps = {
 };
 
 /**
- * Signed-in study area. `requireSession` is the auth gate —
- * later swap its null path for `redirect("/login")`.
+ * Signed-in study area. Session cookie read streams behind Suspense so the
+ * route can still ship an instant shell under Cache Components.
  */
-export default async function AppLayout({ children }: AppLayoutProps) {
-  await requireSession();
-
-  return <StudyShell>{children}</StudyShell>;
+export default function AppLayout({ children }: AppLayoutProps) {
+  return (
+    <Suspense fallback={<StudyAuthFallback />}>
+      <AuthenticatedStudyArea>{children}</AuthenticatedStudyArea>
+    </Suspense>
+  );
 }

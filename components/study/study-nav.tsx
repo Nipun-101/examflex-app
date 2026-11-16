@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, UserRound, X } from "lucide-react";
+import { LogOut, Menu, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -8,6 +8,7 @@ import {
   StudyControlLink,
 } from "@/components/study/study-button";
 import { StudyWordmark } from "@/components/study/study-wordmark";
+import { logout } from "@/lib/auth/tokens";
 import {
   APP_NAV_ITEMS,
   PROFILE_HREF,
@@ -17,6 +18,12 @@ import {
 export function StudyNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = () => {
+    setLoggingOut(true);
+    void logout();
+  };
 
   return (
     <header className="border-b border-study-divider bg-study-canvas">
@@ -60,6 +67,17 @@ export function StudyNav() {
 
           <StudyButton
             variant="surface"
+            className="hidden h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium lg:inline-flex"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            aria-label="Log out"
+          >
+            <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{loggingOut ? "Logging out…" : "Log out"}</span>
+          </StudyButton>
+
+          <StudyButton
+            variant="surface"
             className="grid h-[42px] w-[42px] place-items-center rounded-[10px] lg:hidden"
             aria-expanded={open}
             aria-controls="study-mobile-nav"
@@ -99,6 +117,18 @@ export function StudyNav() {
                 </StudyControlLink>
               );
             })}
+            <StudyButton
+              variant="rail"
+              className="mt-1 rounded-[10px] px-3 py-3 text-left text-sm font-medium text-study-muted"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              aria-label="Log out"
+            >
+              <span className="inline-flex items-center gap-2">
+                <LogOut className="h-4 w-4 shrink-0" aria-hidden />
+                {loggingOut ? "Logging out…" : "Log out"}
+              </span>
+            </StudyButton>
           </nav>
         </div>
       ) : null}
