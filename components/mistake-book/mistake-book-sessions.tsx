@@ -1,64 +1,116 @@
 "use client";
 
-import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MistakeBookEmptyState } from "@/components/mistake-book/mistake-book-empty-state";
+import { MistakeBookNudgeCard } from "@/components/mistake-book/mistake-book-nudge-card";
+import { MistakeBookSessionCard } from "@/components/mistake-book/mistake-book-session-card";
+import { MistakeFilters } from "@/components/mistake-book/mistake-filters";
+import { MistakeBookSummaryCard } from "@/components/mistake-book/mistake-book-summary-card";
 import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
 import { listMistakeBookSessions } from "@/lib/api/mistake-book";
-import { paperTypeLabel } from "@/lib/mistake-book/selectors";
+import { chaptersForSubjectFilter } from "@/lib/mistake-book/selectors";
+import {
+  groupSessionsByRecency,
+  recencySectionLabel,
+  type MistakeRecencySectionId,
+} from "@/lib/mistake-book/session-list";
 import {
   MISTAKE_BOOK_COPY,
+  type MistakeBookListSummary,
   type MistakeBookSession,
+  type MistakeSubjectFilterId,
 } from "@/types/mistake-book";
 
-function formatSubmittedAt(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 type LoadState =
-  | { status: "loading"; fetchKey: number }
-  | { status: "error"; message: string; fetchKey: number }
-  | { status: "ready"; sessions: MistakeBookSession[]; fetchKey: number };
+  | { status: "loading"; fetchKey: string }
+  | { status: "error"; message: string; fetchKey: string }
+  | {
+      status: "ready";
+      sessions: MistakeBookSession[];
+      summary: MistakeBookListSummary;
+      fetchKey: string;
+    };
+
+const RECENCY_ORDER: readonly MistakeRecencySectionId[] = [
+  "today",
+  "earlierThisWeek",
+  "older",
+];
 
 export function MistakeBookSessions() {
+  const [subjectId, setSubjectId] = useState<MistakeSubjectFilterId>("all");
+  const [chapterId, setChapterId] = useState("all");
   const [reloadKey, setReloadKey] = useState(0);
+  const fetchKey = `${subjectId}:${chapterId}:${reloadKey}`;
   const [state, setState] = useState<LoadState>({
     status: "loading",
-    fetchKey: 0,
+    fetchKey,
   });
 
-  const load = useCallback(async (key: number): Promise<LoadState> => {
-    const result = await listMistakeBookSessions({ page: 1, limit: 50 });
-    if (!result.ok) {
-      return { status: "error", message: result.message, fetchKey: key };
-    }
-    return {
-      status: "ready",
-      sessions: result.data.data,
-      fetchKey: key,
-    };
-  }, []);
+  const load = useCallback(
+    async (
+      key: string,
+      nextSubjectId: MistakeSubjectFilterId,
+      nextChapterId: string
+    ): Promise<LoadState> => {
+      const result = await listMistakeBookSessions({
+        page: 1,
+        limit: 50,
+        ...(nextSubjectId === "all" ? {} : { subjectId: nextSubjectId }),
+        ...(nextChapterId === "all" ? {} : { topicId: nextChapterId }),
+      });
+      if (!result.ok) {
+        return { status: "error", message: result.message, fetchKey: key };
+      }
+      return {
+        status: "ready",
+        sessions: [...result.data.data],
+        summary: result.data.summary,
+        fetchKey: key,
+      };
+    },
+    []
+  );
 
   useEffect(() => {
     let cancelled = false;
-    const key = reloadKey;
-    void load(key).then((next) => {
+    const key = fetchKey;
+    void load(key, subjectId, chapterId).then((next) => {
       if (!cancelled) setState(next);
     });
     return () => {
       cancelled = true;
     };
-  }, [load, reloadKey]);
+  }, [load, fetchKey, subjectId, chapterId]);
 
-  const loading = state.status === "loading" || state.fetchKey !== reloadKey;
+  const loading = state.status === "loading" || state.fetchKey !== fetchKey;
+  const summary = state.status === "ready" ? state.summary : null;
+  const sessions = state.status === "ready" ? state.sessions : null;
 
-  if (loading) {
+  const groups = useMemo(
+    () => groupSessionsByRecency(sessions ?? []),
+    [sessions]
+  );
+
+  const subjectOptions = useMemo(
+    () => [
+      { id: "all" as const, label: "All subjects" },
+      ...(summary?.subjects ?? []),
+    ],
+    [summary]
+  );
+
+  const chapterOptions = useMemo(
+    () => chaptersForSubjectFilter(summary?.chapters ?? [], subjectId),
+    [summary, subjectId]
+  );
+
+  function handleSubjectChange(next: MistakeSubjectFilterId) {
+    setSubjectId(next);
+    setChapterId("all");
+  }
+
+  if (loading && summary === null) {
     return (
       <StudyLoadingOverlay
         open
@@ -68,13 +120,18 @@ export function MistakeBookSessions() {
     );
   }
 
-  if (state.status === "ready" && state.sessions.length === 0) {
+  if (
+    state.status === "ready" &&
+    state.summary.totalMistakes === 0 &&
+    subjectId === "all" &&
+    chapterId === "all"
+  ) {
     return <MistakeBookEmptyState />;
   }
 
   return (
-    <div className="flex w-full flex-col gap-5 lg:gap-8">
-      <header className="flex flex-col gap-2">
+    <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.9fr)] lg:items-start lg:gap-x-8 lg:gap-y-6">
+      <header className="flex flex-col gap-2 lg:col-start-1 lg:row-start-1">
         <h1 className="font-display text-[1.75rem] font-semibold tracking-tight text-study-ink sm:text-[2rem] lg:text-[2.5rem]">
           {MISTAKE_BOOK_COPY.title}
         </h1>
@@ -83,60 +140,68 @@ export function MistakeBookSessions() {
         </p>
       </header>
 
-      {state.status === "error" ? (
-        <div className="rounded-[20px] bg-white p-6 shadow-soft">
-          <p className="text-sm text-study-muted-soft">{state.message}</p>
-          <button
-            type="button"
-            className="mt-4 text-sm font-medium text-study-green"
-            onClick={() => {
-              setState({ status: "loading", fetchKey: reloadKey });
-              setReloadKey((value) => value + 1);
-            }}
-          >
-            Try again
-          </button>
+      <aside className="flex flex-col gap-4 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:sticky lg:top-6">
+        {summary ? <MistakeBookSummaryCard summary={summary} /> : null}
+        <div className="hidden lg:block">
+          <MistakeBookNudgeCard />
         </div>
-      ) : null}
+      </aside>
 
-      {state.status === "ready" && state.sessions.length > 0 ? (
-        <ul className="flex flex-col gap-3">
-          {state.sessions.map((session) => {
-            const meta = [
-              paperTypeLabel(session.paperType),
-              formatSubmittedAt(session.attemptSubmittedAt),
-              session.subjectLabel,
-              session.topicLabel,
-            ]
-              .filter(Boolean)
-              .join(" · ");
+      <div className="flex min-w-0 flex-col gap-5 lg:col-start-1 lg:row-start-2 lg:gap-6">
+        {summary && summary.subjects.length > 0 ? (
+          <MistakeFilters
+            subjects={subjectOptions}
+            chapters={chapterOptions}
+            subjectId={subjectId}
+            chapterId={chapterId}
+            onSubjectChange={handleSubjectChange}
+            onChapterChange={setChapterId}
+          />
+        ) : null}
 
+        <div className="flex flex-col gap-6">
+          {state.status === "error" ? (
+            <div className="rounded-[20px] bg-white p-6 shadow-soft">
+              <p className="text-sm text-study-muted-soft">{state.message}</p>
+              <button
+                type="button"
+                className="mt-4 text-sm font-medium text-study-green"
+                onClick={() => {
+                  setState({ status: "loading", fetchKey });
+                  setReloadKey((value) => value + 1);
+                }}
+              >
+                Try again
+              </button>
+            </div>
+          ) : null}
+
+          {state.status === "ready" && state.sessions.length === 0 ? (
+            <p className="rounded-[20px] bg-white p-6 text-sm text-study-muted-soft shadow-soft">
+              No sessions match this filter.
+            </p>
+          ) : null}
+
+          {RECENCY_ORDER.map((sectionId) => {
+            const rows = groups[sectionId];
+            if (rows.length === 0) return null;
             return (
-              <li key={session.mockTestId}>
-                <Link
-                  href={`/mistake-book/${session.mockTestId}`}
-                  className="flex min-h-14 flex-col gap-1 rounded-[16px] bg-white px-4 py-4 shadow-soft transition-colors hover:bg-study-mint sm:flex-row sm:items-center sm:justify-between sm:px-5"
-                >
-                  <div className="min-w-0">
-                    <p className="font-display text-lg font-semibold text-study-ink">
-                      {session.title}
-                    </p>
-                    {meta ? (
-                      <p className="mt-0.5 text-xs text-study-muted-soft sm:text-sm">
-                        {meta}
-                      </p>
-                    ) : null}
-                  </div>
-                  <p className="shrink-0 text-sm font-medium text-study-green">
-                    {session.remainingCount}{" "}
-                    {session.remainingCount === 1 ? "mistake" : "mistakes"} →
-                  </p>
-                </Link>
-              </li>
+              <section key={sectionId} className="flex flex-col gap-3">
+                <h2 className="text-[0.625rem] font-semibold tracking-[0.14em] text-study-green uppercase">
+                  {recencySectionLabel(sectionId)}
+                </h2>
+                <ul className="flex flex-col gap-3">
+                  {rows.map((session) => (
+                    <li key={session.mockTestId}>
+                      <MistakeBookSessionCard session={session} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
             );
           })}
-        </ul>
-      ) : null}
+        </div>
+      </div>
     </div>
   );
 }

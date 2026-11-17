@@ -59,6 +59,41 @@ export type MistakeBookSession = {
   subjectLabel?: string;
   topicId?: string;
   topicLabel?: string;
+  /** Distinct subjects with remaining mistakes on this paper. */
+  subjectIds: readonly string[];
+};
+
+export type MistakeBookSubjectCount = {
+  id: string;
+  label: string;
+  count: number;
+};
+
+export type MistakeBookStartWith = {
+  mockTestId: string;
+  title: string;
+};
+
+export type MistakeBookListSummary = {
+  totalMistakes: number;
+  sessionCount: number;
+  bySubject: readonly MistakeBookSubjectCount[];
+  subjects: readonly MistakeSubjectOption[];
+  chapters: readonly MistakeChapterOption[];
+  startWith: MistakeBookStartWith | null;
+};
+
+export type MistakeBookSessionsPage = {
+  data: readonly MistakeBookSession[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  summary: MistakeBookListSummary;
 };
 
 export type MistakeBookSessionDetail = {
@@ -107,4 +142,17 @@ export const MISTAKE_BOOK_COPY = {
   railGenericMockLabel: "This mock",
   sessionsTip:
     "Wrong answers and questions you left blank both land here — clear them when the idea sticks.",
+  summaryEyebrow: "In your book",
+  summaryWaiting: "mistakes waiting across",
+  summaryTestsSingular: "test",
+  summaryTestsPlural: "tests",
+  summaryBlurb:
+    "Wrong answers and blanks both count. Clear them when the idea sticks.",
+  startWithPrefix: "Start with",
+  nudgeEyebrow: "Today's nudge",
+  nudgeTitle: "Five a day beats fifty on Sunday.",
+  nudgeBody: "Small session. Real progress.",
+  sectionToday: "Today",
+  sectionEarlierThisWeek: "Earlier this week",
+  sectionOlder: "Older",
 } as const;

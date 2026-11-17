@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
+  parseMistakeBookListSummary,
   parseMistakeBookSession,
   parseMistakeBookSessionDetail,
   parseMistakeItem,
@@ -23,9 +24,14 @@ describe("mistake-book API parsers", () => {
       paperType: "FULL_EXAM",
       remainingCount: 3,
       attemptSubmittedAt: "2026-11-17T10:00:00.000Z",
+      subjectIds: ["s1", "s2"],
+      subjectId: "s1",
+      subjectLabel: "Physics",
     });
     expect(session?.title).toBe("Mock 12");
     expect(session?.remainingCount).toBe(3);
+    expect(session?.subjectIds).toEqual(["s1", "s2"]);
+    expect(session?.subjectLabel).toBe("Physics");
   });
 
   it("parses incorrect and unattended entries", () => {
@@ -117,6 +123,26 @@ describe("mistake-book API clients", () => {
     vi.mocked(apiFetch).mockReset();
   });
 
+  it("parses the list summary", () => {
+    expect(
+      parseMistakeBookListSummary({
+        totalMistakes: 22,
+        sessionCount: 4,
+        bySubject: [{ id: "s1", label: "Physics", count: 15 }],
+        subjects: [{ id: "s1", label: "Physics" }],
+        chapters: [{ id: "t1", label: "Kinematics", subjectId: "s1" }],
+        startWith: { mockTestId: "mt1", title: "Kinematics - 1" },
+      })
+    ).toEqual({
+      totalMistakes: 22,
+      sessionCount: 4,
+      bySubject: [{ id: "s1", label: "Physics", count: 15 }],
+      subjects: [{ id: "s1", label: "Physics" }],
+      chapters: [{ id: "t1", label: "Kinematics", subjectId: "s1" }],
+      startWith: { mockTestId: "mt1", title: "Kinematics - 1" },
+    });
+  });
+
   it("lists sessions from the paginated envelope", async () => {
     vi.mocked(apiFetch).mockResolvedValue(
       new Response(
@@ -130,6 +156,7 @@ describe("mistake-book API clients", () => {
               paperType: "FULL_EXAM",
               remainingCount: 2,
               attemptSubmittedAt: "2026-11-17T10:00:00.000Z",
+              subjectIds: ["s1"],
             },
           ],
           pagination: {
@@ -140,16 +167,33 @@ describe("mistake-book API clients", () => {
             hasNextPage: false,
             hasPrevPage: false,
           },
+          summary: {
+            totalMistakes: 2,
+            sessionCount: 1,
+            bySubject: [{ id: "s1", label: "Physics", count: 2 }],
+            subjects: [{ id: "s1", label: "Physics" }],
+            chapters: [{ id: "t1", label: "Mechanics", subjectId: "s1" }],
+            startWith: { mockTestId: "mt1", title: "Mock 12" },
+          },
         }),
         { status: 200 }
       )
     );
 
-    const result = await listMistakeBookSessions();
+    const result = await listMistakeBookSessions({
+      subjectId: "s1",
+      topicId: "t1",
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.data.data[0]?.mockTestId).toBe("mt1");
+      expect(result.data.summary.totalMistakes).toBe(2);
+      expect(result.data.summary.subjects).toHaveLength(1);
     }
+    expect(apiFetch).toHaveBeenCalledWith(
+      expect.stringMatching(/subjectId=s1.*topicId=t1|topicId=t1.*subjectId=s1/),
+      expect.any(Object)
+    );
   });
 
   it("patches trip reason and deletes entries with 204", async () => {

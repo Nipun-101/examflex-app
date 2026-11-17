@@ -9,7 +9,7 @@ export function chaptersForSubjectFilter(
   subjectId: MistakeSubjectFilterId
 ): MistakeChapterOption[] {
   if (subjectId === "all") {
-    return [...chapters];
+    return [];
   }
 
   return chapters.filter((chapter) => chapter.subjectId === subjectId);

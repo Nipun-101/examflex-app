@@ -34,7 +34,9 @@ describe("MistakeBookPage", () => {
             title: "Mock 12",
             paperType: "FULL_EXAM",
             remainingCount: 3,
-            attemptSubmittedAt: "2026-11-17T10:00:00.000Z",
+            attemptSubmittedAt: new Date().toISOString(),
+            subjectIds: ["s1"],
+            subjectLabel: "Physics",
           },
         ],
         pagination: {
@@ -45,6 +47,14 @@ describe("MistakeBookPage", () => {
           hasNextPage: false,
           hasPrevPage: false,
         },
+        summary: {
+          totalMistakes: 3,
+          sessionCount: 1,
+          bySubject: [{ id: "s1", label: "Physics", count: 3 }],
+          subjects: [{ id: "s1", label: "Physics" }],
+          chapters: [{ id: "t1", label: "Mechanics", subjectId: "s1" }],
+          startWith: { mockTestId: "mt-1", title: "Mock 12" },
+        },
       },
     });
 
@@ -53,10 +63,17 @@ describe("MistakeBookPage", () => {
     expect(
       await screen.findByRole("heading", { name: "Mistake Book" })
     ).toBeInTheDocument();
+    const sessionLinks = await screen.findAllByRole("link", {
+      name: /Mock 12/i,
+    });
     expect(
-      await screen.findByRole("link", { name: /Mock 12/i })
-    ).toHaveAttribute("href", "/mistake-book/mt-1");
-    expect(screen.getByText(/3 mistakes/i)).toBeInTheDocument();
+      sessionLinks.some((link) => link.getAttribute("href") === "/mistake-book/mt-1")
+    ).toBe(true);
+    expect(screen.getAllByText("mistakes").length).toBeGreaterThan(0);
+    expect(screen.getByText("Physics 3")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Start with Mock 12/i })
+    ).toBeInTheDocument();
     await waitFor(() => {
       expect(listMistakeBookSessions).toHaveBeenCalled();
     });

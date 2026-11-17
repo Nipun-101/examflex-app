@@ -52,32 +52,42 @@ import type { PaperCardKind } from "@/lib/mocks/paper-card-model";
 export type PaperSubjectTheme = {
   /** Header band background utility class. */
   bandClass: string;
+  /**
+   * High-contrast segment color for dark summary cards
+   * (lime / warm yellow / lilac — distinct from each other).
+   */
+  summaryBarColor: string;
   /** Subject-level fallback icon when no topic keyword matches. */
   Icon: LucideIcon;
 };
 
 const MINT: PaperSubjectTheme = {
   bandClass: "bg-study-mint",
+  summaryBarColor: "#daec9b",
   Icon: Atom,
 };
 
 const PEACH: PaperSubjectTheme = {
   bandClass: "bg-study-peach",
+  summaryBarColor: "#f2b07a",
   Icon: FlaskConical,
 };
 
 const LILAC: PaperSubjectTheme = {
   bandClass: "bg-study-lilac",
+  summaryBarColor: "#cbbce8",
   Icon: Leaf,
 };
 
 const MATH: PaperSubjectTheme = {
   bandClass: "bg-study-mint",
+  summaryBarColor: "#daec9b",
   Icon: Sigma,
 };
 
 const DEFAULT: PaperSubjectTheme = {
   bandClass: "bg-study-mint",
+  summaryBarColor: "#daec9b",
   Icon: BookOpen,
 };
 

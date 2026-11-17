@@ -9,10 +9,10 @@ import {
 import { MISTAKE_BOOK_DATA } from "@/lib/mistake-book/static-data";
 
 describe("mistake-book selectors", () => {
-  it("returns all chapters for the all-subject filter", () => {
+  it("hides chapters until a subject is chosen", () => {
     expect(
       chaptersForSubjectFilter(MISTAKE_BOOK_DATA.chapters, "all")
-    ).toHaveLength(MISTAKE_BOOK_DATA.chapters.length);
+    ).toEqual([]);
   });
 
   it("filters chapters and mistakes by subject and chapter", () => {

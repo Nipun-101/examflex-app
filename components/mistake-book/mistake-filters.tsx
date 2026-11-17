@@ -24,6 +24,8 @@ export function MistakeFilters({
   onSubjectChange,
   onChapterChange,
 }: MistakeFiltersProps) {
+  const chapterDisabled = subjectId === "all";
+
   return (
     <div className="grid w-full grid-cols-2 gap-3">
       <div className="relative">
@@ -58,11 +60,14 @@ export function MistakeFilters({
         <select
           id="mistake-chapter-filter"
           aria-label="Chapter"
-          value={chapterId}
+          value={chapterDisabled ? "all" : chapterId}
+          disabled={chapterDisabled}
           onChange={(event) => onChapterChange(event.target.value)}
-          className={selectClassName}
+          className={`${selectClassName} disabled:cursor-not-allowed disabled:opacity-60`}
         >
-          <option value="all">All chapters</option>
+          <option value="all">
+            {chapterDisabled ? "Select a subject first" : "All chapters"}
+          </option>
           {chapters.map((chapter) => (
             <option key={chapter.id} value={chapter.id}>
               {chapter.label}

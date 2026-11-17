@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MistakeBookSessions } from "@/components/mistake-book/mistake-book-sessions";
 
@@ -18,6 +19,24 @@ vi.mock("@/components/study/study-loading-overlay", () => ({
 
 import { listMistakeBookSessions } from "@/lib/api/mistake-book";
 
+const emptySummary = {
+  totalMistakes: 0,
+  sessionCount: 0,
+  bySubject: [] as Array<{ id: string; label: string; count: number }>,
+  subjects: [] as Array<{ id: string; label: string }>,
+  chapters: [] as Array<{ id: string; label: string; subjectId: string }>,
+  startWith: null,
+};
+
+const populatedSummary = {
+  totalMistakes: 1,
+  sessionCount: 1,
+  bySubject: [{ id: "s1", label: "Physics", count: 1 }],
+  subjects: [{ id: "s1", label: "Physics" }],
+  chapters: [{ id: "t1", label: "Units", subjectId: "s1" }],
+  startWith: { mockTestId: "mt-9", title: "Measurements" },
+};
+
 describe("MistakeBookSessions", () => {
   beforeEach(() => {
     vi.mocked(listMistakeBookSessions).mockReset();
@@ -36,6 +55,7 @@ describe("MistakeBookSessions", () => {
           hasNextPage: false,
           hasPrevPage: false,
         },
+        summary: emptySummary,
       },
     });
 
@@ -48,7 +68,8 @@ describe("MistakeBookSessions", () => {
     ).toBeInTheDocument();
   });
 
-  it("links each session into its review route", async () => {
+  it("lists sessions attempt-wise with subject/chapter filters and summary", async () => {
+    const user = userEvent.setup();
     vi.mocked(listMistakeBookSessions).mockResolvedValue({
       ok: true,
       data: {
@@ -59,8 +80,10 @@ describe("MistakeBookSessions", () => {
             title: "Measurements",
             paperType: "TOPIC_WISE",
             remainingCount: 1,
-            attemptSubmittedAt: "2026-11-17T10:00:00.000Z",
+            attemptSubmittedAt: new Date().toISOString(),
             subjectLabel: "Physics",
+            topicLabel: "Units",
+            subjectIds: ["s1"],
           },
         ],
         pagination: {
@@ -71,12 +94,31 @@ describe("MistakeBookSessions", () => {
           hasNextPage: false,
           hasPrevPage: false,
         },
+        summary: populatedSummary,
       },
     });
 
     render(<MistakeBookSessions />);
     expect(
-      await screen.findByRole("link", { name: /Measurements/i })
-    ).toHaveAttribute("href", "/mistake-book/mt-9");
+      await screen.findByRole("heading", { name: "Mistake Book" })
+    ).toBeInTheDocument();
+    const links = await screen.findAllByRole("link", {
+      name: /Measurements/i,
+    });
+    expect(
+      links.some((link) => link.getAttribute("href") === "/mistake-book/mt-9")
+    ).toBe(true);
+    expect(
+      screen.getByRole("link", { name: /Start with Measurements/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Physics 1")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /All 1/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Subject")).toBeInTheDocument();
+    expect(screen.getByLabelText("Chapter")).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Subject"), "s1");
+    expect(listMistakeBookSessions).toHaveBeenCalledWith(
+      expect.objectContaining({ subjectId: "s1" })
+    );
   });
 });

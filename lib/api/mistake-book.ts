@@ -4,13 +4,18 @@ import {
   parseList,
   readNumber,
   readString,
+  readStringList,
 } from "@/lib/api/parse-fields";
 import { buildQueryString, requestParsed } from "@/lib/api/request";
 import type { ApiResult } from "@/lib/api/parse-envelope";
-import type { MockTestsPagination, PaginatedList } from "@/types/mock-test";
+import type { MockTestsPagination } from "@/types/mock-test";
 import type {
+  MistakeBookListSummary,
   MistakeBookSession,
   MistakeBookSessionDetail,
+  MistakeBookSessionsPage,
+  MistakeBookStartWith,
+  MistakeBookSubjectCount,
   MistakeChapterOption,
   MistakeItem,
   MistakeKind,
@@ -72,6 +77,8 @@ export function parseMistakeBookSession(
     return null;
   }
 
+  const subjectIds = readStringList(value.subjectIds) ?? [];
+
   return {
     mockTestId,
     attemptId,
@@ -79,11 +86,30 @@ export function parseMistakeBookSession(
     paperType,
     remainingCount,
     attemptSubmittedAt,
+    subjectIds,
     ...optionalField("subjectId", readString(value.subjectId)),
     ...optionalField("subjectLabel", readString(value.subjectLabel)),
     ...optionalField("topicId", readString(value.topicId)),
     ...optionalField("topicLabel", readString(value.topicLabel)),
   };
+}
+
+function parseSubjectCount(value: unknown): MistakeBookSubjectCount | null {
+  if (!isApiRecord(value)) return null;
+  const id = readString(value.id);
+  const label = readString(value.label);
+  const count = readNumber(value.count);
+  if (!id || !label || count === undefined) return null;
+  return { id, label, count };
+}
+
+function parseStartWith(value: unknown): MistakeBookStartWith | null {
+  if (value === null) return null;
+  if (!isApiRecord(value)) return null;
+  const mockTestId = readString(value.mockTestId);
+  const title = readString(value.title);
+  if (!mockTestId || !title) return null;
+  return { mockTestId, title };
 }
 
 function parseSubjectOption(value: unknown): MistakeSubjectOption | null {
@@ -101,6 +127,39 @@ function parseChapterOption(value: unknown): MistakeChapterOption | null {
   const subjectId = readString(value.subjectId);
   if (!id || !label || !subjectId) return null;
   return { id, label, subjectId };
+}
+
+export function parseMistakeBookListSummary(
+  value: unknown
+): MistakeBookListSummary | null {
+  if (!isApiRecord(value)) return null;
+  const totalMistakes = readNumber(value.totalMistakes);
+  const sessionCount = readNumber(value.sessionCount);
+  const bySubject = parseList(value.bySubject, parseSubjectCount);
+  const subjects = parseList(value.subjects, parseSubjectOption);
+  const chapters = parseList(value.chapters, parseChapterOption);
+  if (
+    totalMistakes === undefined ||
+    sessionCount === undefined ||
+    !bySubject ||
+    !subjects ||
+    !chapters
+  ) {
+    return null;
+  }
+  const base = {
+    totalMistakes,
+    sessionCount,
+    bySubject,
+    subjects,
+    chapters,
+  };
+  if (value.startWith !== null && value.startWith !== undefined) {
+    const startWith = parseStartWith(value.startWith);
+    if (!startWith) return null;
+    return { ...base, startWith };
+  }
+  return { ...base, startWith: null };
 }
 
 export function parseMistakeItem(value: unknown): MistakeItem | null {
@@ -204,21 +263,26 @@ export function parseMistakeBookSessionDetail(
 function parseSessionsPage(
   data: unknown,
   raw: unknown
-): PaginatedList<MistakeBookSession> | null {
+): MistakeBookSessionsPage | null {
   const sessions = parseList(data, parseMistakeBookSession);
   if (!sessions || !isApiRecord(raw)) return null;
   const pagination = parsePagination(raw.pagination);
-  if (!pagination) return null;
-  return { data: sessions, pagination };
+  const summary = parseMistakeBookListSummary(raw.summary);
+  if (!pagination || !summary) return null;
+  return { data: sessions, pagination, summary };
 }
 
 export async function listMistakeBookSessions(options?: {
   page?: number;
   limit?: number;
-}): Promise<ApiResult<PaginatedList<MistakeBookSession>>> {
+  subjectId?: string;
+  topicId?: string;
+}): Promise<ApiResult<MistakeBookSessionsPage>> {
   const query = buildQueryString({
     page: options?.page,
     limit: options?.limit,
+    subjectId: options?.subjectId,
+    topicId: options?.topicId,
   });
   return requestParsed(
     `${MISTAKE_BOOK_PATH}/sessions${query}`,
