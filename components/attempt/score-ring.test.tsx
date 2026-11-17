@@ -32,4 +32,12 @@ describe("ScoreRing", () => {
     render(<ScoreRing earned={5} max={0} />);
     expect(screen.queryByTestId("score-ring-arc")).not.toBeInTheDocument();
   });
+
+  it("supports the on-dark tone for the results summary", () => {
+    render(<ScoreRing earned={2} max={10} tone="onDark" />);
+    expect(screen.getByTestId("score-ring-arc")).toHaveAttribute(
+      "stroke",
+      "#daec9b"
+    );
+  });
 });

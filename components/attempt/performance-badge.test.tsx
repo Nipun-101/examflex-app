@@ -19,4 +19,19 @@ describe("PerformanceBadge", () => {
     );
     expect(screen.getByText("നല്ലത്")).toBeInTheDocument();
   });
+
+  it("can hide the emoji and override colors for dark surfaces", () => {
+    render(
+      <PerformanceBadge
+        score={10}
+        totalScore={100}
+        bands={undefined}
+        language="en"
+        showEmoji={false}
+        className="bg-study-lime text-study-ink"
+      />
+    );
+    expect(screen.getByText("Needs more improvement")).toBeInTheDocument();
+    expect(screen.queryByText("😊")).not.toBeInTheDocument();
+  });
 });

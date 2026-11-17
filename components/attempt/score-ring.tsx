@@ -12,6 +12,11 @@ type ScoreRingProps = {
   svgClassName?: string;
   valueClassName?: string;
   ofClassName?: string;
+  /** Dark summary card: lime arc on a muted track with light type. */
+  tone?: "default" | "onDark";
+  /** Force the arc stroke (e.g. always lime on the dark summary). */
+  arcColor?: string;
+  trackColor?: string;
 };
 
 export function ScoreRing({
@@ -19,13 +24,31 @@ export function ScoreRing({
   max,
   className = "",
   svgClassName = "h-24 w-24 sm:h-28 sm:w-28",
-  valueClassName = "font-display text-2xl font-bold text-study-ink sm:text-3xl",
-  ofClassName = "text-xs text-study-muted-soft",
+  valueClassName,
+  ofClassName,
+  tone = "default",
+  arcColor,
+  trackColor,
 }: ScoreRingProps) {
   const percentage = scorePercentage(earned, max);
   const isFull = max > 0 && earned + 1e-6 >= max;
-  const color = scoreRingColor(isFull ? 100 : percentage);
+  const color =
+    arcColor ??
+    (tone === "onDark"
+      ? "#daec9b"
+      : scoreRingColor(isFull ? 100 : percentage));
+  const track = trackColor ?? (tone === "onDark" ? "#2f564c" : "#dee2d9");
   const dashOffset = isFull ? 0 : CIRCUMFERENCE * (1 - percentage / 100);
+  const resolvedValueClass =
+    valueClassName ??
+    (tone === "onDark"
+      ? "font-display text-2xl font-bold text-white sm:text-3xl"
+      : "font-display text-2xl font-bold text-study-ink sm:text-3xl");
+  const resolvedOfClass =
+    ofClassName ??
+    (tone === "onDark"
+      ? "text-xs text-study-on-dark"
+      : "text-xs text-study-muted-soft");
 
   return (
     <div
@@ -39,7 +62,7 @@ export function ScoreRing({
           cy="50"
           r={RADIUS}
           fill="none"
-          stroke="#dee2d9"
+          stroke={track}
           strokeWidth="8"
         />
         {percentage > 0 ? (
@@ -59,8 +82,8 @@ export function ScoreRing({
         ) : null}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={valueClassName}>{formatScore(earned)}</span>
-        <span className={ofClassName}>of {formatScore(max)}</span>
+        <span className={resolvedValueClass}>{formatScore(earned)}</span>
+        <span className={resolvedOfClass}>of {formatScore(max)}</span>
       </div>
     </div>
   );
