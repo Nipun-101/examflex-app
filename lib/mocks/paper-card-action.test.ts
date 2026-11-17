@@ -128,7 +128,7 @@ describe("resolvePaperCardReviewAction", () => {
     });
   });
 
-  it("skips Review without a completed last attempt", () => {
+  it("skips Review without a finished last attempt", () => {
     expect(
       resolvePaperCardReviewAction({ status: "completed" })
     ).toBeNull();
@@ -136,7 +136,22 @@ describe("resolvePaperCardReviewAction", () => {
       resolvePaperCardReviewAction({
         status: "in_progress",
         lastAttemptId: "a9",
+        attemptCount: 0,
       })
     ).toBeNull();
+  });
+
+  it("keeps Review while a retake is in progress if prior attempts exist", () => {
+    expect(
+      resolvePaperCardReviewAction({
+        status: "in_progress",
+        lastAttemptId: "a9",
+        attemptCount: 2,
+      })
+    ).toEqual({
+      kind: "review",
+      href: "/mocks/attempt/a9/result",
+      label: "Review",
+    });
   });
 });

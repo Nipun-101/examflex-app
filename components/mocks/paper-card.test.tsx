@@ -77,6 +77,42 @@ describe("PaperCard", () => {
     expect(onLaunch).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps best-score history under a paused retake without Mistake Book", () => {
+    render(
+      <PaperCard
+        paper={{
+          ...base,
+          status: "in_progress",
+          userAttemptAction: "RESUME",
+          resumeAttemptId: "a-live",
+          answeredCount: 3,
+          timeRemainingSeconds: 500,
+          attemptCount: 2,
+          bestScore: 32,
+          bestCorrectAnswers: 8,
+          lastAttemptId: "a9",
+          lastTimeTakenSeconds: 460,
+          lastIncorrectAnswers: 3,
+        }}
+      />
+    );
+    expect(screen.getByText("In progress")).toBeInTheDocument();
+    expect(screen.getByText("Best score · 2 attempts")).toBeInTheDocument();
+    expect(screen.getByText("7:40 taken last time")).toBeInTheDocument();
+    expect(screen.getByText("3 of 20 answered")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Mistake Book/i })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Resume →" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Review" })).toHaveAttribute(
+      "href",
+      "/mocks/attempt/a9/result"
+    );
+    expect(
+      screen.getByText("Review opens your latest attempt")
+    ).toBeInTheDocument();
+  });
+
   it("renders completed Retry + Review and Mistake Book strip", () => {
     render(
       <PaperCard
