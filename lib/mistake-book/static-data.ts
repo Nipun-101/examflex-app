@@ -1,9 +1,13 @@
-import type { MistakeBookPageData } from "@/types/mistake-book";
+import {
+  MISTAKE_BOOK_COPY,
+  MISTAKE_TRIP_OPTIONS,
+  type MistakeBookPageData,
+} from "@/types/mistake-book";
 
-/** Static Mistake Book content — replace with API payloads later. */
+/** Static Mistake Book fixtures for unit tests. */
 export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
-  title: "Mistake Book",
-  examBadge: "examflex",
+  title: MISTAKE_BOOK_COPY.title,
+  examBadge: MISTAKE_BOOK_COPY.examBadge,
   mockLabel: "Mock 12",
   subjects: [
     { id: "all", label: "All subjects" },
@@ -25,20 +29,16 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
     },
     { id: "cell-cycle", label: "Cell cycle", subjectId: "biology" },
   ],
-  tripReasons: [
-    { id: "concept-gap", label: "Concept gap" },
-    { id: "calculation", label: "Calculation" },
-    { id: "time", label: "Time" },
-  ],
-  understoodLabel: "Understood · remove from book",
-  understoodHint: "Removes this question from your Mistake Book.",
-  timerLabel: "Review time · optional",
-  timerHint:
-    "Track time spent understanding this mistake. Start when reviewing; stop when it clicks.",
-  tripPrompt: "What tripped you up?",
+  tripReasons: MISTAKE_TRIP_OPTIONS,
+  understoodLabel: MISTAKE_BOOK_COPY.understoodLabel,
+  understoodHint: MISTAKE_BOOK_COPY.understoodHint,
+  timerLabel: MISTAKE_BOOK_COPY.timerLabel,
+  timerHint: MISTAKE_BOOK_COPY.timerHint,
+  tripPrompt: MISTAKE_BOOK_COPY.tripPrompt,
   mistakes: [
     {
       id: "mb-1",
+      kind: "incorrect",
       subjectId: "physics",
       subjectLabel: "PHYSICS",
       chapterId: "laws-of-motion",
@@ -57,10 +57,11 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       sourceLabel: "NCERT XI · Laws of motion · Friction  ↗",
       sourceHref: "/equation-book",
       sourceHint: "Page link matched to your NCERT edition.",
-      defaultTripReason: "concept-gap",
+      tripReason: "concept-gap",
     },
     {
       id: "mb-2",
+      kind: "incorrect",
       subjectId: "physics",
       subjectLabel: "PHYSICS",
       chapterId: "laws-of-motion",
@@ -79,10 +80,11 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       sourceLabel: "NCERT XI · Laws of motion · Friction  ↗",
       sourceHref: "/equation-book",
       sourceHint: "Page link matched to your NCERT edition.",
-      defaultTripReason: "calculation",
+      tripReason: "calculation",
     },
     {
       id: "mb-3",
+      kind: "incorrect",
       subjectId: "physics",
       subjectLabel: "PHYSICS",
       chapterId: "work-energy-power",
@@ -100,10 +102,11 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       sourceLabel: "NCERT XI · Work, energy & power  ↗",
       sourceHref: "/equation-book",
       sourceHint: "Page link matched to your NCERT edition.",
-      defaultTripReason: "calculation",
+      tripReason: "calculation",
     },
     {
       id: "mb-4",
+      kind: "incorrect",
       subjectId: "chemistry",
       subjectLabel: "CHEMISTRY",
       chapterId: "chemical-equilibrium",
@@ -122,18 +125,17 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       sourceLabel: "NCERT XI · Equilibrium  ↗",
       sourceHref: "/equation-book",
       sourceHint: "Page link matched to your NCERT edition.",
-      defaultTripReason: "concept-gap",
+      tripReason: "concept-gap",
     },
     {
       id: "mb-5",
+      kind: "unattended",
       subjectId: "biology",
       subjectLabel: "BIOLOGY",
       chapterId: "cell-cycle",
       questionNumber: "Q11",
       examTimeLabel: "In exam: 1m 20s",
       prompt: "DNA content of a cell after S phase, relative to G1, is:",
-      yourAnswerLabel: "YOUR ANSWER · B",
-      yourAnswer: "Same as G1",
       correctAnswerLabel: "CORRECT · A",
       correctAnswer: "Twice G1",
       insightTitle: "The bit that changes the answer",
@@ -143,7 +145,7 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       sourceLabel: "NCERT XI · Cell cycle and cell division  ↗",
       sourceHref: "/equation-book",
       sourceHint: "Page link matched to your NCERT edition.",
-      defaultTripReason: "time",
+      tripReason: "time",
     },
   ],
 };

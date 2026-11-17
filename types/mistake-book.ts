@@ -1,28 +1,37 @@
-export type MistakeSubjectId = "all" | "physics" | "chemistry" | "biology";
-
 export type MistakeTripReason = "concept-gap" | "calculation" | "time";
 
+export type MistakeKind = "incorrect" | "unattended";
+
+export type MistakePaperType = "TOPIC_WISE" | "FULL_EXAM" | "SPRINT";
+
+/** Subject filter id; `"all"` means no subject filter. */
+export type MistakeSubjectFilterId = "all" | string;
+
 export type MistakeSubjectOption = {
-  id: MistakeSubjectId;
+  id: MistakeSubjectFilterId;
   label: string;
 };
 
 export type MistakeChapterOption = {
   id: string;
   label: string;
-  subjectId: Exclude<MistakeSubjectId, "all">;
+  subjectId: string;
 };
 
 export type MistakeItem = {
   id: string;
-  subjectId: Exclude<MistakeSubjectId, "all">;
+  kind: MistakeKind;
+  subjectId: string;
   subjectLabel: string;
   chapterId: string;
   questionNumber: string;
-  examTimeLabel: string;
+  /** Omitted until per-question exam timing exists. */
+  examTimeLabel?: string;
   prompt: string;
-  yourAnswerLabel: string;
-  yourAnswer: string;
+  /** Presigned stem figure URL when the question includes an image. */
+  imageUrl?: string;
+  yourAnswerLabel?: string;
+  yourAnswer?: string;
   correctAnswerLabel: string;
   correctAnswer: string;
   insightTitle: string;
@@ -31,12 +40,72 @@ export type MistakeItem = {
   sourceLabel: string;
   sourceHref: string;
   sourceHint: string;
-  defaultTripReason: MistakeTripReason;
+  tripReason: MistakeTripReason;
 };
 
 export type MistakeTripOption = {
   id: MistakeTripReason;
   label: string;
+};
+
+export type MistakeBookSession = {
+  mockTestId: string;
+  attemptId: string;
+  title: string;
+  paperType: MistakePaperType;
+  remainingCount: number;
+  attemptSubmittedAt: string;
+  subjectId?: string;
+  subjectLabel?: string;
+  topicId?: string;
+  topicLabel?: string;
+  /** Distinct subjects with remaining mistakes on this paper. */
+  subjectIds: readonly string[];
+};
+
+export type MistakeBookSubjectCount = {
+  id: string;
+  label: string;
+  count: number;
+};
+
+export type MistakeBookStartWith = {
+  mockTestId: string;
+  title: string;
+};
+
+export type MistakeBookListSummary = {
+  totalMistakes: number;
+  sessionCount: number;
+  bySubject: readonly MistakeBookSubjectCount[];
+  subjects: readonly MistakeSubjectOption[];
+  chapters: readonly MistakeChapterOption[];
+  startWith: MistakeBookStartWith | null;
+};
+
+export type MistakeBookSessionsPage = {
+  data: readonly MistakeBookSession[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  summary: MistakeBookListSummary;
+};
+
+export type MistakeBookSessionDetail = {
+  mockTestId: string;
+  attemptId: string;
+  title: string;
+  paperType: MistakePaperType;
+  remainingCount: number;
+  attemptSubmittedAt: string;
+  subjects: readonly MistakeSubjectOption[];
+  chapters: readonly MistakeChapterOption[];
+  entries: readonly MistakeItem[];
 };
 
 export type MistakeBookPageData = {
@@ -53,3 +122,37 @@ export type MistakeBookPageData = {
   timerHint: string;
   tripPrompt: string;
 };
+
+export const MISTAKE_TRIP_OPTIONS: readonly MistakeTripOption[] = [
+  { id: "concept-gap", label: "Concept gap" },
+  { id: "calculation", label: "Calculation" },
+  { id: "time", label: "Time" },
+] as const;
+
+export const MISTAKE_BOOK_COPY = {
+  title: "Mistake Book",
+  examBadge: "examflex",
+  understoodLabel: "Understood · remove from book",
+  understoodHint: "Removes this question from your Mistake Book.",
+  timerLabel: "Review time · optional",
+  timerHint:
+    "Track time spent understanding this mistake. Start when reviewing; stop when it clicks.",
+  tripPrompt: "What tripped you up?",
+  unattendedHint: "You didn’t choose any.",
+  railGenericMockLabel: "This mock",
+  sessionsTip:
+    "Wrong answers and questions you left blank both land here — clear them when the idea sticks.",
+  summaryEyebrow: "In your book",
+  summaryWaiting: "mistakes waiting across",
+  summaryTestsSingular: "test",
+  summaryTestsPlural: "tests",
+  summaryBlurb:
+    "Wrong answers and blanks both count. Clear them when the idea sticks.",
+  startWithPrefix: "Start with",
+  nudgeEyebrow: "Today's nudge",
+  nudgeTitle: "Five a day beats fifty on Sunday.",
+  nudgeBody: "Small session. Real progress.",
+  sectionToday: "Today",
+  sectionEarlierThisWeek: "Earlier this week",
+  sectionOlder: "Older",
+} as const;

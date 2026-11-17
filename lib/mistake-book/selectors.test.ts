@@ -2,16 +2,17 @@ import { describe, expect, it } from "vitest";
 import {
   chaptersForSubjectFilter,
   filterMistakes,
+  paperTypeLabel,
   progressPercent,
   remainingSubtitle,
 } from "@/lib/mistake-book/selectors";
 import { MISTAKE_BOOK_DATA } from "@/lib/mistake-book/static-data";
 
 describe("mistake-book selectors", () => {
-  it("returns all chapters for the all-subject filter", () => {
+  it("hides chapters until a subject is chosen", () => {
     expect(
       chaptersForSubjectFilter(MISTAKE_BOOK_DATA.chapters, "all")
-    ).toHaveLength(MISTAKE_BOOK_DATA.chapters.length);
+    ).toEqual([]);
   });
 
   it("filters chapters and mistakes by subject and chapter", () => {
@@ -47,5 +48,8 @@ describe("mistake-book selectors", () => {
     expect(remainingSubtitle("Mock 12", 19)).toBe(
       "Mock 12  ·  19 mistakes remaining"
     );
+    expect(paperTypeLabel("FULL_EXAM")).toBe("Full mock");
+    expect(paperTypeLabel("TOPIC_WISE")).toBe("Chapter wise");
+    expect(paperTypeLabel("SPRINT")).toBe("Sprint");
   });
 });

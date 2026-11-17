@@ -41,6 +41,8 @@ export interface AttemptSummary {
   lastCorrectAnswers?: number;
   lastTimeTakenSeconds?: number;
   lastIncorrectAnswers?: number;
+  /** Open Mistake Book cards (wrong + unattended still remaining). */
+  mistakeBookRemaining?: number;
 }
 
 /** Fields common to chapter-wise, full mock and sprint list items. */

@@ -78,6 +78,10 @@ export function parseAttemptSummary(value: unknown): AttemptSummary | undefined 
       "lastIncorrectAnswers",
       readNumber(value.lastIncorrectAnswers)
     ),
+    ...optionalField(
+      "mistakeBookRemaining",
+      readNumber(value.mistakeBookRemaining)
+    ),
   };
 }
 

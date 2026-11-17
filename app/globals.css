@@ -39,6 +39,10 @@
   --study-lilac-ink: #4f446c;
   --study-peach: #f3ddd0;
   --study-peach-ink: #8b4930;
+  /* High-contrast subject bars for dark summary surfaces */
+  --study-bar-physics: #daec9b;
+  --study-bar-chemistry: #f2b07a;
+  --study-bar-biology: #cbbce8;
   /* Neutral selection accent (not success-green — avoids “correct answer” vibe). */
   --study-select: #2f5ea8;
   --study-select-soft: #e7eef8;
@@ -106,6 +110,9 @@
   --color-study-lilac-ink: #4f446c;
   --color-study-peach: #f3ddd0;
   --color-study-peach-ink: #8b4930;
+  --color-study-bar-physics: #daec9b;
+  --color-study-bar-chemistry: #f2b07a;
+  --color-study-bar-biology: #cbbce8;
   --color-study-select: #2f5ea8;
   --color-study-select-soft: #e7eef8;
   --color-study-divider: #dee2d9;

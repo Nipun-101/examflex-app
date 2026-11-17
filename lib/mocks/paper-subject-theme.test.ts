@@ -20,12 +20,17 @@ import {
 } from "@/lib/mocks/paper-subject-theme";
 
 describe("paperSubjectTheme", () => {
-  it("maps known subjects to band tints", () => {
+  it("maps known subjects to band tints and summary bars", () => {
     expect(paperSubjectTheme("Physics").bandClass).toBe("bg-study-mint");
+    expect(paperSubjectTheme("Physics").summaryBarColor).toBe("#daec9b");
     expect(paperSubjectTheme("Organic Chemistry").bandClass).toBe(
       "bg-study-peach"
     );
+    expect(paperSubjectTheme("Organic Chemistry").summaryBarColor).toBe(
+      "#f2b07a"
+    );
     expect(paperSubjectTheme("Botany").bandClass).toBe("bg-study-lilac");
+    expect(paperSubjectTheme("Botany").summaryBarColor).toBe("#cbbce8");
     expect(paperSubjectTheme("Mathematics").bandClass).toBe("bg-study-mint");
     expect(paperSubjectTheme("Maths").bandClass).toBe("bg-study-mint");
   });

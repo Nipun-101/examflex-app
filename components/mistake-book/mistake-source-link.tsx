@@ -6,14 +6,30 @@ type MistakeSourceLinkProps = {
 };
 
 export function MistakeSourceLink({ mistake }: MistakeSourceLinkProps) {
+  if (!mistake.sourceLabel && !mistake.sourceHref) {
+    return (
+      <div>
+        <p className="text-[0.6875rem] text-study-muted-soft">
+          {mistake.sourceHint}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <Link
-        href={mistake.sourceHref}
-        className="text-xs font-medium whitespace-pre-wrap text-study-green transition-colors hover:text-study-ink"
-      >
-        {mistake.sourceLabel}
-      </Link>
+      {mistake.sourceHref ? (
+        <Link
+          href={mistake.sourceHref}
+          className="text-xs font-medium whitespace-pre-wrap text-study-green transition-colors hover:text-study-ink"
+        >
+          {mistake.sourceLabel || "Source"}
+        </Link>
+      ) : (
+        <p className="text-xs font-medium whitespace-pre-wrap text-study-green">
+          {mistake.sourceLabel}
+        </p>
+      )}
       <p className="mt-1 text-[0.6875rem] text-study-muted-soft">
         {mistake.sourceHint}
       </p>
