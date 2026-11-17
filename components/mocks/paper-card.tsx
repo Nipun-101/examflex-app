@@ -93,7 +93,7 @@ function ProgressBlock({ paper }: { paper: PaperCardData }) {
   const remaining = paper.timeRemainingSeconds ?? 0;
 
   return (
-    <div className="mt-4 space-y-2">
+    <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 text-sm text-study-muted-soft">
         <span>
           {answered} of {paper.totalQuestions} answered
@@ -171,31 +171,39 @@ function PaperScoreRing({
   );
 }
 
-function CompletedBlock({ paper }: { paper: PaperCardData }) {
+/** Best-score strip from finished attempts (also shown under an active retake). */
+function BestScoreBlock({ paper }: { paper: PaperCardData }) {
   const correct = paper.bestCorrectAnswers ?? 0;
   const attempts = paper.attemptCount;
   const duration =
     paper.lastTimeTakenSeconds !== undefined
       ? formatPaperCardClock(paper.lastTimeTakenSeconds)
       : null;
+
+  return (
+    <div className="flex items-center gap-3.5">
+      <PaperScoreRing correct={correct} total={paper.totalQuestions} />
+      <div className="min-w-0 space-y-1">
+        <p className="text-sm font-bold text-study-ink">
+          Best score · {attempts}{" "}
+          {attempts === 1 ? "attempt" : "attempts"}
+        </p>
+        {duration ? (
+          <p className="text-sm text-study-muted-soft">
+            {duration} taken last time
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function CompletedBlock({ paper }: { paper: PaperCardData }) {
   const mistakes = paper.lastIncorrectAnswers ?? 0;
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="flex items-center gap-3.5">
-        <PaperScoreRing correct={correct} total={paper.totalQuestions} />
-        <div className="min-w-0 space-y-1">
-          <p className="text-sm font-bold text-study-ink">
-            Best score · {attempts}{" "}
-            {attempts === 1 ? "attempt" : "attempts"}
-          </p>
-          {duration ? (
-            <p className="text-sm text-study-muted-soft">
-              {duration} taken last time
-            </p>
-          ) : null}
-        </div>
-      </div>
+      <BestScoreBlock paper={paper} />
       {mistakes > 0 ? (
         <Link
           href="/mistake-book"
@@ -207,6 +215,10 @@ function CompletedBlock({ paper }: { paper: PaperCardData }) {
       ) : null}
     </div>
   );
+}
+
+function hasFinishedAttemptHistory(paper: PaperCardData): boolean {
+  return paper.attemptCount > 0;
 }
 
 export function PaperCard({
@@ -299,7 +311,12 @@ export function PaperCard({
           )}
 
           {paper.status === "in_progress" ? (
-            <ProgressBlock paper={paper} />
+            <div className="mt-4 space-y-3">
+              {hasFinishedAttemptHistory(paper) ? (
+                <BestScoreBlock paper={paper} />
+              ) : null}
+              <ProgressBlock paper={paper} />
+            </div>
           ) : null}
           {paper.status === "completed" ? (
             <CompletedBlock paper={paper} />
@@ -350,14 +367,25 @@ export function PaperCard({
                 ) : null}
               </>
             ) : paper.status === "in_progress" ? (
-              <StudyButton
-                variant="solid"
-                className={CTA_CLASS}
-                disabled={disabled || isActing}
-                onClick={handlePrimary}
-              >
-                {isActing ? cardAction.loadingLabel : cardAction.label}
-              </StudyButton>
+              <>
+                <StudyButton
+                  variant="solid"
+                  className={CTA_CLASS}
+                  disabled={disabled || isActing}
+                  onClick={handlePrimary}
+                >
+                  {isActing ? cardAction.loadingLabel : cardAction.label}
+                </StudyButton>
+                {reviewAction ? (
+                  <StudyControlLink
+                    href={reviewAction.href}
+                    variant="outline"
+                    className={CTA_CLASS}
+                  >
+                    {reviewAction.label}
+                  </StudyControlLink>
+                ) : null}
+              </>
             ) : (
               <StudyButton
                 variant="solid"
@@ -376,7 +404,7 @@ export function PaperCard({
               </StudyButton>
             )}
             </div>
-            {reviewAction && paper.status === "completed" ? (
+            {reviewAction ? (
               <p className="text-center text-xs text-study-muted-soft sm:text-left">
                 Review opens your latest attempt
               </p>

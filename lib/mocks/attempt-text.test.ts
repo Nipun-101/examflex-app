@@ -74,4 +74,19 @@ describe("optionLabel", () => {
     expect(optionLabel({ ...option, en: "", ml: "നാല്" }, "en")).toBe("നാല്");
     expect(optionLabel({ ...option, ml: "നാല്" }, "ml")).toBe("നാല്");
   });
+
+  it("strips orphaned itemize markers from option copy", () => {
+    expect(
+      optionLabel(
+        {
+          id: "a",
+          type: "text",
+          en: "\\item[(3)] Both incorrect",
+          ml: "",
+          imageUrl: null,
+        },
+        "en"
+      )
+    ).toBe("Both incorrect");
+  });
 });

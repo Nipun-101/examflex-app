@@ -33,20 +33,31 @@ function renderAdapted(
 describe("MockTestResults", () => {
   it("shows the score summary", () => {
     renderAdapted();
-    expect(screen.getByRole("heading", { level: 1, name: "Test Completed" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Score 3 out of 12" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Test Completed" })
+    ).toBeInTheDocument();
+    // Ring uses correct / total questions to match the redesign.
+    expect(
+      screen.getByRole("img", { name: "Score 1 out of 3" })
+    ).toBeInTheDocument();
     expect(screen.getByText("Kinematics practice")).toBeInTheDocument();
     expect(screen.getByText("50.0% accuracy")).toBeInTheDocument();
     expect(screen.getByText("15m 0s")).toBeInTheDocument();
-    expect(screen.getByText("Correct")).toBeInTheDocument();
-    expect(screen.getByText("Wrong")).toBeInTheDocument();
-    expect(screen.getByText("Skipped")).toBeInTheDocument();
+    const summary = screen.getByRole("region", { name: "Score summary" });
+    expect(within(summary).getByText("Correct")).toBeInTheDocument();
+    expect(within(summary).getByText("Wrong")).toBeInTheDocument();
+    expect(within(summary).getByText("Skipped")).toBeInTheDocument();
   });
 
   it("reports zero accuracy when nothing was attempted", () => {
     render(
       <MockTestResults
-        result={makeSubmitResult({ correctAnswers: 0, incorrectAnswers: 0, unansweredQuestions: 3, score: 0 })}
+        result={makeSubmitResult({
+          correctAnswers: 0,
+          incorrectAnswers: 0,
+          unansweredQuestions: 3,
+          score: 0,
+        })}
         mockTestData={makeMockTestData()}
         questions={[makeQuestion("q1")]}
         answerKeyAvailable={false}
@@ -55,16 +66,47 @@ describe("MockTestResults", () => {
     expect(screen.getByText("0% accuracy")).toBeInTheDocument();
   });
 
-  it("renders the answer key and Chapter Wise exit links", () => {
+  it("renders the answer key, question map, and Chapter Wise exit links", () => {
     renderAdapted();
-    expect(screen.getByRole("heading", { name: "Answer Key" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Answer Key" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Question map" })
+    ).toBeInTheDocument();
     expect(screen.getByText("Because physics")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Back to Exam/ })).toHaveAttribute("href", "/mocks/exam/exam1");
-    expect(screen.getByRole("link", { name: "Back to Mocks" })).toHaveAttribute("href", "/mocks");
-    expect(screen.getByRole("link", { name: "More Chapter Wise" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Back to Exam/ })).toHaveAttribute(
       "href",
-      "/mocks/exam/exam1/chapter-wise"
+      "/mocks/exam/exam1"
     );
+    expect(screen.getByRole("link", { name: "Back to Mocks" })).toHaveAttribute(
+      "href",
+      "/mocks"
+    );
+    expect(
+      screen.getByRole("link", { name: "More Chapter Wise" })
+    ).toHaveAttribute("href", "/mocks/exam/exam1/chapter-wise");
+  });
+
+  it("filters the answer key by outcome", async () => {
+    renderAdapted();
+    const filter = screen.getByRole("group", {
+      name: "Filter answer key by result",
+    });
+    expect(
+      within(filter).getByRole("button", { name: "All 3" })
+    ).toHaveAttribute("aria-pressed", "true");
+
+    await userEvent.click(
+      within(filter).getByRole("button", { name: "Wrong 1" })
+    );
+    expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
+    expect(screen.getByText("Question 2")).toBeInTheDocument();
+
+    await userEvent.click(
+      within(filter).getByRole("button", { name: "Correct 1" })
+    );
+    expect(screen.getByText("Question 1")).toBeInTheDocument();
   });
 
   it("points sprint and full mock papers to their own lists", () => {
@@ -76,10 +118,9 @@ describe("MockTestResults", () => {
         answerKeyAvailable={false}
       />
     );
-    expect(screen.getByRole("link", { name: "More Sprint Tests" })).toHaveAttribute(
-      "href",
-      "/mocks/exam/exam1/sprint-tests"
-    );
+    expect(
+      screen.getByRole("link", { name: "More Sprint Tests" })
+    ).toHaveAttribute("href", "/mocks/exam/exam1/sprint-tests");
     unmount();
     render(
       <MockTestResults
@@ -89,10 +130,9 @@ describe("MockTestResults", () => {
         answerKeyAvailable={false}
       />
     );
-    expect(screen.getByRole("link", { name: "More Full Mocks" })).toHaveAttribute(
-      "href",
-      "/mocks/exam/exam1/full-mocks"
-    );
+    expect(
+      screen.getByRole("link", { name: "More Full Mocks" })
+    ).toHaveAttribute("href", "/mocks/exam/exam1/full-mocks");
   });
 
   it("falls back to /mocks when the exam id is missing", () => {
@@ -106,21 +146,35 @@ describe("MockTestResults", () => {
         answerKeyAvailable={false}
       />
     );
-    expect(screen.getByRole("link", { name: /Back to Exam/ })).toHaveAttribute("href", "/mocks");
-    expect(screen.getByRole("link", { name: "More Chapter Wise" })).toHaveAttribute("href", "/mocks");
+    expect(screen.getByRole("link", { name: /Back to Exam/ })).toHaveAttribute(
+      "href",
+      "/mocks"
+    );
+    expect(
+      screen.getByRole("link", { name: "More Chapter Wise" })
+    ).toHaveAttribute("href", "/mocks");
   });
 
   it("explains a hidden answer key", () => {
     renderAdapted({ questions: [makeQuestion("q1")] });
-    expect(screen.getByText(/answer key for this paper isn't available/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/answer key for this paper isn't available/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Question map" })
+    ).not.toBeInTheDocument();
   });
 
   it("toggles Malayalam copy", async () => {
     renderAdapted();
     await userEvent.click(screen.getByRole("radio", { name: "മലയാളം" }));
     expect(screen.getByText("ടെസ്റ്റ് പൂർത്തിയായി")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "ഉത്തരക്കുറിപ്പ്" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /പരീക്ഷയിലേക്ക്/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "ഉത്തരക്കുറിപ്പ്" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /പരീക്ഷയിലേക്ക്/ })
+    ).toBeInTheDocument();
   });
 
   it("starts in the language handed over from the runner", () => {
@@ -139,38 +193,60 @@ describe("MockTestResults", () => {
         answerKeyAvailable={false}
       />
     );
-    expect(screen.queryByRole("radiogroup", { name: "Language" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("radiogroup", { name: "Language" })
+    ).not.toBeInTheDocument();
   });
 
   describe("session-wise papers", () => {
     const sessionDetails = {
       isSessionWise: true,
       sessions: [
-        makeSession(0, { name: "Physics", questionIds: ["q1", "q2"], timeConsumed: 600, status: "SUBMITTED" }),
-        makeSession(1, { name: "Chemistry", questionIds: ["q3"], startIndex: 2, endIndex: 2, timeConsumed: 0, status: "SUBMITTED" }),
+        makeSession(0, {
+          name: "Physics",
+          questionIds: ["q1", "q2"],
+          timeConsumed: 600,
+          status: "SUBMITTED",
+        }),
+        makeSession(1, {
+          name: "Chemistry",
+          questionIds: ["q3"],
+          startIndex: 2,
+          endIndex: 2,
+          timeConsumed: 0,
+          status: "SUBMITTED",
+        }),
       ],
     } satisfies Parameters<typeof makeDetails>[0];
 
     it("shows section-wise scores and filters the answer key", async () => {
       renderAdapted(sessionDetails);
-      const table = screen.getByRole("table");
-      expect(within(table).getByRole("rowheader", { name: "Physics" })).toBeInTheDocument();
-      expect(within(table).getByText("10m 0s")).toBeInTheDocument();
-      expect(within(table).getByText("—")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Section-wise score" })
+      ).toBeInTheDocument();
+      expect(screen.getByText("10m 0s")).toBeInTheDocument();
 
-      const filter = screen.getByRole("group", { name: "Filter answer key by section" });
-      expect(within(filter).getByRole("button", { name: "All (3)" })).toHaveAttribute("aria-pressed", "true");
+      const filter = screen.getByRole("group", {
+        name: "Filter answer key by section",
+      });
+      expect(
+        within(filter).getByRole("button", { name: "All sections (3)" })
+      ).toHaveAttribute("aria-pressed", "true");
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
 
-      await userEvent.click(within(filter).getByRole("button", { name: "Chemistry (1)" }));
+      await userEvent.click(
+        within(filter).getByRole("button", { name: "Chemistry (1)" })
+      );
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
       expect(screen.getByText("Question 3")).toBeInTheDocument();
 
-      await userEvent.click(within(filter).getByRole("button", { name: "All (3)" }));
+      await userEvent.click(
+        within(filter).getByRole("button", { name: "All sections (3)" })
+      );
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
     });
 
-    it("lets mobile section cards drive the filter", async () => {
+    it("lets section cards drive the filter", async () => {
       renderAdapted(sessionDetails);
       const cards = screen.getAllByRole("button", { name: /Physics/ });
       const card = cards.find((button) => button.textContent?.includes("Correct"));
@@ -198,8 +274,18 @@ describe("MockTestResults", () => {
         makeDetails({
           isSessionWise: true,
           sessions: [
-            makeSession(0, { name: "Physics", questionIds: ["q1", "q2"], status: "SUBMITTED" }),
-            makeSession(2, { name: "Biology", questionIds: ["q3"], startIndex: 2, endIndex: 2, status: "SUBMITTED" }),
+            makeSession(0, {
+              name: "Physics",
+              questionIds: ["q1", "q2"],
+              status: "SUBMITTED",
+            }),
+            makeSession(2, {
+              name: "Biology",
+              questionIds: ["q3"],
+              startIndex: 2,
+              endIndex: 2,
+              status: "SUBMITTED",
+            }),
           ],
         })
       );
@@ -217,7 +303,12 @@ describe("MockTestResults", () => {
     it("does not show sections for a single session", () => {
       renderAdapted({
         isSessionWise: true,
-        sessions: [makeSession(0, { questionIds: ["q1", "q2", "q3"], status: "SUBMITTED" })],
+        sessions: [
+          makeSession(0, {
+            questionIds: ["q1", "q2", "q3"],
+            status: "SUBMITTED",
+          }),
+        ],
       });
       expect(screen.queryByText("Section-wise score")).not.toBeInTheDocument();
     });

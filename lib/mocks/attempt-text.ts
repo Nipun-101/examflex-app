@@ -1,3 +1,4 @@
+import { sanitizeAttemptRichText } from "@/lib/mocks/sanitize-attempt-text";
 import type { AttemptLanguage, AttemptQuestion } from "@/types/attempt";
 
 type OptionLike = AttemptQuestion["options"][number];
@@ -7,10 +8,10 @@ export function questionStem(
   question: AttemptQuestion,
   language: AttemptLanguage
 ): string {
-  return (
+  return sanitizeAttemptRichText(
     question.questionText[language].text ||
-    question.questionText.en.text ||
-    question.questionText.ml.text
+      question.questionText.en.text ||
+      question.questionText.ml.text
   );
 }
 
@@ -29,5 +30,5 @@ export function optionLabel(
   option: OptionLike,
   language: AttemptLanguage
 ): string {
-  return option[language] || option.en || option.ml;
+  return sanitizeAttemptRichText(option[language] || option.en || option.ml);
 }

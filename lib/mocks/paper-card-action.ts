@@ -30,12 +30,20 @@ export type PaperCardReviewAction = {
   label: string;
 };
 
-/** Secondary Review CTA when a completed attempt id is available. */
+/**
+ * Secondary Review CTA when a finished attempt id is available.
+ * Also shown while a retake is in progress so prior results stay reachable.
+ */
 export function resolvePaperCardReviewAction(input: {
   lastAttemptId?: string;
   status?: "new" | "in_progress" | "completed";
+  attemptCount?: number;
 }): PaperCardReviewAction | null {
-  if (input.status !== "completed" || !input.lastAttemptId) return null;
+  if (!input.lastAttemptId) return null;
+  const hasFinishedHistory =
+    input.status === "completed" ||
+    (input.status === "in_progress" && (input.attemptCount ?? 0) > 0);
+  if (!hasFinishedHistory) return null;
   return {
     kind: "review",
     href: attemptResultPath(input.lastAttemptId),

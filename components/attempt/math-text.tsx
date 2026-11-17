@@ -1,6 +1,7 @@
 "use client";
 
 import { useMathpix } from "@/components/attempt/mathpix-boundary";
+import { sanitizeAttemptRichText } from "@/lib/mocks/sanitize-attempt-text";
 
 type MathTextProps = {
   text: string | null | undefined;
@@ -11,7 +12,8 @@ type MathTextProps = {
 /** Question/option/explanation text with Mathpix rendering when available. */
 export function MathText({ text, inline = false, className = "" }: MathTextProps) {
   const api = useMathpix();
-  const value = typeof text === "string" ? text : "";
+  const raw = typeof text === "string" ? text : "";
+  const value = sanitizeAttemptRichText(raw);
   if (!value.trim()) return null;
 
   if (!api) {
