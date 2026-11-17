@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { MistakeBookView } from "@/components/mistake-book/mistake-book-view";
-import { MISTAKE_BOOK_DATA } from "@/lib/mistake-book/static-data";
+import { MistakeBookSessions } from "@/components/mistake-book/mistake-book-sessions";
 
 export const metadata: Metadata = {
   title: "Mistake Book",
   description:
-    "Review saved mock mistakes one card at a time — static Mistake Book until the API is connected.",
+    "Review wrong and blank answers from your mocks, one paper at a time.",
 };
 
 export default function MistakeBookPage() {
-  return <MistakeBookView data={MISTAKE_BOOK_DATA} />;
+  return <MistakeBookSessions />;
 }

@@ -38,6 +38,7 @@ export type PaperCardData = PaperAccessFields & {
   lastScore?: number;
   lastTimeTakenSeconds?: number;
   lastIncorrectAnswers?: number;
+  mistakeBookRemaining?: number;
 };
 
 export const UNTITLED_PAPER = "Untitled paper";
@@ -82,6 +83,7 @@ function pickSummaryFields(summary: AttemptSummary | undefined): Pick<
   | "lastScore"
   | "lastTimeTakenSeconds"
   | "lastIncorrectAnswers"
+  | "mistakeBookRemaining"
 > {
   return {
     attemptCount: summary?.attemptCount ?? 0,
@@ -104,6 +106,9 @@ function pickSummaryFields(summary: AttemptSummary | undefined): Pick<
       : {}),
     ...(summary?.lastIncorrectAnswers !== undefined
       ? { lastIncorrectAnswers: summary.lastIncorrectAnswers }
+      : {}),
+    ...(summary?.mistakeBookRemaining !== undefined
+      ? { mistakeBookRemaining: summary.mistakeBookRemaining }
       : {}),
   };
 }

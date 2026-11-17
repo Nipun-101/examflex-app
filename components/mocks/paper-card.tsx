@@ -199,14 +199,15 @@ function BestScoreBlock({ paper }: { paper: PaperCardData }) {
 }
 
 function CompletedBlock({ paper }: { paper: PaperCardData }) {
-  const mistakes = paper.lastIncorrectAnswers ?? 0;
+  const mistakes =
+    paper.mistakeBookRemaining ?? paper.lastIncorrectAnswers ?? 0;
 
   return (
     <div className="mt-4 space-y-3">
       <BestScoreBlock paper={paper} />
       {mistakes > 0 ? (
         <Link
-          href="/mistake-book"
+          href={`/mistake-book/${paper.id}`}
           className="flex min-h-11 items-center rounded-full bg-study-lilac px-4 py-2.5 text-sm font-medium text-study-ink transition-colors hover:brightness-95"
         >
           {mistakes} {mistakes === 1 ? "mistake" : "mistakes"} waiting in your

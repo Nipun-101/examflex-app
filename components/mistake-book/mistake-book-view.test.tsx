@@ -1,8 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MistakeBookView } from "@/components/mistake-book/mistake-book-view";
 import { MISTAKE_BOOK_DATA } from "@/lib/mistake-book/static-data";
+import { mathpixModuleStub } from "@/test-utils/mock-mathpix";
+
+vi.mock("mathpix-markdown-it", () => mathpixModuleStub());
 
 describe("MistakeBookView", () => {
   it("renders the seed mistake and supports trip tagging", async () => {

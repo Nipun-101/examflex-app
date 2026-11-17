@@ -126,6 +126,7 @@ describe("PaperCard", () => {
           lastAttemptId: "a9",
           lastTimeTakenSeconds: 460,
           lastIncorrectAnswers: 3,
+          mistakeBookRemaining: 4,
         }}
       />
     );
@@ -137,9 +138,9 @@ describe("PaperCard", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", {
-        name: /3 mistakes waiting in your Mistake Book/i,
+        name: /4 mistakes waiting in your Mistake Book/i,
       })
-    ).toHaveAttribute("href", "/mistake-book");
+    ).toHaveAttribute("href", "/mistake-book/p1");
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Review" })).toHaveAttribute(
       "href",

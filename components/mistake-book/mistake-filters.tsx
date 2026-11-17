@@ -1,15 +1,15 @@
 import type {
   MistakeChapterOption,
-  MistakeSubjectId,
+  MistakeSubjectFilterId,
   MistakeSubjectOption,
 } from "@/types/mistake-book";
 
 type MistakeFiltersProps = {
   subjects: readonly MistakeSubjectOption[];
   chapters: readonly MistakeChapterOption[];
-  subjectId: MistakeSubjectId;
+  subjectId: MistakeSubjectFilterId;
   chapterId: string;
-  onSubjectChange: (subjectId: MistakeSubjectId) => void;
+  onSubjectChange: (subjectId: MistakeSubjectFilterId) => void;
   onChapterChange: (chapterId: string) => void;
 };
 
@@ -34,9 +34,7 @@ export function MistakeFilters({
           id="mistake-subject-filter"
           aria-label="Subject"
           value={subjectId}
-          onChange={(event) =>
-            onSubjectChange(event.target.value as MistakeSubjectId)
-          }
+          onChange={(event) => onSubjectChange(event.target.value)}
           className={selectClassName}
         >
           {subjects.map((subject) => (

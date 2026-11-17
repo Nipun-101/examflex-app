@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="240" viewBox="0 0 900 240">
+<title>ExamFlex wordmark</title>
+<defs><linearGradient id="g" x1="20" y1="20" x2="190" y2="190" gradientUnits="userSpaceOnUse"><stop stop-color="#08745A"/><stop offset="1" stop-color="#034B3C"/></linearGradient><linearGradient id="l" x1="75" y1="25" x2="145" y2="95" gradientUnits="userSpaceOnUse"><stop stop-color="#8DBB65"/><stop offset="1" stop-color="#4E9650"/></linearGradient></defs>
+<g transform="translate(18 18)"><rect width="204" height="204" rx="48" fill="#F5F2E8"/><path d="M102 166c-25-16-50-23-80-23V57c31 0 56 9 80 26 24-17 49-26 80-26v86c-30 0-55 7-80 23Z" fill="url(#g)"/><path d="M102 83c-21-15-43-23-70-24v69c26 1 48 9 70 23V83Z" fill="#F5F2E8"/><path d="M102 83c21-15 43-23 70-24v69c-26 1-48 9-70 23V83Z" fill="#E6EBDD"/><path d="M102 83v68" stroke="#08745A" stroke-width="6" stroke-linecap="round"/><path d="M69 57c9-24 31-40 59-40-3 25-22 44-49 50-6 1-10-4-10-10Z" fill="url(#l)"/><path d="M77 60c13-13 27-22 46-31" fill="none" stroke="#F5F2E8" stroke-width="4" stroke-linecap="round"/></g>
+<text x="258" y="151" font-family="Inter,Arial,Helvetica,sans-serif" font-size="104" font-weight="750" letter-spacing="-5" fill="#064C3D">ExamFlex</text>
+</svg>

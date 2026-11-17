@@ -27,6 +27,10 @@ describe("AttemptHeader", () => {
     expect(screen.getByRole("heading", { name: "NEET - Optics" })).toBeInTheDocument();
     expect(screen.getByText("Q 2/10 · Physics")).toBeInTheDocument();
     expect(screen.getByRole("timer")).toHaveAttribute("aria-label", "Time left 02:05");
+    expect(screen.getByRole("img", { name: "ExamFlex" })).toHaveAttribute(
+      "src",
+      "/examflex-wordmark.svg"
+    );
   });
 
   it("does not link away from the attempt", () => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   chaptersForSubjectFilter,
   filterMistakes,
+  paperTypeLabel,
   progressPercent,
   remainingSubtitle,
 } from "@/lib/mistake-book/selectors";
@@ -47,5 +48,8 @@ describe("mistake-book selectors", () => {
     expect(remainingSubtitle("Mock 12", 19)).toBe(
       "Mock 12  ·  19 mistakes remaining"
     );
+    expect(paperTypeLabel("FULL_EXAM")).toBe("Full mock");
+    expect(paperTypeLabel("TOPIC_WISE")).toBe("Chapter wise");
+    expect(paperTypeLabel("SPRINT")).toBe("Sprint");
   });
 });

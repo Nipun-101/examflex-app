@@ -1,12 +1,12 @@
 import type {
   MistakeChapterOption,
   MistakeItem,
-  MistakeSubjectId,
+  MistakeSubjectFilterId,
 } from "@/types/mistake-book";
 
 export function chaptersForSubjectFilter(
   chapters: readonly MistakeChapterOption[],
-  subjectId: MistakeSubjectId
+  subjectId: MistakeSubjectFilterId
 ): MistakeChapterOption[] {
   if (subjectId === "all") {
     return [...chapters];
@@ -17,7 +17,7 @@ export function chaptersForSubjectFilter(
 
 export function filterMistakes(
   mistakes: readonly MistakeItem[],
-  subjectId: MistakeSubjectId,
+  subjectId: MistakeSubjectFilterId,
   chapterId: string
 ): MistakeItem[] {
   return mistakes.filter((mistake) => {
@@ -41,4 +41,17 @@ export function progressPercent(currentIndex: number, total: number): number {
 export function remainingSubtitle(mockLabel: string, remaining: number): string {
   const noun = remaining === 1 ? "mistake" : "mistakes";
   return `${mockLabel}  ·  ${remaining} ${noun} remaining`;
+}
+
+export function paperTypeLabel(paperType: string): string {
+  switch (paperType) {
+    case "FULL_EXAM":
+      return "Full mock";
+    case "SPRINT":
+      return "Sprint";
+    case "TOPIC_WISE":
+      return "Chapter wise";
+    default:
+      return "Mock";
+  }
 }
