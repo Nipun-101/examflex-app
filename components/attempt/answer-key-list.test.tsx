@@ -152,6 +152,69 @@ describe("AnswerKeyList", () => {
     expect(screen.queryByText("Explanation")).not.toBeInTheDocument();
   });
 
+  it("shows an explanation that only has images", () => {
+    renderList(
+      [makeQuestion("q1")],
+      [
+        {
+          questionId: "q1",
+          selectedOption: "q1-a",
+          correctAnswer: "q1-a",
+          isCorrect: true,
+          marksAwarded: 4,
+          explanation: {
+            en: null,
+            ml: null,
+            imageUrl: null,
+            imageUrls: ["https://cdn/sol.png"],
+          },
+        },
+      ]
+    );
+    expect(screen.getByText("Explanation")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Explanation" })).toHaveAttribute(
+      "src",
+      "https://cdn/sol.png"
+    );
+  });
+
+  it("strips broken itemize markup from options", () => {
+    renderList(
+      [
+        makeQuestion("q1", {
+          options: [
+            {
+              id: "q1-a",
+              type: "text",
+              en: "\\begin{itemize} \\item[(1)] Both correct",
+              ml: "",
+              imageUrl: null,
+            },
+            {
+              id: "q1-b",
+              type: "text",
+              en: "\\item[(2)] Only I \\end{itemize}",
+              ml: "",
+              imageUrl: null,
+            },
+          ],
+        }),
+      ],
+      [
+        {
+          questionId: "q1",
+          selectedOption: "q1-b",
+          correctAnswer: "q1-a",
+          isCorrect: false,
+          marksAwarded: -1,
+        },
+      ]
+    );
+    expect(screen.getByText("Both correct")).toBeInTheDocument();
+    expect(screen.getByText("Only I")).toBeInTheDocument();
+    expect(screen.queryByText(/\\item/)).not.toBeInTheDocument();
+  });
+
   it("renders image options when expanded", async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     renderList(

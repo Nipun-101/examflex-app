@@ -61,6 +61,15 @@ function AnswerKeyItem({
   const explanationText = explanation
     ? explanation[language] || explanation.en || explanation.ml
     : null;
+  const explanationImages = explanation
+    ? [
+        ...(explanation.imageUrl ? [explanation.imageUrl] : []),
+        ...(explanation.imageUrls ?? []),
+      ].filter((url, index, all) => all.indexOf(url) === index)
+    : [];
+  const hasExplanation =
+    Boolean(explanationText && explanationText.trim()) ||
+    explanationImages.length > 0;
 
   const correctOption = question.options.find(
     (option) => option.id === result?.correctAnswer
@@ -249,21 +258,24 @@ function AnswerKeyItem({
         </div>
       )}
 
-      {explanationText ? (
+      {hasExplanation ? (
         <div className="mt-4 rounded-[14px] border border-study-divider bg-study-canvas p-4">
           <h4 className="mb-2 font-display text-sm font-bold text-study-ink">
             Explanation
           </h4>
-          <div className="text-sm text-study-ink">
-            <MathText text={explanationText} />
-          </div>
-          {explanation?.imageUrl ? (
-            <AttemptImage
-              src={explanation.imageUrl}
-              alt="Explanation"
-              className="mt-3 rounded"
-            />
+          {explanationText ? (
+            <div className="text-sm text-study-ink">
+              <MathText text={explanationText} />
+            </div>
           ) : null}
+          {explanationImages.map((src) => (
+            <AttemptImage
+              key={src}
+              src={src}
+              alt="Explanation"
+              className={explanationText ? "mt-3 rounded" : "rounded"}
+            />
+          ))}
         </div>
       ) : null}
     </article>
