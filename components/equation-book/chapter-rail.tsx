@@ -1,8 +1,8 @@
 import { StudyButton } from "@/components/study/study-button";
-import type { EquationCard } from "@/types/equation-book";
+import type { EquationItem } from "@/types/equation-book";
 
 type ChapterRailProps = {
-  cards: readonly EquationCard[];
+  cards: readonly EquationItem[];
   activeIndex: number;
   onSelect: (index: number) => void;
 };
@@ -36,7 +36,7 @@ export function ChapterRail({
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="text-sm font-medium leading-snug">
-                  {card.promptTitle}
+                  {card.title}
                 </span>
               </StudyButton>
             </li>

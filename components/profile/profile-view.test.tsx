@@ -30,6 +30,13 @@ vi.mock("@/lib/api/analytics", () => ({
   getBadges: (...args: unknown[]) => getBadges(...args),
 }));
 
+vi.mock("@/lib/equation-book/list-show-in-app-exams", () => ({
+  listShowInAppExams: vi.fn(async () => [
+    { id: "e-neet", name: "NEET UG" },
+    { id: "e-jee", name: "JEE MAINS" },
+  ]),
+}));
+
 const chrome = profileChromeFromPageData(PROFILE_PAGE_DATA);
 
 const apiProfile: ApiUserProfile = {
@@ -128,6 +135,38 @@ describe("ProfileView", () => {
     expect(screen.getByText("Prep pulse")).toBeInTheDocument();
     expect(screen.getByText("First Test")).toBeInTheDocument();
     expect(screen.getByText("Bronze")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Not set yet" })
+    ).toBeInTheDocument();
+  });
+
+  it("lets the student set a target exam from profile", async () => {
+    const user = userEvent.setup();
+    updateMyProfile.mockResolvedValue({
+      ok: true,
+      data: {
+        ...apiProfile,
+        targetExam: { id: "e-neet", name: "NEET UG" },
+      },
+    });
+
+    renderProfile(<ProfileView chrome={chrome} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Choose exam/i })
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /Choose exam/i }));
+    await user.click(screen.getByRole("button", { name: "NEET UG" }));
+
+    await waitFor(() => {
+      expect(updateMyProfile).toHaveBeenCalledWith({ targetExam: "e-neet" });
+      expect(
+        screen.getByRole("heading", { name: "NEET UG" })
+      ).toBeInTheDocument();
+    });
   });
 
   it("shows a Google profile photo when the API returns one", async () => {

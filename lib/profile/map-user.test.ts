@@ -93,6 +93,7 @@ describe("mapApiUserToProfileUser", () => {
       avatarUrl: "https://lh3.googleusercontent.com/a/photo",
       signInMethod: "google",
       examTrack: "NEET",
+      targetExamId: "e1",
       memberSinceLabel: "On ExamFlex since March 2025",
       membershipTier: "silver",
       phoneLocked: true,

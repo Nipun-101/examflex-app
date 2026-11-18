@@ -1,7 +1,10 @@
-import type { EquationChapter } from "@/types/equation-book";
+export type EquationChapterOption = {
+  id: string;
+  label: string;
+};
 
 type ChapterSelectProps = {
-  chapters: readonly EquationChapter[];
+  chapters: readonly EquationChapterOption[];
   value: string;
   onChange: (chapterId: string) => void;
 };

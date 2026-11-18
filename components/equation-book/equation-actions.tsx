@@ -45,6 +45,7 @@ type EquationCtasProps = {
   mockHref: string;
   browseLabel: string;
   browseHref: string;
+  onMockClick?: () => void;
   className?: string;
 };
 
@@ -53,17 +54,28 @@ export function EquationCtas({
   mockHref,
   browseLabel,
   browseHref,
+  onMockClick,
   className = "",
 }: EquationCtasProps) {
   return (
     <div className={`flex flex-col gap-3 sm:gap-4 ${className}`.trim()}>
-      <StudyControlLink
-        href={mockHref}
-        variant="solid"
-        className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] font-medium whitespace-pre lg:h-[3.25rem]"
-      >
-        {mockLabel}
-      </StudyControlLink>
+      {onMockClick ? (
+        <StudyButton
+          variant="solid"
+          onClick={onMockClick}
+          className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] font-medium whitespace-pre lg:h-[3.25rem]"
+        >
+          {mockLabel}
+        </StudyButton>
+      ) : (
+        <StudyControlLink
+          href={mockHref}
+          variant="solid"
+          className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] font-medium whitespace-pre lg:h-[3.25rem]"
+        >
+          {mockLabel}
+        </StudyControlLink>
+      )}
 
       <StudyControlLink
         href={browseHref}
@@ -90,6 +102,7 @@ export function EquationActions({
   mockHref,
   browseLabel,
   browseHref,
+  onMockClick,
   className = "",
 }: EquationActionsProps) {
   return (
@@ -105,6 +118,7 @@ export function EquationActions({
         mockHref={mockHref}
         browseLabel={browseLabel}
         browseHref={browseHref}
+        {...(onMockClick ? { onMockClick } : {})}
       />
     </div>
   );

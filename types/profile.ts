@@ -13,7 +13,10 @@ export type ProfileUser = ProfileContact & {
   /** Google profile photo URL when signed in with Google; ignored for OTP. */
   avatarUrl: string | null;
   signInMethod: ProfileSignInMethod;
+  /** Display label for the primary target exam (or ExamFlex fallback). */
   examTrack: string;
+  /** Primary target exam id when set. */
+  targetExamId: string | null;
   memberSinceLabel: string;
   membershipTier: MembershipTier;
   /** True when phone came from the API and must stay read-only. */

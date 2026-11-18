@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ChapterWiseFilters } from "@/components/mocks/chapter-wise-filters";
 import { PaperList } from "@/components/mocks/paper-list";
 import { useResolvedExamId } from "@/hooks/use-exam-page";
@@ -18,21 +19,46 @@ type ChapterWiseListProps = {
 /** Chapter Wise = TOPIC_WISE papers. */
 export function ChapterWiseList({ examId: examIdProp }: ChapterWiseListProps) {
   const examId = useResolvedExamId(examIdProp);
+  const searchParams = useSearchParams();
+  const initialSubjectId = searchParams.get("subjectId") ?? "";
+  const initialTopicId = searchParams.get("topicId") ?? "";
   const [subjects, setSubjects] = useState<ApiSubjectForExam[]>([]);
-  const [subjectId, setSubjectId] = useState("");
-  const [topicId, setTopicId] = useState("");
+  const [subjectId, setSubjectId] = useState(initialSubjectId);
+  const [topicId, setTopicId] = useState(initialTopicId);
   const [filterKey, setFilterKey] = useState(0);
+  const [filtersReady, setFiltersReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     void getSubjectsForExam(examId).then((result) => {
-      if (cancelled || !result.ok) return;
+      if (cancelled || !result.ok) {
+        if (!cancelled) setFiltersReady(true);
+        return;
+      }
       setSubjects(result.data);
+
+      const nextSubject =
+        initialSubjectId &&
+        result.data.some((subject) => subject.id === initialSubjectId)
+          ? initialSubjectId
+          : "";
+      const topics =
+        result.data.find((subject) => subject.id === nextSubject)?.topics ??
+        [];
+      const nextTopic =
+        nextSubject &&
+        initialTopicId &&
+        topics.some((topic) => topic.id === initialTopicId)
+          ? initialTopicId
+          : "";
+      setSubjectId(nextSubject);
+      setTopicId(nextTopic);
+      setFiltersReady(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [examId]);
+  }, [examId, initialSubjectId, initialTopicId]);
 
   const fetchPage = useCallback<FetchPaperPage>(
     async (page) => {
@@ -76,13 +102,15 @@ export function ChapterWiseList({ examId: examIdProp }: ChapterWiseListProps) {
           onTopicChange={handleTopicChange}
         />
       ) : null}
-      <PaperList
-        key={`${examId}-${filterKey}`}
-        title="Chapter Wise"
-        description="Focused papers by chapter and topic."
-        paperType="TOPIC_WISE"
-        fetchPage={fetchPage}
-      />
+      {filtersReady ? (
+        <PaperList
+          key={`${examId}-${filterKey}-${subjectId}-${topicId}`}
+          title="Chapter Wise"
+          description="Focused papers by chapter and topic."
+          paperType="TOPIC_WISE"
+          fetchPage={fetchPage}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,0 +1,272 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import {
+  MathpixBoundary,
+  preloadMathpix,
+} from "@/components/attempt/mathpix-boundary";
+import { MathText } from "@/components/attempt/math-text";
+import { EquationEmptyState } from "@/components/equation-book/equation-empty-state";
+import { SubjectTabs } from "@/components/equation-book/subject-tabs";
+import { StudyButton } from "@/components/study/study-button";
+import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { listEquations } from "@/lib/api/equation-book";
+import { optionalField } from "@/lib/api/parse-fields";
+import { getSubjectsForExam } from "@/lib/api/exams";
+import { getMyProfile } from "@/lib/api/users";
+import { listShowInAppExams } from "@/lib/equation-book/list-show-in-app-exams";
+import { resolveEquationExam } from "@/lib/equation-book/resolve-exam";
+import { subjectsFromCatalog } from "@/lib/equation-book/selectors";
+import { persistTargetExam } from "@/lib/profile/persist-target-exam";
+import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
+import type { ApiSubjectForExam } from "@/types/exam";
+import {
+  EQUATION_BOOK_COPY,
+  type EquationExamOption,
+  type EquationItem,
+} from "@/types/equation-book";
+
+const SEARCH_DEBOUNCE_MS = 300;
+
+export function EquationBrowseView() {
+  const router = useRouter();
+  const [bootLoading, setBootLoading] = useState(true);
+  const [listLoading, setListLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [exam, setExam] = useState<EquationExamOption | null>(null);
+  const [chooseExams, setChooseExams] = useState<EquationExamOption[] | null>(
+    null
+  );
+  const [subjects, setSubjects] = useState<ApiSubjectForExam[]>([]);
+  const [subjectId, setSubjectId] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [items, setItems] = useState<EquationItem[]>([]);
+
+  useEffect(() => {
+    preloadMathpix();
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function boot() {
+      setBootLoading(true);
+      const [profileResult, exams] = await Promise.all([
+        getMyProfile(),
+        listShowInAppExams(),
+      ]);
+      if (cancelled) return;
+
+      const preferred =
+        profileResult.ok && profileResult.data.targetExam
+          ? profileResult.data.targetExam.id
+          : undefined;
+      const resolved = resolveEquationExam({
+        ...optionalField("preferredExamId", preferred),
+        availableExams: exams,
+      });
+
+      if (resolved.kind === "resolved") {
+        setExam(resolved.exam);
+        if (!preferred) {
+          void persistTargetExam(resolved.exam.id);
+        }
+      } else if (resolved.kind === "choose") {
+        setChooseExams(resolved.exams);
+      } else {
+        setError("No exams are available in ExamFlex yet.");
+      }
+      setBootLoading(false);
+    }
+
+    void boot();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!exam) return;
+    let cancelled = false;
+    void getSubjectsForExam(exam.id).then((result) => {
+      if (cancelled) return;
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setSubjects(result.data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [exam]);
+
+  useEffect(() => {
+    if (!exam) return;
+    let cancelled = false;
+
+    async function load() {
+      setListLoading(true);
+      const result = await listEquations({
+        examId: exam!.id,
+        page: 1,
+        limit: 50,
+        ...optionalField("subjectId", subjectId || undefined),
+        ...optionalField("search", search || undefined),
+      });
+      if (cancelled) return;
+      if (!result.ok) {
+        setError(result.message);
+        setItems([]);
+      } else {
+        setItems(result.data.items);
+      }
+      setListLoading(false);
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [exam, subjectId, search]);
+
+  const subjectOptions = useMemo(
+    () => [{ id: "", label: "All" }, ...subjectsFromCatalog(subjects)],
+    [subjects]
+  );
+  const activeSubjectLabel =
+    subjectOptions.find((subject) => subject.id === subjectId)?.label ?? "All";
+
+  if (bootLoading) {
+    return (
+      <StudyLoadingOverlay
+        open
+        scope="viewport"
+        label="Loading equations..."
+      />
+    );
+  }
+
+  return (
+    <MathpixBoundary>
+      <div className="flex w-full flex-col gap-5 lg:gap-8">
+        <header className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase">
+                Formula shelf
+              </p>
+              <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-study-ink sm:text-[2rem]">
+                Browse all equations
+              </h1>
+              <p className="mt-1 text-sm text-study-muted-soft">
+                Search by title. Jump back into a recall card whenever you want.
+              </p>
+            </div>
+            <Link
+              href="/equation-book"
+              className="my-3 text-sm font-semibold text-study-green hover:text-study-ink sm:my-0"
+            >
+              ← Back to recall
+            </Link>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-3">
+            <div className="min-w-0 flex-1">
+              <SubjectTabs
+                subjects={subjectOptions}
+                activeId={subjectId}
+                onSelect={setSubjectId}
+                layout="wrap"
+              />
+            </div>
+            <label className="block w-full shrink-0 sm:w-56 lg:w-64">
+              <span className="sr-only">Search equations by title</span>
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Search by title"
+                className="h-[46px] w-full rounded-[10px] border border-study-divider bg-white px-4 text-[0.875rem] text-study-ink outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-ink"
+              />
+            </label>
+          </div>
+        </header>
+
+        {error && items.length === 0 ? (
+          <p className="rounded-[20px] bg-white p-6 text-sm text-study-muted-soft shadow-soft">
+            {error}
+          </p>
+        ) : listLoading ? (
+          <p className="rounded-[20px] bg-white p-6 text-sm text-study-muted-soft shadow-soft">
+            Loading equations…
+          </p>
+        ) : items.length === 0 ? (
+          <EquationEmptyState chapterLabel={activeSubjectLabel} />
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {items.map((item) => (
+              <li key={item.id}>
+                <article className="flex h-full flex-col rounded-[20px] bg-study-lilac px-5 py-5 shadow-soft">
+                  <p className="text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
+                    {item.subject.name} · {item.topic.name}
+                  </p>
+                  <h2 className="mt-2 font-display text-xl font-semibold text-study-ink">
+                    {item.title}
+                  </h2>
+                  <p className="mt-2 text-sm text-study-muted-soft">
+                    {item.shortDescription}
+                  </p>
+                  <div className="mt-4 text-base font-medium text-study-ink">
+                    <MathText text={item.equation} />
+                  </div>
+                  <div className="mt-auto pt-5">
+                    <StudyButton
+                      variant="solid"
+                      className="inline-flex h-11 items-center justify-center rounded-[10px] px-4 text-[0.8125rem] font-medium"
+                      onClick={() => {
+                        const params = new URLSearchParams({
+                          subjectId: item.subject.id,
+                          topicId: item.topic.id,
+                          equationId: item.id,
+                        });
+                        router.push(`/equation-book?${params.toString()}`);
+                      }}
+                    >
+                      Open in recall →
+                    </StudyButton>
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <p className="text-right text-[0.625rem] text-study-muted-soft">
+          {EQUATION_BOOK_COPY.title} · {exam?.name ?? "ExamFlex"}
+        </p>
+      </div>
+
+      <ExamChoiceModal
+        open={chooseExams != null && exam == null}
+        exams={chooseExams ?? []}
+        title="Which exam's formulas?"
+        body="You don't have a preferred exam yet. Pick one to continue — we'll save it to your profile."
+        onSelect={(selected) => {
+          setExam(selected);
+          setChooseExams(null);
+          void persistTargetExam(selected.id);
+        }}
+      />
+    </MathpixBoundary>
+  );
+}

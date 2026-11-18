@@ -44,5 +44,7 @@ export type UpdateMyProfilePayload = {
   bio?: string;
   avatarUrl?: string;
   location?: ApiUserLocation;
+  /** Primary target exam id. Send null to clear. */
+  targetExam?: string | null;
   targetExamDate?: string;
 };

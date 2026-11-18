@@ -50,7 +50,7 @@ describe("EquationCtas", () => {
         mockLabel="Take Laws of motion mock  →"
         mockHref="/mocks"
         browseLabel="Just looking for a formula? Browse all  →"
-        browseHref="/equation-book"
+        browseHref="/equation-book/browse"
       />
     );
 
@@ -59,7 +59,25 @@ describe("EquationCtas", () => {
     ).toHaveAttribute("href", "/mocks");
     expect(
       screen.getByRole("link", { name: /Browse all/i })
-    ).toHaveAttribute("href", "/equation-book");
+    ).toHaveAttribute("href", "/equation-book/browse");
+  });
+
+  it("supports mock click handler", async () => {
+    const user = userEvent.setup();
+    const onMockClick = vi.fn();
+    render(
+      <EquationCtas
+        mockLabel="Take Laws of motion mock  →"
+        mockHref="/mocks"
+        browseLabel="Browse all  →"
+        browseHref="/equation-book/browse"
+        onMockClick={onMockClick}
+      />
+    );
+    await user.click(
+      screen.getByRole("button", { name: /Take Laws of motion mock/i })
+    );
+    expect(onMockClick).toHaveBeenCalledOnce();
   });
 });
 
@@ -78,7 +96,7 @@ describe("EquationActions", () => {
         mockLabel="Take Laws of motion mock  →"
         mockHref="/mocks"
         browseLabel="Just looking for a formula? Browse all  →"
-        browseHref="/equation-book"
+        browseHref="/equation-book/browse"
       />
     );
 
@@ -92,7 +110,7 @@ describe("EquationActions", () => {
     ).toHaveAttribute("href", "/mocks");
     expect(
       screen.getByRole("link", { name: /Browse all/i })
-    ).toHaveAttribute("href", "/equation-book");
+    ).toHaveAttribute("href", "/equation-book/browse");
   });
 
   it("accepts a layout className", () => {
@@ -105,7 +123,7 @@ describe("EquationActions", () => {
         mockLabel="Take mock  →"
         mockHref="/mocks"
         browseLabel="Browse all  →"
-        browseHref="/equation-book"
+        browseHref="/equation-book/browse"
         className="mt-2"
       />
     );
