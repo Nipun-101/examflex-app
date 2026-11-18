@@ -20,4 +20,21 @@ describe("EquationProgress", () => {
       "38"
     );
   });
+
+  it("lets long chapter labels wrap instead of forcing overflow", () => {
+    render(
+      <EquationProgress
+        chapterLabel="Some Basic Principles of Organic Chemistry"
+        current={1}
+        total={1}
+        percent={100}
+      />
+    );
+
+    const label = screen.getByText(
+      "Some Basic Principles of Organic Chemistry"
+    );
+    expect(label).toHaveClass("min-w-0", "break-words");
+    expect(screen.getByText("1 of 1 equations")).toHaveClass("shrink-0");
+  });
 });

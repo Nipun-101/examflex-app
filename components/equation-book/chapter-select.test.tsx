@@ -21,4 +21,22 @@ describe("ChapterSelect", () => {
     await user.selectOptions(screen.getByLabelText("Chapter"), "top-wep");
     expect(onChange).toHaveBeenCalledWith("top-wep");
   });
+
+  it("constrains width so long chapter names do not blow out mobile", () => {
+    const { container } = render(
+      <ChapterSelect
+        chapters={[
+          {
+            id: "top-organic",
+            label: "Some Basic Principles of Organic Chemistry",
+          },
+        ]}
+        value="top-organic"
+        onChange={vi.fn()}
+      />
+    );
+
+    expect(container.firstElementChild).toHaveClass("min-w-0");
+    expect(screen.getByLabelText("Chapter")).toHaveClass("min-w-0", "max-w-full");
+  });
 });

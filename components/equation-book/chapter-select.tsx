@@ -15,12 +15,12 @@ export function ChapterSelect({
   onChange,
 }: ChapterSelectProps) {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full min-w-0">
       <select
         aria-label="Chapter"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-[46px] w-full cursor-pointer appearance-none rounded-[10px] border border-study-divider bg-white px-4 pr-10 text-center text-[0.8125rem] font-medium text-study-ink transition-colors hover:bg-study-mint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-ink"
+        className="h-[46px] w-full max-w-full min-w-0 cursor-pointer appearance-none rounded-[10px] border border-study-divider bg-white px-4 pr-10 text-center text-[0.8125rem] font-medium text-study-ink transition-colors hover:bg-study-mint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-ink"
       >
         {chapters.map((chapter) => (
           <option key={chapter.id} value={chapter.id}>
