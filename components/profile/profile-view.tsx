@@ -2,20 +2,25 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
 import { ProfileContactForm } from "@/components/profile/profile-contact-form";
 import { ProfileIdentityCard } from "@/components/profile/profile-identity-card";
 import { ProfilePrepSnapshot } from "@/components/profile/profile-prep-snapshot";
+import { ProfileTargetExamCard } from "@/components/profile/profile-target-exam-card";
 import { useAuthSession } from "@/components/providers/auth-session-provider";
 import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
 import { useStudyLoadingOverlay } from "@/components/study/study-loading-provider";
 import { getBadges } from "@/lib/api/analytics";
 import { getMyProfile, updateMyProfile } from "@/lib/api/users";
+import { listShowInAppExams } from "@/lib/equation-book/list-show-in-app-exams";
 import { resolveProfileAvatarUrl } from "@/lib/profile/avatar";
 import {
   buildUpdatePayload,
   contactFromProfileUser,
   mapApiUserToProfileUser,
 } from "@/lib/profile/map-user";
+import { persistTargetExam } from "@/lib/profile/persist-target-exam";
+import type { EquationExamOption } from "@/types/equation-book";
 import {
   hasProfileFieldErrors,
   isProfileContactDirty,
@@ -83,6 +88,9 @@ export function ProfileView({ chrome }: ProfileViewProps) {
   const [errors, setErrors] = useState<ProfileFieldErrors>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [examOptions, setExamOptions] = useState<EquationExamOption[]>([]);
+  const [examPickerOpen, setExamPickerOpen] = useState(false);
+  const [examSaving, setExamSaving] = useState(false);
 
   const applyUser = useCallback((user: ProfileUser) => {
     const contact = contactFromProfileUser(user);
@@ -129,10 +137,32 @@ export function ProfileView({ chrome }: ProfileViewProps) {
       applyDeskResult(result);
     });
 
+    void listShowInAppExams().then((exams) => {
+      if (!cancelled) setExamOptions(exams);
+    });
+
     return () => {
       cancelled = true;
     };
   }, [authStatus, isAuthenticated, applyDeskResult]);
+
+  async function handleTargetExamSelect(exam: EquationExamOption) {
+    setExamSaving(true);
+    setStatusMessage(null);
+    const result = await studyLoading.run(() => persistTargetExam(exam.id), {
+      label: "Saving your exam...",
+    });
+    setExamSaving(false);
+    setExamPickerOpen(false);
+
+    if (!result.ok) {
+      setStatusMessage(result.message);
+      return;
+    }
+
+    applyUser(mapApiUserToProfileUser(result.data));
+    setStatusMessage("Saved.");
+  }
 
   function commitReady(ready: ReadyProfile, patch: Partial<ReadyProfile>) {
     setProfileState({ ...ready, status: "ready", ...patch });
@@ -273,6 +303,21 @@ export function ProfileView({ chrome }: ProfileViewProps) {
         avatarUrl={avatarUrl}
       />
 
+      <ProfileTargetExamCard
+        examName={user.examTrack}
+        hasExam={Boolean(user.targetExamId)}
+        saving={examSaving}
+        onEdit={() => {
+          if (examOptions.length === 0) {
+            setStatusMessage(
+              "No exams are available to choose yet. Try again shortly."
+            );
+            return;
+          }
+          setExamPickerOpen(true);
+        }}
+      />
+
       {statusMessage ? (
         <p
           className={`rounded-[12px] px-3.5 py-2.5 text-xs font-medium sm:text-sm ${
@@ -317,6 +362,17 @@ export function ProfileView({ chrome }: ProfileViewProps) {
           onRetryBadges={handleRetryBadges}
         />
       </div>
+
+      <ExamChoiceModal
+        open={examPickerOpen}
+        exams={examOptions}
+        title="Which exam are you preparing for?"
+        body="This becomes your target exam across Equation Book and mocks."
+        onSelect={(exam) => {
+          void handleTargetExamSelect(exam);
+        }}
+        onDismiss={() => setExamPickerOpen(false)}
+      />
     </div>
   );
 }

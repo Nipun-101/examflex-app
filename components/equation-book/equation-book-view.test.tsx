@@ -1,132 +1,190 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { EquationBookView } from "@/components/equation-book/equation-book-view";
-import { EQUATION_BOOK_DATA } from "@/lib/equation-book/static-data";
-import type { EquationBookPageData } from "@/types/equation-book";
+import {
+  TEST_EQUATIONS,
+  TEST_EXAMS,
+  TEST_SUBJECTS,
+} from "@/lib/equation-book/test-fixtures";
+import { mathpixModuleStub } from "@/test-utils/mock-mathpix";
+
+vi.mock("mathpix-markdown-it", () => mathpixModuleStub());
+
+const push = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push, replace: vi.fn() }),
+}));
 
 describe("EquationBookView", () => {
-  it("renders the featured physics card and advances with Next", async () => {
+  beforeEach(() => {
+    push.mockReset();
+  });
+
+  it("renders the first card and advances with Next", async () => {
     const user = userEvent.setup();
-    render(<EquationBookView data={EQUATION_BOOK_DATA} />);
+    render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={TEST_EQUATIONS}
+        initialSubjectId="sub-physics"
+        initialTopicId="top-lom"
+        onFiltersChange={vi.fn()}
+      />
+    );
 
     expect(
       screen.getByRole("heading", { name: "Equation Book" })
     ).toBeInTheDocument();
-    expect(screen.getByText("1 of 8 equations")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /Next/i }));
-    expect(screen.getByText("2 of 8 equations")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /Next/i }));
+    expect(screen.getByText("1 of 2 equations")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /rough incline/i })
+      screen.getByRole("heading", { name: "Net force on a free body?" })
     ).toBeInTheDocument();
-    expect(screen.getByText("3 of 8 equations")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Next/i }));
+    expect(screen.getByText("2 of 2 equations")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Static friction limit?" })
+    ).toBeInTheDocument();
   });
 
-  it("switches subject and chapter placeholders", async () => {
-    const user = userEvent.setup();
-    render(<EquationBookView data={EQUATION_BOOK_DATA} />);
-
-    await user.click(screen.getByRole("tab", { name: "Biology" }));
-    expect(screen.getByLabelText("Chapter")).toHaveValue("cell-cycle");
-    expect(
-      screen.getByRole("heading", { name: /DNA content after S phase/i })
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByRole("tab", { name: "Chemistry" }));
-    expect(screen.getByLabelText("Chapter")).toHaveValue(
-      "chemical-equilibrium"
+  it("flips the card to reveal the equation", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={TEST_EQUATIONS}
+        initialSubjectId="sub-physics"
+        initialTopicId="top-lom"
+        onFiltersChange={vi.fn()}
+      />
     );
-  });
 
-  it("changes chapter within a subject and supports Previous", async () => {
-    const user = userEvent.setup();
-    render(<EquationBookView data={EQUATION_BOOK_DATA} />);
-
-    await user.click(screen.getByRole("button", { name: /Next/i }));
-    expect(screen.getByText("2 of 8 equations")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /Previous/i }));
-    expect(screen.getByText("1 of 8 equations")).toBeInTheDocument();
-
-    await user.selectOptions(
-      screen.getByLabelText("Chapter"),
-      "work-energy-power"
+    expect(screen.getByText(/DON'T PEEK YET/i)).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: /Flip to reveal the equation/i })
     );
-    expect(
-      screen.getByRole("heading", { name: /Work by a constant force/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText("1 of 1 equations")).toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(400);
+    });
+    const mathNodes = await screen.findAllByTestId("mathpix-markdown");
+    expect(mathNodes[0]).toHaveTextContent("$$\\Sigma F = ma$$");
+    expect(screen.getByText(/LOCKED IN/i)).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
-  it("jumps to a card from the chapter rail", async () => {
-    const user = userEvent.setup();
-    render(<EquationBookView data={EQUATION_BOOK_DATA} />);
+  it("hides a previously revealed equation when returning to it", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={TEST_EQUATIONS}
+        initialSubjectId="sub-physics"
+        initialTopicId="top-lom"
+        onFiltersChange={vi.fn()}
+      />
+    );
 
     await user.click(
-      screen.getByRole("button", {
-        name: /Sliding down a rough incline/i,
-      })
+      screen.getByRole("button", { name: /Flip to reveal the equation/i })
     );
-    expect(screen.getByText("3 of 8 equations")).toBeInTheDocument();
+    await act(async () => {
+      vi.advanceTimersByTime(400);
+    });
+    expect(screen.getByText(/LOCKED IN/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Next/i }));
+    expect(
+      screen.getByRole("heading", { name: "Static friction limit?" })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/DON'T PEEK YET/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Previous/i }));
+    expect(
+      screen.getByRole("heading", { name: "Net force on a free body?" })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/DON'T PEEK YET/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Flip to reveal the equation/i })
+    ).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
+  it("notifies filter changes when switching subject", async () => {
+    const user = userEvent.setup();
+    const onFiltersChange = vi.fn();
+    render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={TEST_EQUATIONS}
+        initialSubjectId="sub-physics"
+        initialTopicId="top-lom"
+        onFiltersChange={onFiltersChange}
+      />
+    );
+
+    await user.click(screen.getByRole("tab", { name: "Chemistry" }));
+    expect(onFiltersChange).toHaveBeenCalledWith({
+      subjectId: "sub-chem",
+      topicId: "top-eq",
+    });
+  });
+
+  it("shows empty state when there are no cards", () => {
+    render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={[]}
+        initialSubjectId="sub-physics"
+        initialTopicId="top-lom"
+        onFiltersChange={vi.fn()}
+      />
+    );
     expect(
       screen.getByRole("heading", {
-        name: /Sliding down a rough incline/i,
+        name: "Your deck is waiting for its first card.",
       })
     ).toBeInTheDocument();
+    expect(screen.getByText("0 of 0 equations")).toBeInTheDocument();
+    expect(screen.getByText(/IN THIS CHAPTER/i)).toBeInTheDocument();
   });
 
+  it("defaults to the first subject and chapter when none are provided", () => {
+    render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={TEST_EQUATIONS}
+        onFiltersChange={vi.fn()}
+      />
+    );
 
-
-  it("shows an empty state when a chapter has no cards", () => {
-    const emptyData: EquationBookPageData = {
-      ...EQUATION_BOOK_DATA,
-      cards: [],
-    };
-
-    render(<EquationBookView data={emptyData} />);
+    expect(screen.getByRole("tab", { name: "Physics" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    expect(screen.getByLabelText("Chapter")).toHaveValue("top-lom");
     expect(
-      screen.getByText(/No equations in this chapter yet/i)
-    ).toBeInTheDocument();
-  });
-
-  it("falls back when subjects are missing", () => {
-    const sparse: EquationBookPageData = {
-      ...EQUATION_BOOK_DATA,
-      subjects: [],
-      chapters: [],
-      cards: [],
-    };
-
-    render(<EquationBookView data={sparse} />);
-    expect(
-      screen.getByRole("heading", { name: "Equation Book" })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/No equations in this chapter yet/i)
-    ).toBeInTheDocument();
-  });
-
-  it("clears the chapter when switching to a subject with none", async () => {
-    const user = userEvent.setup();
-    const data: EquationBookPageData = {
-      ...EQUATION_BOOK_DATA,
-      subjects: [
-        { id: "physics", label: "Physics" },
-        { id: "chemistry", label: "Chemistry" },
-      ],
-      chapters: EQUATION_BOOK_DATA.chapters.filter(
-        (chapter) => chapter.subjectId === "physics"
-      ),
-    };
-
-    render(<EquationBookView data={data} />);
-    await user.click(screen.getByRole("tab", { name: "Chemistry" }));
-    expect(screen.queryByLabelText("Chapter")).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/No equations in this chapter yet/i)
+      screen.getByText("Tap another subject or chapter to keep exploring.")
     ).toBeInTheDocument();
   });
 });
-

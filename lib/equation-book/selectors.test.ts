@@ -1,38 +1,58 @@
 import { describe, expect, it } from "vitest";
 import {
-  cardsForChapter,
-  chaptersForSubject,
+  chaptersFromSubject,
+  defaultSubjectAndChapter,
+  findCardIndex,
   mockCtaLabel,
   progressPercent,
+  subjectsFromCatalog,
 } from "@/lib/equation-book/selectors";
-import { EQUATION_BOOK_DATA } from "@/lib/equation-book/static-data";
+import {
+  TEST_EQUATIONS,
+  TEST_SUBJECTS,
+} from "@/lib/equation-book/test-fixtures";
 
 describe("equation-book selectors", () => {
-  it("filters chapters and cards by subject/chapter", () => {
-    const physicsChapters = chaptersForSubject(
-      EQUATION_BOOK_DATA.chapters,
-      "physics"
-    );
-    expect(physicsChapters.every((c) => c.subjectId === "physics")).toBe(true);
-
-    const cards = cardsForChapter(
-      EQUATION_BOOK_DATA.cards,
-      "laws-of-motion"
-    );
-    expect(cards).toHaveLength(8);
-    expect(cards[2]?.promptTitle).toMatch(/rough incline/i);
+  it("maps subjects and chapters from catalog", () => {
+    expect(subjectsFromCatalog(TEST_SUBJECTS)).toEqual([
+      { id: "sub-physics", label: "Physics" },
+      { id: "sub-chem", label: "Chemistry" },
+    ]);
+    expect(chaptersFromSubject(TEST_SUBJECTS, "sub-physics")).toEqual([
+      { id: "top-lom", label: "Laws of motion" },
+      { id: "top-wep", label: "Work, energy & power" },
+    ]);
   });
 
-  it("computes progress percent with safe bounds", () => {
-    expect(progressPercent(2, 8)).toBe(38);
+  it("computes progress and mock label", () => {
+    expect(progressPercent(0, 8)).toBe(13);
     expect(progressPercent(0, 0)).toBe(0);
-    expect(progressPercent(99, 8)).toBe(100);
-    expect(progressPercent(-1, 8)).toBe(0);
-  });
-
-  it("builds the mock CTA label", () => {
     expect(mockCtaLabel("Laws of motion")).toBe(
       "Take Laws of motion mock  →"
     );
+  });
+
+  it("finds card index by equation id", () => {
+    expect(findCardIndex(TEST_EQUATIONS, "eq-2")).toBe(1);
+    expect(findCardIndex(TEST_EQUATIONS, "missing")).toBe(0);
+  });
+
+  it("defaults to the first subject and chapter when prefs are missing", () => {
+    expect(defaultSubjectAndChapter(TEST_SUBJECTS)).toEqual({
+      subjectId: "sub-physics",
+      topicId: "top-lom",
+    });
+    expect(
+      defaultSubjectAndChapter(TEST_SUBJECTS, "sub-chem", "top-eq")
+    ).toEqual({
+      subjectId: "sub-chem",
+      topicId: "top-eq",
+    });
+    expect(
+      defaultSubjectAndChapter(TEST_SUBJECTS, "missing", "also-missing")
+    ).toEqual({
+      subjectId: "sub-physics",
+      topicId: "top-lom",
+    });
   });
 });

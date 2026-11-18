@@ -76,6 +76,9 @@ export function mapApiUserToProfileUser(profile: ApiUserProfile): ProfileUser {
       ? profile.avatarUrl.trim()
       : null;
 
+  const targetExamId =
+    profile.targetExam?.id ?? profile.targetExams?.[0]?.id ?? null;
+
   return {
     name: profile.name,
     phone,
@@ -83,6 +86,7 @@ export function mapApiUserToProfileUser(profile: ApiUserProfile): ProfileUser {
     avatarUrl,
     signInMethod: inferSignInMethod(avatarUrl),
     examTrack: examTrackFromProfile(profile),
+    targetExamId,
     memberSinceLabel: formatMemberSinceLabel(profile.createdAt),
     membershipTier: profile.membershipTier ?? "none",
     phoneLocked: phone.length > 0,

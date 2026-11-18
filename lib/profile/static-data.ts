@@ -24,6 +24,7 @@ export const PROFILE_PAGE_DATA: ProfilePageData = {
     avatarUrl: null,
     signInMethod: "otp",
     examTrack: "ExamFlex",
+    targetExamId: null,
     memberSinceLabel: "On ExamFlex since March 2025",
     membershipTier: "none",
     phoneLocked: true,
