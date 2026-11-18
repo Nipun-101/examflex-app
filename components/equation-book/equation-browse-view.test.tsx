@@ -74,10 +74,54 @@ describe("EquationBrowseView", () => {
     expect(
       await screen.findByRole("heading", { name: "Browse all equations" })
     ).toBeInTheDocument();
-    expect(
-      await screen.findByRole("heading", { name: "Net force on a free body?" })
-    ).toBeInTheDocument();
+    const title = await screen.findByRole("heading", {
+      name: "Net force on a free body?",
+    });
+    expect(title).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Search by title/i)).toBeInTheDocument();
+
+    // Grid items must shrink below intrinsic math width on mobile.
+    expect(title.closest("li")).toHaveClass("min-w-0");
+    expect(title).toHaveClass("break-words");
+  });
+
+  it("keeps long titles and equations inside the card bounds", async () => {
+    vi.mocked(listEquations).mockResolvedValue({
+      ok: true,
+      data: {
+        items: [
+          {
+            ...TEST_EQUATIONS[0]!,
+            id: "eq-wide",
+            title:
+              "Hardy-Weinberg Equilibrium and Allele Frequencies Across Populations",
+            shortDescription:
+              "Mathematical relationship between allele frequencies and genotype frequencies in a population.",
+            equation:
+              "$$p + q = 1$$ $$p^2 + 2pq + q^2 = 1$$ $$f(AA)=p^2$$ $$f(Aa)=2pq$$ $$f(aa)=q^2$$",
+          },
+        ],
+        pagination: {
+          total: 1,
+          page: 1,
+          limit: 50,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+    });
+
+    render(<EquationBrowseView />);
+
+    const title = await screen.findByRole("heading", {
+      name: /Hardy-Weinberg Equilibrium and Allele Frequencies/i,
+    });
+    const card = title.closest("article");
+    expect(card).not.toBeNull();
+    expect(card).toHaveClass("min-w-0");
+    expect(title).toHaveClass("break-words");
+    expect(title.closest("li")).toHaveClass("min-w-0");
   });
 
   it("shows the equation book empty state when there is no data", async () => {
