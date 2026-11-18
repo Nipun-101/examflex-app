@@ -16,26 +16,42 @@ type TodayWorkspaceProps = {
  * left = next step → score → subjects;
  * right = session plan → equation → mock → perspective.
  * On large screens both columns stretch so the bottom cards share one baseline.
+ *
+ * Mobile stacks a different priority order via CSS `order` (desktop unchanged).
  */
 export function TodayWorkspace({ data }: TodayWorkspaceProps) {
   return (
     <section aria-label="Study workspace" className="flex flex-col gap-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.83fr)_minmax(0,1fr)] lg:items-stretch lg:gap-6">
-        <div className="flex flex-col gap-4 lg:h-full lg:gap-5">
-          <NextStepCard data={data.nextStep} />
-          <MockScoreCard data={data.latestMock} />
-          <SubjectInsightsCard
-            title="Where your next session can help"
-            insights={data.subjectInsights}
-            className="lg:flex-1"
-          />
+        <div className="contents lg:flex lg:h-full lg:flex-col lg:gap-5">
+          <div className="order-2 lg:order-none">
+            <NextStepCard data={data.nextStep} />
+          </div>
+          <div className="order-1 lg:order-none">
+            <MockScoreCard data={data.latestMock} />
+          </div>
+          <div className="order-6 lg:order-none lg:flex lg:flex-1 lg:flex-col">
+            <SubjectInsightsCard
+              title="Where your next session can help"
+              insights={data.subjectInsights}
+              className="lg:flex-1"
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col gap-4 lg:h-full lg:gap-5">
-          <SessionPlanCard data={data.sessionPlan} />
-          <EquationBookCard data={data.equationBook} />
-          <NextMockCard data={data.nextMock} />
-          <PerspectiveCard data={data.perspective} className="lg:flex-1" />
+        <div className="contents lg:flex lg:h-full lg:flex-col lg:gap-5">
+          <div className="order-7 lg:order-none">
+            <SessionPlanCard data={data.sessionPlan} />
+          </div>
+          <div className="order-3 lg:order-none">
+            <EquationBookCard data={data.equationBook} />
+          </div>
+          <div className="order-5 lg:order-none">
+            <NextMockCard data={data.nextMock} />
+          </div>
+          <div className="order-4 lg:order-none lg:flex lg:flex-1 lg:flex-col">
+            <PerspectiveCard data={data.perspective} className="lg:flex-1" />
+          </div>
         </div>
       </div>
 
