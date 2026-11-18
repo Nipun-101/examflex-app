@@ -159,14 +159,14 @@ export function EquationBrowseView() {
 
   return (
     <MathpixBoundary>
-      <div className="flex w-full flex-col gap-5 lg:gap-8">
-        <header className="flex flex-col gap-3">
+      <div className="flex w-full min-w-0 flex-col gap-5 lg:gap-8">
+        <header className="flex min-w-0 flex-col gap-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div className="min-w-0">
               <p className="text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase">
                 Formula shelf
               </p>
-              <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight text-study-ink sm:text-[2rem]">
+              <h1 className="mt-1 font-display text-[1.75rem] font-semibold tracking-tight break-words text-study-ink sm:text-[2rem]">
                 Browse all equations
               </h1>
               <p className="mt-1 text-sm text-study-muted-soft">
@@ -175,13 +175,13 @@ export function EquationBrowseView() {
             </div>
             <Link
               href="/equation-book"
-              className="my-3 text-sm font-semibold text-study-green hover:text-study-ink sm:my-0"
+              className="my-3 shrink-0 text-sm font-semibold text-study-green hover:text-study-ink sm:my-0"
             >
               ← Back to recall
             </Link>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-3">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-3">
             <div className="min-w-0 flex-1">
               <SubjectTabs
                 subjects={subjectOptions}
@@ -190,7 +190,7 @@ export function EquationBrowseView() {
                 layout="wrap"
               />
             </div>
-            <label className="block w-full shrink-0 sm:w-56 lg:w-64">
+            <label className="block w-full min-w-0 shrink-0 sm:w-56 lg:w-64">
               <span className="sr-only">Search equations by title</span>
               <input
                 value={searchInput}
@@ -213,20 +213,20 @@ export function EquationBrowseView() {
         ) : items.length === 0 ? (
           <EquationEmptyState chapterLabel={activeSubjectLabel} />
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
+          <ul className="grid min-w-0 gap-4 sm:grid-cols-2">
             {items.map((item) => (
-              <li key={item.id}>
-                <article className="flex h-full flex-col rounded-[20px] bg-study-lilac px-5 py-5 shadow-soft">
-                  <p className="text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
+              <li key={item.id} className="min-w-0">
+                <article className="flex h-full min-w-0 flex-col rounded-[20px] bg-study-lilac px-5 py-5 shadow-soft">
+                  <p className="text-[0.625rem] font-semibold tracking-wide break-words text-study-green uppercase">
                     {item.subject.name} · {item.topic.name}
                   </p>
-                  <h2 className="mt-2 font-display text-xl font-semibold text-study-ink">
+                  <h2 className="mt-2 font-display text-xl font-semibold break-words [overflow-wrap:anywhere] text-study-ink">
                     {item.title}
                   </h2>
-                  <p className="mt-2 text-sm text-study-muted-soft">
+                  <p className="mt-2 text-sm break-words text-study-muted-soft">
                     {item.shortDescription}
                   </p>
-                  <div className="mt-4 text-base font-medium text-study-ink">
+                  <div className="mt-4 min-w-0 overflow-x-auto text-base font-medium text-study-ink [-webkit-overflow-scrolling:touch] [&_#preview]:!block [&_#preview]:!max-w-full [&_#preview]:!p-0">
                     <MathText text={item.equation} />
                   </div>
                   <div className="mt-auto pt-5">

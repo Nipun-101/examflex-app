@@ -344,7 +344,20 @@ h4 {
   max-width: min(100%, calc(22rem * var(--question-zoom)));
 }
 
-/* Mathpix markdown rendering (attempt runner + answer key) */
+/* Mathpix markdown rendering (attempt runner + answer key + formula shelf) */
+.mathpix-content {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Mathpix injects #preview with padding; keep it from blowing out mobile cards. */
+.mathpix-content #preview {
+  display: block;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+}
+
 .mathpix-content p {
   margin: 0;
 }
@@ -361,6 +374,8 @@ h4 {
 
 .mathpix-content mjx-container[jax="SVG"][display="true"] {
   margin: 0.5rem 0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .mathpix-content mjx-container[jax="SVG"] > svg {

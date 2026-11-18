@@ -115,11 +115,11 @@ export function EquationFlipCard({
           </div>
 
           <div ref={backRef} className="equation-flip-face equation-flip-face--back">
-            <div className="rounded-[16px] border border-study-green/25 bg-white px-4 py-5 shadow-soft sm:px-5 sm:py-6">
+            <div className="min-w-0 rounded-[16px] border border-study-green/25 bg-white px-4 py-5 shadow-soft sm:px-5 sm:py-6">
               <p className="text-[0.6875rem] font-semibold tracking-[0.08em] text-study-green uppercase">
                 Equation
               </p>
-              <div className="mt-3 font-display text-[1.25rem] font-medium leading-[1.35] text-study-ink sm:text-[1.75rem] lg:text-[2rem]">
+              <div className="mt-3 min-w-0 overflow-x-auto font-display text-[1.25rem] font-medium leading-[1.35] text-study-ink [-webkit-overflow-scrolling:touch] [&_#preview]:!block [&_#preview]:!max-w-full [&_#preview]:!p-0 sm:text-[1.75rem] lg:text-[2rem]">
                 <MathText text={card.equation} />
               </div>
 

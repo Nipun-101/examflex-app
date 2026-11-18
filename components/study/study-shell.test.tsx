@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
 
 describe("StudyShell", () => {
   it("wraps children with the study navigation chrome", () => {
-    render(
+    const { container } = render(
       <StudyShell>
         <p>Study child</p>
       </StudyShell>
@@ -17,5 +17,9 @@ describe("StudyShell", () => {
     expect(screen.getByText("Study child")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Study" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Profile/i })).toBeInTheDocument();
+
+    const content = screen.getByText("Study child").parentElement;
+    expect(content).toHaveClass("min-w-0");
+    expect(container.firstChild).toBeTruthy();
   });
 });
