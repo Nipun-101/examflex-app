@@ -58,12 +58,12 @@ export function EquationCtas({
   className = "",
 }: EquationCtasProps) {
   return (
-    <div className={`flex flex-col gap-3 sm:gap-4 ${className}`.trim()}>
+    <div className={`flex min-w-0 flex-col gap-3 sm:gap-4 ${className}`.trim()}>
       {onMockClick ? (
         <StudyButton
           variant="solid"
           onClick={onMockClick}
-          className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] font-medium whitespace-pre lg:h-[3.25rem]"
+          className="inline-flex h-12 min-w-0 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] leading-snug font-medium break-words whitespace-normal lg:h-[3.25rem]"
         >
           {mockLabel}
         </StudyButton>
@@ -71,7 +71,7 @@ export function EquationCtas({
         <StudyControlLink
           href={mockHref}
           variant="solid"
-          className="inline-flex h-12 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] font-medium whitespace-pre lg:h-[3.25rem]"
+          className="inline-flex h-12 min-w-0 items-center justify-center rounded-[10px] px-4 text-center text-[0.8125rem] leading-snug font-medium break-words whitespace-normal lg:h-[3.25rem]"
         >
           {mockLabel}
         </StudyControlLink>
@@ -80,7 +80,7 @@ export function EquationCtas({
       <StudyControlLink
         href={browseHref}
         variant="outline"
-        className="inline-flex h-[50px] items-center justify-center rounded-[12px] px-3.5 text-center text-[0.8125rem] font-medium whitespace-pre lg:justify-start"
+        className="inline-flex h-[50px] min-w-0 items-center justify-center rounded-[12px] px-3.5 text-center text-[0.8125rem] leading-snug font-medium break-words whitespace-normal lg:justify-start"
       >
         {browseLabel}
       </StudyControlLink>

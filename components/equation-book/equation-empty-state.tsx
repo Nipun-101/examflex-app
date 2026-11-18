@@ -81,7 +81,7 @@ export function EquationEmptyState({ chapterLabel }: EquationEmptyStateProps) {
           <p className="text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
             Recall session
           </p>
-          <h3 className="mt-2 font-display text-lg font-semibold text-study-ink">
+          <h3 className="mt-2 min-w-0 font-display text-lg font-semibold break-words text-study-ink">
             {sessionTitle}
           </h3>
           <p className="mt-2 text-sm leading-[1.45] text-study-muted-soft">

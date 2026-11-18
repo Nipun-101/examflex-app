@@ -273,6 +273,9 @@ h4 {
 /* Equation Book recall card — true 3D flip (front → back) */
 .equation-flip-scene {
   perspective: 1400px;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .equation-flip-inner {

@@ -164,37 +164,41 @@ export function EquationBookView({
 
   return (
     <MathpixBoundary>
-      <div className="flex w-full flex-col gap-5 lg:gap-8">
-        <header className="flex flex-col gap-4 lg:gap-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="font-display text-[1.75rem] font-semibold tracking-tight text-study-ink sm:text-[2rem] lg:text-[2.5rem]">
+      <div className="flex w-full min-w-0 flex-col gap-5 lg:gap-8">
+        <header className="flex min-w-0 flex-col gap-4 lg:gap-5">
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="font-display text-[1.75rem] font-semibold tracking-tight break-words text-study-ink sm:text-[2rem] lg:text-[2.5rem]">
                 {EQUATION_BOOK_COPY.title}
               </h1>
               <p className="mt-1 text-sm text-study-muted-soft lg:text-base">
                 {EQUATION_BOOK_COPY.tagline}
               </p>
             </div>
-            <p className="text-[0.6875rem] whitespace-pre text-study-muted-soft">
+            <p className="shrink-0 text-[0.6875rem] whitespace-pre text-study-muted-soft">
               {examName}
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-2">
-            <div className="flex w-full flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)] lg:items-center lg:gap-4">
+          <div className="flex w-full min-w-0 flex-col gap-2">
+            <div className="flex w-full min-w-0 flex-col gap-3 lg:grid lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)] lg:items-center lg:gap-4">
               {subjectOptions.length > 0 ? (
-                <SubjectTabs
-                  subjects={subjectOptions}
-                  activeId={subjectId}
-                  onSelect={handleSubjectChange}
-                />
+                <div className="min-w-0">
+                  <SubjectTabs
+                    subjects={subjectOptions}
+                    activeId={subjectId}
+                    onSelect={handleSubjectChange}
+                  />
+                </div>
               ) : null}
               {activeChapter ? (
-                <ChapterSelect
-                  chapters={chapterOptions}
-                  value={activeChapter.id}
-                  onChange={handleChapterChange}
-                />
+                <div className="min-w-0">
+                  <ChapterSelect
+                    chapters={chapterOptions}
+                    value={activeChapter.id}
+                    onChange={handleChapterChange}
+                  />
+                </div>
               ) : null}
             </div>
             {subjectOptions.length > 0 ? (
@@ -210,7 +214,7 @@ export function EquationBookView({
             Loading equations…
           </p>
         ) : activeChapter && activeCard ? (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.9fr)] lg:items-stretch lg:gap-8">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.9fr)] lg:items-stretch lg:gap-8">
             <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:h-full lg:gap-5">
               <EquationProgress
                 chapterLabel={activeChapter.label}
@@ -218,7 +222,7 @@ export function EquationBookView({
                 total={cards.length}
                 percent={percent}
               />
-              <div className="min-h-0 flex-1">
+              <div className="min-h-0 min-w-0 flex-1">
                 <EquationFlipCard
                   key={activeCard.id}
                   card={activeCard}
@@ -228,12 +232,12 @@ export function EquationBookView({
               </div>
             </div>
 
-            <aside className="flex flex-col gap-5 rounded-[20px] bg-white p-4 shadow-soft sm:p-5 lg:sticky lg:top-6 lg:self-start lg:gap-6 lg:p-6">
-              <div className="hidden lg:block">
+            <aside className="flex min-w-0 flex-col gap-5 rounded-[20px] bg-white p-4 shadow-soft sm:p-5 lg:sticky lg:top-6 lg:self-start lg:gap-6 lg:p-6">
+              <div className="hidden min-w-0 lg:block">
                 <p className="text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
                   Recall session
                 </p>
-                <p className="mt-1 font-display text-lg font-semibold text-study-ink">
+                <p className="mt-1 font-display text-lg font-semibold break-words text-study-ink">
                   {activeChapter.label}
                 </p>
                 <p className="mt-1 text-sm text-study-muted-soft">
@@ -271,7 +275,7 @@ export function EquationBookView({
             </aside>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 lg:gap-5">
+          <div className="flex min-w-0 flex-col gap-4 lg:gap-5">
             <EquationProgress
               chapterLabel={activeChapter?.label ?? "Chapter"}
               current={0}

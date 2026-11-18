@@ -40,9 +40,17 @@ describe("EquationBookView", () => {
       screen.getByRole("heading", { name: "Equation Book" })
     ).toBeInTheDocument();
     expect(screen.getByText("1 of 2 equations")).toBeInTheDocument();
+    const cardTitle = screen.getByRole("heading", {
+      name: "Net force on a free body?",
+    });
+    expect(cardTitle).toBeInTheDocument();
+    expect(cardTitle).toHaveClass("break-words");
+    expect(cardTitle.closest("article")).toHaveClass("min-w-0");
     expect(
-      screen.getByRole("heading", { name: "Net force on a free body?" })
-    ).toBeInTheDocument();
+      screen.getByRole("progressbar", {
+        name: /Progress through Laws of motion/i,
+      }).previousElementSibling?.querySelector("p")
+    ).toHaveClass("min-w-0");
 
     await user.click(screen.getByRole("button", { name: /Next/i }));
     expect(screen.getByText("2 of 2 equations")).toBeInTheDocument();
