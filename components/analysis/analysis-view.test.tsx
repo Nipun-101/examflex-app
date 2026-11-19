@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AnalysisView } from "@/components/analysis/analysis-view";
-import { ANALYSIS_PAGE_DATA } from "@/lib/analysis/static-data";
-import { buildAnalysisPageData } from "@/lib/analysis/static-data";
+import {
+  ANALYSIS_PAGE_DATA,
+  buildAnalysisPageData,
+} from "@/lib/analysis/static-data";
 
 describe("AnalysisView", () => {
   it("renders the empty possibilities outlook", () => {
@@ -32,7 +34,7 @@ describe("AnalysisView", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows scored performance when latest exists", () => {
+  it("shows scored performance without edit when latest exists", () => {
     const data = buildAnalysisPageData({
       ...ANALYSIS_PAGE_DATA.overview!,
       fullMocks: {
@@ -87,6 +89,9 @@ describe("AnalysisView", () => {
 
     render(<AnalysisView data={data} />);
     expect(screen.getByText("548 / 720")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Based on marks from your latest full mock")
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
   });
 });

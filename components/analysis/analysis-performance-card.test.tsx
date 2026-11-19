@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AnalysisPerformanceCard } from "@/components/analysis/analysis-performance-card";
 
 describe("AnalysisPerformanceCard", () => {
@@ -21,29 +20,17 @@ describe("AnalysisPerformanceCard", () => {
     expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
   });
 
-  it("shows the score and supports editing when enabled", async () => {
-    const user = userEvent.setup();
-    const onScoreChange = vi.fn();
-
+  it("shows the score without an edit control", () => {
     render(
       <AnalysisPerformanceCard
         label="LATEST PERFORMANCE · MOCK 12"
         score={548}
         maxScore={720}
-        scoreHint="Based on marks only"
-        editEnabled
-        onScoreChange={onScoreChange}
+        scoreHint="Based on marks from your latest full mock"
       />
     );
 
     expect(screen.getByText("548 / 720")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Edit" }));
-
-    const input = screen.getByLabelText(/Edit score out of 720/i);
-    await user.clear(input);
-    await user.type(input, "600");
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(onScoreChange).toHaveBeenCalledWith(600);
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
   });
 });

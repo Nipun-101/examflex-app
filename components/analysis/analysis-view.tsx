@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { AnalysisDisclaimerCard } from "@/components/analysis/analysis-disclaimer";
 import { AnalysisHistoryCard } from "@/components/analysis/analysis-history-card";
@@ -8,7 +8,6 @@ import { AnalysisPathwayCard } from "@/components/analysis/analysis-pathway-card
 import { AnalysisPathwaysEmpty } from "@/components/analysis/analysis-pathways-empty";
 import { AnalysisPerformanceCard } from "@/components/analysis/analysis-performance-card";
 import { AnalysisSubjectsSection } from "@/components/analysis/analysis-subjects-section";
-import { remapPathwaysForPercent } from "@/lib/analysis/pathway-bands";
 import type { AnalysisPageData, AnalysisPathway } from "@/types/analysis";
 
 type AnalysisViewProps = {
@@ -22,16 +21,6 @@ export function AnalysisView({ data }: AnalysisViewProps) {
   const hasScore = latest !== null;
   const lockedHistory =
     data.illustrative || !overview?.engagement.hasFullMocks;
-
-  const [whatIfScore, setWhatIfScore] = useState<number | null>(
-    latest?.score ?? null
-  );
-
-  const displayScore = hasScore ? (whatIfScore ?? latest.score) : null;
-  const whatIfPercent =
-    hasScore && displayScore !== null && maxScore > 0
-      ? (displayScore / maxScore) * 100
-      : null;
 
   const pathways = useMemo(() => {
     const base = overview?.pathways.offerings ?? [];
@@ -47,8 +36,8 @@ export function AnalysisView({ data }: AnalysisViewProps) {
         })
       );
     }
-    return remapPathwaysForPercent(base, whatIfPercent);
-  }, [hasScore, overview?.pathways.offerings, whatIfPercent]);
+    return [...base];
+  }, [hasScore, overview?.pathways.offerings]);
 
   const performanceLabel = latest
     ? `LATEST PERFORMANCE · ${latest.title.toUpperCase()}`
@@ -57,7 +46,7 @@ export function AnalysisView({ data }: AnalysisViewProps) {
   const scoreHint = hasScore
     ? data.illustrative
       ? "Example score · based on marks only"
-      : "Based on marks from your latest full mock · Edit to explore what-if"
+      : "Based on marks from your latest full mock"
     : "Appears after your first full mock · based on marks only";
 
   const sectionSubtitle = hasScore
@@ -85,11 +74,9 @@ export function AnalysisView({ data }: AnalysisViewProps) {
 
       <AnalysisPerformanceCard
         label={performanceLabel}
-        score={displayScore}
+        score={hasScore ? latest.score : null}
         maxScore={maxScore}
         scoreHint={scoreHint}
-        editEnabled={hasScore}
-        onScoreChange={setWhatIfScore}
       />
 
       {overview ? (
