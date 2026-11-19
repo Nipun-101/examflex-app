@@ -2,6 +2,7 @@ import {
   StudyButton,
   StudyControlLink,
 } from "@/components/study/study-button";
+import { EQUATION_BOOK_COPY } from "@/types/equation-book";
 
 type EquationPagerProps = {
   canGoPrevious: boolean;
@@ -10,6 +11,23 @@ type EquationPagerProps = {
   onNext: () => void;
   className?: string;
 };
+
+type EquationBrowseLinkProps = {
+  className?: string;
+};
+
+/** Always-available escape hatch to the formula shelf. */
+export function EquationBrowseLink({ className = "" }: EquationBrowseLinkProps) {
+  return (
+    <StudyControlLink
+      href={EQUATION_BOOK_COPY.browseHref}
+      variant="outline"
+      className={`inline-flex h-[50px] min-w-0 items-center justify-center rounded-[12px] px-3.5 text-center text-[0.8125rem] leading-snug font-medium break-words whitespace-normal lg:justify-start ${className}`.trim()}
+    >
+      {EQUATION_BOOK_COPY.browseLabel}
+    </StudyControlLink>
+  );
+}
 
 export function EquationPager({
   canGoPrevious,

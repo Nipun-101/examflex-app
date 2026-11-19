@@ -134,9 +134,9 @@ export function EquationFlipCard({
                   <p className="text-[0.6875rem] font-semibold tracking-[0.08em] text-study-green uppercase">
                     Memory trick
                   </p>
-                  <p className="mt-1 text-sm leading-[1.45] text-study-ink">
-                    {card.mnemonic}
-                  </p>
+                  <div className="mt-1 min-w-0 overflow-x-auto text-sm leading-[1.45] text-study-ink [-webkit-overflow-scrolling:touch] [&_#preview]:!block [&_#preview]:!max-w-full [&_#preview]:!p-0">
+                    <MathText text={card.mnemonic} />
+                  </div>
                 </div>
               ) : null}
 

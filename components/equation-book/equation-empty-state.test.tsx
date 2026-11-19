@@ -23,6 +23,14 @@ describe("EquationEmptyState", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("always offers browse-all when the chapter deck is empty", () => {
+    render(<EquationEmptyState chapterLabel="Anatomy" />);
+
+    expect(
+      screen.getByRole("link", { name: /Browse all/i })
+    ).toHaveAttribute("href", EQUATION_BOOK_COPY.browseHref);
+  });
+
   it("falls back to No chapter yet when no chapter is selected", () => {
     render(<EquationEmptyState />);
     expect(
