@@ -61,5 +61,20 @@ describe("buildScoreBars", () => {
     expect(bars[0]?.heightPercent).toBe(40);
     expect(bars[1]?.heightPercent).toBe(100);
   });
+
+  it("renders empty placeholder bars for null scores", () => {
+    const bars = buildScoreBars(
+      [
+        { id: "a", label: "Mock 1", score: null },
+        { id: "b", label: "Mock 2", score: null },
+        { id: "c", label: "Mock 3", score: null },
+      ],
+      720
+    );
+
+    expect(bars.every((bar) => bar.isEmpty && bar.heightPercent === 0)).toBe(
+      true
+    );
+  });
 });
 

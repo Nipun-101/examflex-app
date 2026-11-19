@@ -19,9 +19,12 @@ vi.mock("@/lib/profile/persist-target-exam", () => ({
   persistTargetExam: vi.fn().mockResolvedValue({ ok: true, data: {} }),
 }));
 
-vi.mock("@/components/study/study-loading-overlay", () => ({
-  StudyLoadingOverlay: ({ open, label }: { open: boolean; label?: string }) =>
-    open ? <div role="status">{label ?? "Loading"}</div> : null,
+vi.mock("@/components/study/study-route-loading", () => ({
+  StudyRouteLoading: ({ busy }: { busy: boolean }) =>
+    busy ? <div role="status">Loading your study space...</div> : null,
+  StudyRouteLoadingFallback: () => (
+    <div role="status">Loading your study space...</div>
+  ),
 }));
 
 import { getAnalysisOverview } from "@/lib/api/analysis";

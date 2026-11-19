@@ -2,6 +2,7 @@ import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MockTestRunner } from "@/components/attempt/mock-test-runner";
+import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
 import {
   completeSession,
   patchAttemptAnswer,
@@ -31,7 +32,11 @@ import type {
 const push = vi.fn();
 const router = { push, replace: vi.fn() };
 
-vi.mock("next/navigation", () => ({ useRouter: () => router }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
+  usePathname: () => "/mocks/attempt/a1",
+  useSearchParams: () => new URLSearchParams(),
+}));
 vi.mock("mathpix-markdown-it", () => mathpixModuleStub());
 vi.mock("@/lib/api/attempts", () => ({
   completeSession: vi.fn(),
@@ -70,14 +75,16 @@ function setup(options: SetupOptions = {}) {
   const onFinished = vi.fn();
   const user = userEvent.setup();
   const view = render(
-    <MockTestRunner
-      attemptId="att1"
-      mockTestData={options.mockTestData ?? makeMockTestData()}
-      questions={options.questions ?? makeStartData().questions}
-      initialSecondsLeft={options.initialSecondsLeft ?? 3600}
-      {...(options.initialPaused ? { initialPaused: true } : {})}
-      onFinished={onFinished}
-    />
+    <StudyLoadingProvider>
+      <MockTestRunner
+        attemptId="att1"
+        mockTestData={options.mockTestData ?? makeMockTestData()}
+        questions={options.questions ?? makeStartData().questions}
+        initialSecondsLeft={options.initialSecondsLeft ?? 3600}
+        {...(options.initialPaused ? { initialPaused: true } : {})}
+        onFinished={onFinished}
+      />
+    </StudyLoadingProvider>
   );
   return { user, onFinished, ...view };
 }

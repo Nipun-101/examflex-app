@@ -1,7 +1,7 @@
 "use client";
 
 import { createElement } from "react";
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { Check, Lock, Play } from "lucide-react";
 import { StudyButton, StudyControlLink } from "@/components/study/study-button";
 import { isStartBlocked } from "@/lib/mocks/paper-access";
@@ -206,13 +206,13 @@ function CompletedBlock({ paper }: { paper: PaperCardData }) {
     <div className="mt-4 space-y-3">
       <BestScoreBlock paper={paper} />
       {mistakes > 0 ? (
-        <Link
+        <StudyNavLink
           href={`/mistake-book/${paper.id}`}
           className="flex min-h-11 items-center rounded-full bg-study-lilac px-4 py-2.5 text-sm font-medium text-study-ink transition-colors hover:brightness-95"
         >
           {mistakes} {mistakes === 1 ? "mistake" : "mistakes"} waiting in your
           Mistake Book
-        </Link>
+        </StudyNavLink>
       ) : null}
     </div>
   );

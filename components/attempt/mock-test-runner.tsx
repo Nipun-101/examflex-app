@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Flag, LayoutGrid, X } from "lucide-react";
+import { useStudyRouter } from "@/hooks/use-study-router";
 import { AttemptErrorState } from "@/components/attempt/attempt-error-state";
 import { AttemptHeader } from "@/components/attempt/attempt-header";
 import { AttemptModal } from "@/components/attempt/attempt-modal";
@@ -13,8 +13,9 @@ import { QuestionPalette } from "@/components/attempt/question-palette";
 import { QuestionPanel } from "@/components/attempt/question-panel";
 import { SubmitDialog } from "@/components/attempt/submit-dialog";
 import { StudyButton, StudyControlLink } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
 import { useAttemptGuards } from "@/hooks/use-attempt-guards";
+import { useStudyRouteLoading } from "@/hooks/use-study-route-loading";
+import { STUDY_LOADING_HOLD } from "@/lib/study/loading-holds";
 import { useCountdown } from "@/hooks/use-countdown";
 import {
   completeSession,
@@ -88,7 +89,7 @@ export function MockTestRunner({
   initialPaused = false,
   onFinished,
 }: MockTestRunnerProps) {
-  const router = useRouter();
+  const router = useStudyRouter();
 
   const [mockTestData, setMockTestData] =
     useState<AttemptMockTestData>(initialMockTestData);
@@ -120,6 +121,10 @@ export function MockTestRunner({
   const [completingLabel, setCompletingLabel] = useState(
     "Submitting your test...",
   );
+  useStudyRouteLoading(isSubmitting, {
+    holdKey: STUDY_LOADING_HOLD.submit,
+    label: completingLabel,
+  });
 
   const [mobilePaletteOpen, setMobilePaletteOpen] = useState(false);
   const [showExit, setShowExit] = useState(false);
@@ -652,7 +657,6 @@ export function MockTestRunner({
           onConfirm={() => void handlePauseAndExit()}
         />
 
-        <StudyLoadingOverlay open={isSubmitting} label={completingLabel} />
       </div>
     </MathpixBoundary>
   );

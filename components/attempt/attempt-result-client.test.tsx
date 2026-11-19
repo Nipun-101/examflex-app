@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
 import type * as AttemptsApi from "@/lib/api/attempts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AttemptResultClient } from "@/components/attempt/attempt-result-client";
+import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
 import { getAttempt } from "@/lib/api/attempts";
 import { rememberAttemptLanguage } from "@/lib/mocks/attempt-language";
 import { makeDetails } from "@/test-utils/attempt-fixtures";
@@ -16,6 +18,10 @@ vi.mock("@/lib/api/attempts", async (importOriginal) => {
 
 const getAttemptMock = vi.mocked(getAttempt);
 
+function renderResult(ui: ReactElement) {
+  return render(<StudyLoadingProvider>{ui}</StudyLoadingProvider>);
+}
+
 beforeEach(() => {
   getAttemptMock.mockReset();
   sessionStorage.clear();
@@ -24,13 +30,13 @@ beforeEach(() => {
 describe("AttemptResultClient", () => {
   it("blocks with the study loader while loading", () => {
     getAttemptMock.mockReturnValue(new Promise(() => undefined));
-    render(<AttemptResultClient attemptId="att1" />);
-    expect(screen.getByText("Loading your results...")).toBeInTheDocument();
+    renderResult(<AttemptResultClient attemptId="att1" />);
+    expect(screen.getByText("Loading your study space...")).toBeInTheDocument();
   });
 
   it("shows the results for a finished attempt", async () => {
     getAttemptMock.mockResolvedValue({ ok: true, data: makeDetails({ status: "SUBMITTED" }) });
-    render(<AttemptResultClient attemptId="att1" />);
+    renderResult(<AttemptResultClient attemptId="att1" />);
     expect(await screen.findByText(/Answer key/i)).toBeInTheDocument();
     expect(getAttemptMock).toHaveBeenCalledWith("att1");
   });
@@ -38,13 +44,13 @@ describe("AttemptResultClient", () => {
   it("opens the answer key in the language the student used", async () => {
     rememberAttemptLanguage("att1", "ml");
     getAttemptMock.mockResolvedValue({ ok: true, data: makeDetails({ status: "SUBMITTED" }) });
-    render(<AttemptResultClient attemptId="att1" />);
+    renderResult(<AttemptResultClient attemptId="att1" />);
     expect(await screen.findByRole("radio", { name: "മലയാളം" })).toBeChecked();
   });
 
   it("points an unfinished attempt back to the runner", async () => {
     getAttemptMock.mockResolvedValue({ ok: true, data: makeDetails({ status: "IN_PROGRESS" }) });
-    render(<AttemptResultClient attemptId="att1" />);
+    renderResult(<AttemptResultClient attemptId="att1" />);
     expect(await screen.findByRole("heading", { name: "Attempt still in progress" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Resume Attempt" })).toHaveAttribute(
       "href",
@@ -57,7 +63,7 @@ describe("AttemptResultClient", () => {
     getAttemptMock
       .mockResolvedValueOnce({ ok: false, message: "Boom", status: 500 })
       .mockResolvedValueOnce({ ok: true, data: makeDetails({ status: "SUBMITTED" }) });
-    render(<AttemptResultClient attemptId="att1" />);
+    renderResult(<AttemptResultClient attemptId="att1" />);
     expect(await screen.findByRole("heading", { name: "Result unavailable" })).toBeInTheDocument();
     expect(screen.getByText("Boom")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -68,7 +74,7 @@ describe("AttemptResultClient", () => {
   it("ignores a response that lands after unmount", async () => {
     let resolve: (value: Awaited<ReturnType<typeof getAttempt>>) => void = () => undefined;
     getAttemptMock.mockReturnValue(new Promise((r) => { resolve = r; }));
-    const { unmount } = render(<AttemptResultClient attemptId="att1" />);
+    const { unmount } = renderResult(<AttemptResultClient attemptId="att1" />);
     unmount();
     resolve({ ok: true, data: makeDetails({ status: "SUBMITTED" }) });
     await Promise.resolve();

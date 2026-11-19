@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { useEffect, useMemo, useState } from "react";
+import { useStudyRouter } from "@/hooks/use-study-router";
 import {
   MathpixBoundary,
   preloadMathpix,
@@ -11,7 +11,7 @@ import { MathText } from "@/components/attempt/math-text";
 import { EquationEmptyState } from "@/components/equation-book/equation-empty-state";
 import { SubjectTabs } from "@/components/equation-book/subject-tabs";
 import { StudyButton } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { listEquations } from "@/lib/api/equation-book";
 import { optionalField } from "@/lib/api/parse-fields";
 import { getSubjectsForExam } from "@/lib/api/exams";
@@ -31,7 +31,7 @@ import {
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function EquationBrowseView() {
-  const router = useRouter();
+  const router = useStudyRouter();
   const [bootLoading, setBootLoading] = useState(true);
   const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -148,13 +148,7 @@ export function EquationBrowseView() {
     subjectOptions.find((subject) => subject.id === subjectId)?.label ?? "All";
 
   if (bootLoading) {
-    return (
-      <StudyLoadingOverlay
-        open
-        scope="viewport"
-        label="Loading equations..."
-      />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   return (
@@ -173,12 +167,12 @@ export function EquationBrowseView() {
                 Search by title. Jump back into a recall card whenever you want.
               </p>
             </div>
-            <Link
+            <StudyNavLink
               href="/equation-book"
               className="my-3 shrink-0 text-sm font-semibold text-study-green hover:text-study-ink sm:my-0"
             >
               ← Back to recall
-            </Link>
+            </StudyNavLink>
           </div>
 
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:gap-3">

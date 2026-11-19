@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { usePathname } from "next/navigation";
 import { examTestListPath } from "@/lib/mocks/exam-test-routes";
 
@@ -39,7 +39,7 @@ export function ExamHubNav({ examId }: ExamHubNavProps) {
         const active =
           pathname === href || pathname.startsWith(`${href}/`);
         return (
-          <Link
+          <StudyNavLink
             key={href}
             href={href}
             data-active={active ? "true" : "false"}
@@ -51,7 +51,7 @@ export function ExamHubNav({ examId }: ExamHubNavProps) {
             }`}
           >
             {tab.label}
-          </Link>
+          </StudyNavLink>
         );
       })}
     </nav>

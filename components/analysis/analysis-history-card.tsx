@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { buildScoreBars } from "@/lib/today/score-bars";
 import type { AnalysisFullMocksSection } from "@/types/analysis";
 import { examHubPath } from "@/lib/mocks/exam-test-routes";
@@ -72,12 +72,12 @@ export function AnalysisHistoryCard({
               your last scores side by side — and how each attempt moved the
               needle.
             </p>
-            <Link
+            <StudyNavLink
               href={mocksHref}
               className="mt-4 inline-flex h-11 items-center justify-center rounded-[10px] bg-study-green px-5 text-sm font-semibold text-white transition-colors hover:bg-study-ink"
             >
               Attempt a full mock
-            </Link>
+            </StudyNavLink>
           </div>
         </div>
       ) : null}
@@ -115,12 +115,12 @@ export function AnalysisHistoryCard({
                 : breakdown}
             </p>
             {!locked ? (
-              <Link
+              <StudyNavLink
                 href={mocksHref}
                 className="mt-5 inline-flex text-[0.8125rem] font-semibold text-study-green transition-colors hover:text-study-ink"
               >
                 Open full mocks →
-              </Link>
+              </StudyNavLink>
             ) : null}
           </div>
 

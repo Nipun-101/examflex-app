@@ -22,6 +22,9 @@ const redirect = vi.fn((href: string) => {
 
 vi.mock("next/navigation", () => ({
   useParams: () => useParams(),
+  usePathname: () => "/mocks/exam/6ac1335993fbfb809bc99def",
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   redirect: (href: string) => redirect(href),
 }));
 

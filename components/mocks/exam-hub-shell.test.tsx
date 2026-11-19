@@ -12,6 +12,7 @@ vi.mock("@/lib/api/exams", () => ({
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/mocks/exam/ex1",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 const exam: ApiExamDetail = {

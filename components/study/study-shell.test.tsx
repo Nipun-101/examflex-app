@@ -4,6 +4,7 @@ import { StudyShell } from "@/components/study/study-shell";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/today",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("StudyShell", () => {

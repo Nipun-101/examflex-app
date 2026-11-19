@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { paperSubjectTheme } from "@/lib/mocks/paper-subject-theme";
+import { StudyNavLink } from "@/components/study/study-nav-link";
+import { mistakeSummaryBarColor } from "@/lib/mistake-book/summary-bar-colors";
 import { subjectBarSegmentRadiusClass } from "@/lib/mistake-book/session-list";
 import {
   MISTAKE_BOOK_COPY,
@@ -43,20 +43,17 @@ export function MistakeBookSummaryCard({
       {summary.totalMistakes > 0 && barSubjects.length > 0 ? (
         <>
           <div className="mt-5 flex h-3 gap-2.5" aria-hidden>
-            {barSubjects.map((subject, index) => {
-              const theme = paperSubjectTheme(subject.label);
-              return (
-                <span
-                  key={subject.id}
-                  className={`h-full min-w-2 ${subjectBarSegmentRadiusClass(index, barSubjects.length)}`}
-                  style={{
-                    flexGrow: subject.count,
-                    flexBasis: 0,
-                    backgroundColor: theme.summaryBarColor,
-                  }}
-                />
-              );
-            })}
+            {barSubjects.map((subject, index) => (
+              <span
+                key={subject.id}
+                className={`h-full min-w-2 ${subjectBarSegmentRadiusClass(index, barSubjects.length)}`}
+                style={{
+                  flexGrow: subject.count,
+                  flexBasis: 0,
+                  backgroundColor: mistakeSummaryBarColor(index),
+                }}
+              />
+            ))}
           </div>
           <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-white/90">
             {barSubjects.map((subject) => (
@@ -73,12 +70,12 @@ export function MistakeBookSummaryCard({
       </p>
 
       {startHref && summary.startWith ? (
-        <Link
+        <StudyNavLink
           href={startHref}
           className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-study-lime px-5 text-sm font-semibold text-study-ink transition-[filter] hover:brightness-105"
         >
           {MISTAKE_BOOK_COPY.startWithPrefix} {summary.startWith.title} →
-        </Link>
+        </StudyNavLink>
       ) : null}
     </section>
   );

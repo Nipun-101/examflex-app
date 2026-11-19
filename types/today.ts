@@ -1,3 +1,14 @@
+export type TodayMode = "empty" | "active";
+
+export type TodaySessionStepState = "active" | "locked" | "done";
+
+export type TodayOverview = {
+  eyebrow: string;
+  headline: string;
+  subhead: string;
+  paceBadge: string;
+};
+
 export type TodayNextStep = {
   eyebrow: string;
   title: string;
@@ -5,11 +16,13 @@ export type TodayNextStep = {
   ctaLabel: string;
   ctaHref: string;
   aside: string;
+  showPath: boolean;
 };
 
 export type TodaySessionStep = {
   index: string;
   label: string;
+  state: TodaySessionStepState;
 };
 
 export type TodaySessionPlan = {
@@ -21,16 +34,17 @@ export type TodaySessionPlan = {
 export type TodayMockAttempt = {
   id: string;
   label: string;
-  score: number;
+  score: number | null;
 };
 
 export type TodayLatestMock = {
   title: string;
   meta: string;
-  score: number;
+  score: number | null;
   maxScore: number;
-  deltaLabel: string;
-  breakdown: string;
+  deltaLabel: string | null;
+  breakdown: string | null;
+  placeholderMessage: string | null;
   attempts: readonly TodayMockAttempt[];
 };
 
@@ -38,6 +52,13 @@ export type TodaySubjectInsight = {
   subject: string;
   scoreLabel: string;
   tip: string;
+  averagePercent: number | null;
+};
+
+export type TodaySubjectInsightsSection = {
+  title: string;
+  subhead: string | null;
+  items: readonly TodaySubjectInsight[];
 };
 
 export type TodayEquationBook = {
@@ -46,6 +67,16 @@ export type TodayEquationBook = {
   body: string;
   ctaLabel: string;
   ctaHref: string;
+  statusPill: string | null;
+};
+
+export type TodayMistakeBook = {
+  eyebrow: string;
+  title: string;
+  body: string;
+  ctaLabel: string;
+  ctaHref: string;
+  statusPill: string | null;
 };
 
 export type TodayNextMock = {
@@ -62,18 +93,19 @@ export type TodayPerspective = {
   body: string;
   ctaLabel: string;
   ctaHref: string;
+  locked: boolean;
 };
 
 export type TodayPageData = {
-  eyebrow: string;
-  headline: string;
-  subhead: string;
-  paceBadge: string;
+  mode: TodayMode;
+  examId: string | null;
+  overview: TodayOverview;
   nextStep: TodayNextStep;
   sessionPlan: TodaySessionPlan;
   latestMock: TodayLatestMock;
-  subjectInsights: readonly TodaySubjectInsight[];
+  subjectInsights: TodaySubjectInsightsSection;
   equationBook: TodayEquationBook;
+  mistakeBook: TodayMistakeBook;
   nextMock: TodayNextMock;
   perspective: TodayPerspective;
   footerRight: string;

@@ -14,6 +14,8 @@ vi.mock("mathpix-markdown-it", () => mathpixModuleStub());
 const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, replace: vi.fn() }),
+  usePathname: () => "/equation-book",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("EquationBookView", () => {

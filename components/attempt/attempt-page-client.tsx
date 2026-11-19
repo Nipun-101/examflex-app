@@ -6,7 +6,7 @@ import { AttemptErrorState } from "@/components/attempt/attempt-error-state";
 import { preloadMathpix } from "@/components/attempt/mathpix-boundary";
 import { MockTestRunner } from "@/components/attempt/mock-test-runner";
 import { StudyButton, StudyControlLink } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { attemptDetailsToRunnerData, getAttempt } from "@/lib/api/attempts";
 import { rememberAttemptLanguage } from "@/lib/mocks/attempt-language";
 import { isAttemptFinished, isAttemptPaused } from "@/lib/mocks/attempt-status";
@@ -135,17 +135,7 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
     (state.status !== "redirecting" && state.fetchKey !== fetchKey);
 
   if (isStale || state.status === "redirecting") {
-    return (
-      <StudyLoadingOverlay
-        open
-        scope="viewport"
-        label={
-          state.status === "redirecting"
-            ? "Opening your results..."
-            : "Loading your test..."
-        }
-      />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   if (state.status === "error") {
@@ -185,6 +175,7 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
       initialPaused={state.initialPaused}
       onFinished={(language) => {
         rememberAttemptLanguage(attemptId, language);
+        setState({ status: "redirecting" });
         router.replace(attemptResultPath(attemptId));
       }}
     />

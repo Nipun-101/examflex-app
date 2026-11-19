@@ -10,6 +10,18 @@ Protected study UI is wrapped by `StudyLoadingProvider` ([`components/study/stud
 
 The overlay **is** the loader. Never add a second spinner (`StudyLoader`, “Loading…” copy, section loaders) for the same wait.
 
+## Soft Nav (in-app link / router transitions)
+
+Use [`StudyNavLink`](components/study/study-nav-link.tsx) instead of raw `next/link`, and [`useStudyRouter`](hooks/use-study-router.ts) instead of bare `router.push` / `replace`, inside the study shell. Soft Nav **holds** the shared overlay; route change **releases** that hold. [`StudyControlLink`](components/study/study-button.tsx) already wraps `StudyNavLink`.
+
+Do **not** call `run()` for Soft Nav alone — `run()` releases in `finally` before the route settles. Prefer Soft Nav hold, or `hold('soft-nav')` then navigate.
+
+## One overlay only
+
+There is a single viewport portal in [`StudyLoadingProvider`](components/study/study-loading-provider.tsx). Overlapping waits use **holds** (`soft-nav`, `route`, `manual`, …) so Soft Nav → page boot never mounts a second overlay or swaps copy mid-wait.
+
+Route boots must use [`StudyRouteLoading`](components/study/study-route-loading.tsx) / [`useStudyRouteLoading`](hooks/use-study-route-loading.ts) with [`STUDY_ROUTE_LOADING_LABEL`](lib/study/loading.ts). Do **not** render another viewport `StudyLoadingOverlay` beside the provider. Reserve custom labels for discrete actions (save, submit, start test).
+
 ## Two valid ways to open it
 
 ### 1. Declarative (preferred for initial / route loading)
@@ -21,7 +33,7 @@ if (authStatus === "loading" || profileStatus === "loading") {
   return (
     <>
       <Header />
-      <StudyLoadingOverlay open scope="viewport" label="Loading your desk..." />
+      <StudyLoadingOverlay open scope="viewport" label={STUDY_ROUTE_LOADING_LABEL} />
     </>
   );
 }
@@ -69,7 +81,7 @@ if (loading) {
   return (
     <>
       <Header />
-      <StudyLoadingOverlay open label="Loading your desk..." />
+      <StudyLoadingOverlay open label={STUDY_ROUTE_LOADING_LABEL} />
     </>
   );
 }

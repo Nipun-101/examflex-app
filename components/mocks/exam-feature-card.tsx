@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { Flame } from "lucide-react";
 import { clipExamDescription } from "@/lib/mocks/exam-card-copy";
 import { paperCountLabel } from "@/lib/mocks/paper-count-label";
@@ -98,7 +98,7 @@ export function ExamFeatureCard({ exam }: ExamFeatureCardProps) {
 
       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
         {chips.map((chip) => (
-          <Link
+          <StudyNavLink
             key={chip.type}
             href={examTestListPath(exam.id, chip.type)}
             className="rounded-[12px] bg-white/10 px-3 py-3 transition hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-lime"
@@ -109,17 +109,17 @@ export function ExamFeatureCard({ exam }: ExamFeatureCardProps) {
             <span className="mt-0.5 block text-xs text-study-on-dark">
               {paperCountLabel(chip.count)}
             </span>
-          </Link>
+          </StudyNavLink>
         ))}
       </div>
 
       <div className="mt-auto flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:gap-5">
-        <Link
+        <StudyNavLink
           href={openHref}
           className="inline-flex h-12 w-fit max-w-full shrink-0 items-center justify-center rounded-full bg-study-lime px-5 text-sm font-bold whitespace-nowrap text-study-ink transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           Open {exam.title} →
-        </Link>
+        </StudyNavLink>
         <p className="text-xs leading-relaxed text-study-on-dark sm:text-[0.8125rem]">
           Ready when you are.
         </p>

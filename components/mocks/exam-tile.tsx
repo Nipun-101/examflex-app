@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { Flame } from "lucide-react";
 import { examHubPath } from "@/lib/mocks/exam-test-routes";
 
@@ -21,7 +21,7 @@ export function ExamTile({
   trending = false,
 }: ExamTileProps) {
   return (
-    <Link
+    <StudyNavLink
       href={examHubPath(examId)}
       className="group relative flex min-h-[11rem] flex-col items-center justify-start rounded-[14px] border border-study-divider bg-white px-4 py-5 text-center transition hover:-translate-y-0.5 hover:border-study-green/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green"
     >
@@ -55,6 +55,6 @@ export function ExamTile({
       <p className="mt-1 text-xs text-study-muted-soft">
         {testsCount} {testsCount === 1 ? "paper" : "papers"}
       </p>
-    </Link>
+    </StudyNavLink>
   );
 }

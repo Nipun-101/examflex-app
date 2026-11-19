@@ -29,6 +29,21 @@ vi.mock("next/link", () => ({
   >): ReactNode => createElement("a", { href, ...props }, children),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
+  redirect: vi.fn(),
+}));
+
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: (query: string) => ({

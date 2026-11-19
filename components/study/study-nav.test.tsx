@@ -8,6 +8,7 @@ const logout = vi.fn();
 
 vi.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/lib/auth/tokens", () => ({

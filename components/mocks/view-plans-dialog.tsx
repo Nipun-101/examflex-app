@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { StudyButton } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { useStudyRouteLoading } from "@/hooks/use-study-route-loading";
 import {
   getProductsForExam,
   getProductsForMockTest,
@@ -100,6 +100,11 @@ function PlansDialogBody({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  useStudyRouteLoading(state.status === "loading", {
+    holdKey: "plans",
+    label: "Loading plans...",
+  });
+
   return (
     <div
       className="fixed inset-0 z-[70] grid place-items-end bg-study-ink/40 p-0 sm:place-items-center sm:p-4"
@@ -139,9 +144,7 @@ function PlansDialogBody({
         </div>
 
         {state.status === "loading" ? (
-          <div className="relative mt-4 min-h-40">
-            <StudyLoadingOverlay open scope="parent" label="Loading plans..." />
-          </div>
+          <div className="mt-4 min-h-40" aria-hidden />
         ) : null}
 
         {state.status === "error" ? (

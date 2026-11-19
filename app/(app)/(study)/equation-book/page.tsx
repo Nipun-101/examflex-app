@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EquationBookClient } from "@/components/equation-book/equation-book-client";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoadingFallback } from "@/components/study/study-route-loading";
 
 export const metadata: Metadata = {
   title: "Equation Book",
@@ -11,15 +11,7 @@ export const metadata: Metadata = {
 
 export default function EquationBookPage() {
   return (
-    <Suspense
-      fallback={
-        <StudyLoadingOverlay
-          open
-          scope="viewport"
-          label="Loading Equation Book..."
-        />
-      }
-    >
+    <Suspense fallback={<StudyRouteLoadingFallback />}>
       <EquationBookClient />
     </Suspense>
   );

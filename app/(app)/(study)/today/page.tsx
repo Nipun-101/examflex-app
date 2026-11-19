@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { TodayPageView } from "@/components/study/today-page";
-import { TODAY_PAGE_DATA } from "@/lib/today/static-data";
+import { TodayPageClient } from "@/components/study/today-page-client";
 
 export const metadata: Metadata = {
   title: "Today",
@@ -9,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function TodayPage() {
-  return <TodayPageView data={TODAY_PAGE_DATA} />;
+  return <TodayPageClient />;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnalysisView } from "@/components/analysis/analysis-view";
 import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { getAnalysisOverview } from "@/lib/api/analysis";
 import { getMyProfile } from "@/lib/api/users";
 import { optionalField } from "@/lib/api/parse-fields";
@@ -121,9 +121,7 @@ export function AnalysisPageClient() {
   };
 
   if (boot.status === "loading") {
-    return (
-      <StudyLoadingOverlay open scope="viewport" label="Loading analysis..." />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   const data =

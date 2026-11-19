@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { getExamById } from "@/lib/api/exams";
 import type { ApiExamDetail } from "@/types/exam";
 
@@ -93,11 +93,7 @@ export function ExamPageProvider({
 
   return (
     <ExamPageContext.Provider value={value}>
-      <StudyLoadingOverlay
-        open={state.status === "loading"}
-        scope="viewport"
-        label="Loading exam..."
-      />
+      <StudyRouteLoading busy={state.status === "loading"} />
       {children}
     </ExamPageContext.Provider>
   );

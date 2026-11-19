@@ -6,7 +6,7 @@ import { PaperCard } from "@/components/mocks/paper-card";
 import { PapersEmptyState } from "@/components/mocks/papers-empty-state";
 import { ViewPlansDialog } from "@/components/mocks/view-plans-dialog";
 import { StudyButton } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { ExamPageContext } from "@/hooks/use-exam-page";
 import { useLaunchAttempt } from "@/hooks/use-launch-attempt";
 import { launchErrorPlansTestId } from "@/lib/mocks/launch-error";
@@ -84,13 +84,7 @@ export function PaperList({
     return (
       <>
         {header}
-        {!shellPaused ? (
-          <StudyLoadingOverlay
-            open
-            scope="viewport"
-            label={`Loading ${title}...`}
-          />
-        ) : null}
+        <StudyRouteLoading busy={!shellPaused} />
       </>
     );
   }

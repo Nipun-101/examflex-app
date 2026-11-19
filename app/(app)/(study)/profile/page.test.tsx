@@ -3,8 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import ProfilePage from "@/app/(app)/(study)/profile/page";
 import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
 
-const getMyProfile = vi.fn();
-const getBadges = vi.fn();
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/profile",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+const getMyProfile = vi.fn();const getBadges = vi.fn();
 const useAuthSession = vi.fn();
 
 vi.mock("@/components/providers/auth-session-provider", () => ({

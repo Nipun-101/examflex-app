@@ -1,8 +1,28 @@
-import type { TodaySessionPlan } from "@/types/today";
+import type { TodaySessionPlan, TodaySessionStepState } from "@/types/today";
 
 type SessionPlanCardProps = {
   data: TodaySessionPlan;
 };
+
+function stepTone(state: TodaySessionStepState): string {
+  if (state === "locked") {
+    return "text-study-ink/40";
+  }
+  if (state === "done") {
+    return "text-study-ink/70";
+  }
+  return "text-study-ink";
+}
+
+function indexTone(state: TodaySessionStepState): string {
+  if (state === "active") {
+    return "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-study-ink text-[0.6875rem] font-semibold text-white";
+  }
+  if (state === "done") {
+    return "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-study-ink/30 text-[0.6875rem] font-semibold text-study-ink/70";
+  }
+  return "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-study-ink/20 text-[0.6875rem] font-medium text-study-ink/35";
+}
 
 export function SessionPlanCard({ data }: SessionPlanCardProps) {
   return (
@@ -17,12 +37,20 @@ export function SessionPlanCard({ data }: SessionPlanCardProps) {
         {data.steps.map((step) => (
           <li
             key={step.index}
-            className="flex gap-3 text-[0.9375rem] leading-[1.4] text-study-ink"
+            className={`flex items-center gap-3 text-[0.9375rem] leading-[1.4] ${stepTone(step.state)}`}
           >
-            <span className="w-7 shrink-0 font-medium tabular-nums">
+            <span className={indexTone(step.state)} aria-hidden>
               {step.index}
             </span>
-            <span>{step.label}</span>
+            <span>
+              {step.label}
+              {step.state === "locked" ? (
+                <span className="sr-only"> (locked)</span>
+              ) : null}
+              {step.state === "done" ? (
+                <span className="sr-only"> (done)</span>
+              ) : null}
+            </span>
           </li>
         ))}
       </ol>

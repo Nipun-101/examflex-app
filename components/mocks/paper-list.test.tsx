@@ -13,6 +13,8 @@ const getProductsForMockTest = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  usePathname: () => "/mocks/exam/ex1",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/lib/api/attempts", () => ({
@@ -90,7 +92,7 @@ describe("PaperList", () => {
       data: page([card(), card({ id: "p2", title: "Dynamics" })]),
     });
     renderList(fetchPage);
-    expect(screen.getByText("Loading Chapter Wise...")).toBeInTheDocument();
+    expect(screen.getByText("Loading your study space...")).toBeInTheDocument();
 
     expect(await screen.findByText("Kinematics")).toBeInTheDocument();
     expect(screen.getByText("Dynamics")).toBeInTheDocument();

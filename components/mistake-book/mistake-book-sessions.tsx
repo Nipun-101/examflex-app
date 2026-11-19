@@ -6,7 +6,7 @@ import { MistakeBookNudgeCard } from "@/components/mistake-book/mistake-book-nud
 import { MistakeBookSessionCard } from "@/components/mistake-book/mistake-book-session-card";
 import { MistakeFilters } from "@/components/mistake-book/mistake-filters";
 import { MistakeBookSummaryCard } from "@/components/mistake-book/mistake-book-summary-card";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { listMistakeBookSessions } from "@/lib/api/mistake-book";
 import { chaptersForSubjectFilter } from "@/lib/mistake-book/selectors";
 import {
@@ -111,13 +111,7 @@ export function MistakeBookSessions() {
   }
 
   if (loading && summary === null) {
-    return (
-      <StudyLoadingOverlay
-        open
-        scope="viewport"
-        label="Loading your Mistake Book..."
-      />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   if (
