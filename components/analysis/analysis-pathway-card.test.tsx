@@ -1,20 +1,44 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AnalysisPathwayCard } from "@/components/analysis/analysis-pathway-card";
-import { ANALYSIS_PAGE_DATA } from "@/lib/analysis/static-data";
+import type { AnalysisPathway } from "@/types/analysis";
+
+const SAMPLE_PATHWAY: AnalysisPathway = {
+  id: "mbbs",
+  title: "MBBS",
+  subtitle: "Medicine",
+  minPercent: 80,
+  comfortPercent: 90,
+  userPercent: null,
+  progress01: 0,
+  band: "below",
+  message: "Waiting for a score",
+};
 
 describe("AnalysisPathwayCard", () => {
-  it("renders stretch and explore tones", () => {
-    const stretch = ANALYSIS_PAGE_DATA.pathways[0]!;
-    const explore = ANALYSIS_PAGE_DATA.pathways[1]!;
-
-    const { rerender } = render(<AnalysisPathwayCard pathway={stretch} />);
+  it("renders waiting state with dashed card", () => {
+    render(<AnalysisPathwayCard pathway={SAMPLE_PATHWAY} waiting />);
     expect(
-      screen.getByRole("heading", { name: stretch.title })
+      screen.getByRole("heading", { name: SAMPLE_PATHWAY.title })
     ).toBeInTheDocument();
-    expect(screen.getByText(stretch.badge)).toHaveClass("bg-study-mint");
+    expect(screen.getByText("Waiting for a score")).toBeInTheDocument();
+  });
 
-    rerender(<AnalysisPathwayCard pathway={explore} />);
-    expect(screen.getByText(explore.badge)).toHaveClass("bg-study-lilac");
+  it("renders progress when a score is available", () => {
+    const pathway: AnalysisPathway = {
+      ...SAMPLE_PATHWAY,
+      userPercent: 76,
+      progress01: 0.95,
+      band: "below",
+      message: "A strong stretch — keep climbing toward this path.",
+    };
+
+    render(<AnalysisPathwayCard pathway={pathway} />);
+    expect(screen.getByText(pathway.message)).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: new RegExp(`Progress .* toward ${pathway.title}`, "i"),
+      })
+    ).toBeInTheDocument();
   });
 });

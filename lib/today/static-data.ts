@@ -70,7 +70,7 @@ export const TODAY_PAGE_DATA: TodayPageData = {
   perspective: {
     eyebrow: "A LITTLE PERSPECTIVE",
     title: "See where you could go.",
-    body: "Open Analysis for subject trends, attempts, and what to fix next.",
+    body: "Open Analysis for full-mock form, course pathways, and chapter insights.",
     ctaLabel: "Open Analysis  →",
     ctaHref: "/analysis",
   },
