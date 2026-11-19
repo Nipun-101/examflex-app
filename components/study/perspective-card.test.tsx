@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PerspectiveCard } from "@/components/study/perspective-card";
-import { TODAY_PAGE_DATA } from "@/lib/today/static-data";
+import { TODAY_EMPTY_SEED, TODAY_PAGE_DATA } from "@/lib/today/static-data";
 
 describe("PerspectiveCard", () => {
   it("links into Analysis instead of Colleges", () => {
@@ -16,6 +16,15 @@ describe("PerspectiveCard", () => {
     expect(screen.queryByText(/colleges/i)).not.toBeInTheDocument();
   });
 
+  it("shows locked pill without a link when empty", () => {
+    render(<PerspectiveCard data={TODAY_EMPTY_SEED.perspective} />);
+
+    expect(
+      screen.getByText("Unlocks with your first score")
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
   it("accepts a layout className for stretched desktop columns", () => {
     const { container } = render(
       <PerspectiveCard
@@ -27,4 +36,3 @@ describe("PerspectiveCard", () => {
     expect(container.firstElementChild).toHaveClass("lg:flex-1");
   });
 });
-

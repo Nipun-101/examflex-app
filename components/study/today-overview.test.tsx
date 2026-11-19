@@ -7,10 +7,10 @@ describe("TodayOverview", () => {
   it("renders headline, subhead, and pace badge", () => {
     render(
       <TodayOverview
-        eyebrow={TODAY_PAGE_DATA.eyebrow}
-        headline={TODAY_PAGE_DATA.headline}
-        subhead={TODAY_PAGE_DATA.subhead}
-        paceBadge={TODAY_PAGE_DATA.paceBadge}
+        eyebrow={TODAY_PAGE_DATA.overview.eyebrow}
+        headline={TODAY_PAGE_DATA.overview.headline}
+        subhead={TODAY_PAGE_DATA.overview.subhead}
+        paceBadge={TODAY_PAGE_DATA.overview.paceBadge}
       />
     );
 
@@ -18,7 +18,9 @@ describe("TodayOverview", () => {
       screen.getByRole("heading", { name: "One good step at a time." })
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Not more things to study. A clearer idea of what to do next.")
+      screen.getByText(
+        "Not more things to study. A clearer idea of what to do next."
+      )
     ).toBeInTheDocument();
     expect(screen.getByText(/Your pace, your plan/)).toBeInTheDocument();
   });

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { MockScoreCard } from "@/components/study/mock-score-card";
-import { TODAY_PAGE_DATA } from "@/lib/today/static-data";
+import { TODAY_EMPTY_SEED, TODAY_PAGE_DATA } from "@/lib/today/static-data";
 
 describe("MockScoreCard", () => {
   it("renders score summary and visible attempt bars", () => {
@@ -22,6 +22,19 @@ describe("MockScoreCard", () => {
     expect(screen.getByRole("link", { name: /Open mocks/i })).toHaveAttribute(
       "href",
       "/mocks"
+    );
+  });
+
+  it("renders empty placeholders for new users", () => {
+    render(<MockScoreCard data={TODAY_EMPTY_SEED.latestMock} />);
+
+    expect(screen.getByText(/\/ 720/)).toBeInTheDocument();
+    expect(screen.getByText("Your first score lands here")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: "Mock 1: no score yet" })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Open mocks/i })).toHaveClass(
+      "self-start"
     );
   });
 });
