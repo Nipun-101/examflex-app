@@ -1,51 +1,36 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AnalysisPerformanceCard } from "@/components/analysis/analysis-performance-card";
-import { ANALYSIS_PAGE_DATA } from "@/lib/analysis/static-data";
 
 describe("AnalysisPerformanceCard", () => {
-  it("shows the score and supports editing", async () => {
-    const user = userEvent.setup();
-    const onScoreChange = vi.fn();
-
+  it("renders the empty score and gauge", () => {
     render(
       <AnalysisPerformanceCard
-        performance={ANALYSIS_PAGE_DATA.performance}
+        label="LATEST PERFORMANCE"
+        score={null}
+        maxScore={720}
+        scoreHint="Appears after your first full mock · based on marks only"
+      />
+    );
+
+    expect(screen.getByText("— / 720")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /Score gauge empty/i })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+  });
+
+  it("shows the score without an edit control", () => {
+    render(
+      <AnalysisPerformanceCard
+        label="LATEST PERFORMANCE · MOCK 12"
         score={548}
-        onScoreChange={onScoreChange}
+        maxScore={720}
+        scoreHint="Based on marks from your latest full mock"
       />
     );
 
     expect(screen.getByText("548 / 720")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Edit" }));
-
-    const input = screen.getByLabelText(/Edit score out of 720/i);
-    await user.clear(input);
-    await user.type(input, "600");
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(onScoreChange).toHaveBeenCalledWith(600);
-  });
-
-  it("falls back to the current score when the draft is invalid", async () => {
-    const user = userEvent.setup();
-    const onScoreChange = vi.fn();
-
-    render(
-      <AnalysisPerformanceCard
-        performance={ANALYSIS_PAGE_DATA.performance}
-        score={548}
-        onScoreChange={onScoreChange}
-      />
-    );
-
-    await user.click(screen.getByRole("button", { name: "Edit" }));
-    const input = screen.getByLabelText(/Edit score out of 720/i);
-    await user.clear(input);
-    await user.type(input, "abc");
-    await user.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(onScoreChange).toHaveBeenCalledWith(548);
+    expect(screen.queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
   });
 });

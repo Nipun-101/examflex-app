@@ -1,7 +1,8 @@
-import type { AnalysisDisclaimer } from "@/types/analysis";
-
 type AnalysisDisclaimerCardProps = {
-  disclaimer: AnalysisDisclaimer;
+  disclaimer: {
+    title: string;
+    body: string;
+  };
 };
 
 export function AnalysisDisclaimerCard({

@@ -1,79 +1,44 @@
-"use client";
-
-import { useState } from "react";
-import { StudyButton } from "@/components/study/study-button";
-import {
-  clampAnalysisScore,
-  formatAnalysisScore,
-} from "@/lib/analysis/format-score";
-import type { AnalysisPerformance } from "@/types/analysis";
+import { AnalysisScoreGauge } from "@/components/analysis/analysis-score-gauge";
+import { formatAnalysisScore } from "@/lib/analysis/format-score";
 
 type AnalysisPerformanceCardProps = {
-  performance: AnalysisPerformance;
-  score: number;
-  onScoreChange: (score: number) => void;
+  label: string;
+  score: number | null;
+  maxScore: number;
+  scoreHint: string;
 };
 
 export function AnalysisPerformanceCard({
-  performance,
+  label,
   score,
-  onScoreChange,
+  maxScore,
+  scoreHint,
 }: AnalysisPerformanceCardProps) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(score));
-
-  function beginEdit() {
-    setDraft(String(score));
-    setEditing(true);
-  }
-
-  function saveEdit() {
-    const parsed = Number.parseInt(draft, 10);
-    const next = Number.isFinite(parsed)
-      ? clampAnalysisScore(parsed, performance.maxScore)
-      : score;
-    onScoreChange(next);
-    setEditing(false);
-  }
+  const empty = score === null;
 
   return (
-    <section className="rounded-[18px] bg-study-ink px-4 py-4 text-white sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+    <section className="rounded-[18px] bg-study-ink px-4 py-5 text-white sm:px-5 sm:py-6 lg:px-6 lg:py-7">
       <p className="text-[0.625rem] font-semibold tracking-wide text-study-lime uppercase">
-        {performance.label}
+        {label}
       </p>
 
-      <div className="mt-3 flex items-start justify-between gap-3">
-        {editing ? (
-          <label className="flex min-w-0 flex-1 flex-col gap-1">
-            <span className="sr-only">Edit score out of {performance.maxScore}</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={performance.maxScore}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              className="h-12 w-full max-w-[12rem] rounded-[10px] border border-study-on-dark/40 bg-white px-3 font-display text-2xl font-semibold text-study-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-lime"
-            />
-          </label>
-        ) : (
-          <p className="font-display text-[2rem] font-semibold leading-none text-white lg:text-[2.5rem]">
-            {formatAnalysisScore(score, performance.maxScore)}
+      <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-[2rem] font-semibold leading-none tracking-tight text-white lg:text-[2.75rem]">
+            {empty ? `— / ${maxScore}` : formatAnalysisScore(score, maxScore)}
           </p>
-        )}
 
-        <StudyButton
-          variant="surface"
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-[10px] px-5 text-[0.8125rem] font-medium"
-          onClick={editing ? saveEdit : beginEdit}
-        >
-          {editing ? "Save" : performance.editLabel}
-        </StudyButton>
+          <p className="mt-4 max-w-md text-[0.6875rem] leading-[1.45] text-study-on-dark sm:text-xs">
+            {scoreHint}
+          </p>
+        </div>
+
+        <AnalysisScoreGauge
+          score={empty ? null : score}
+          maxScore={maxScore}
+          className="mx-auto sm:mx-0"
+        />
       </div>
-
-      <p className="mt-4 text-[0.6875rem] text-study-on-dark">
-        {performance.scoreHint}
-      </p>
     </section>
   );
 }

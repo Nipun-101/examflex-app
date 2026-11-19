@@ -8,7 +8,6 @@ describe("AnalysisDisclaimerCard", () => {
     render(
       <AnalysisDisclaimerCard disclaimer={ANALYSIS_PAGE_DATA.disclaimer} />
     );
-
     expect(screen.getByText("HOW TO READ THIS")).toBeInTheDocument();
     expect(
       screen.getByText(/All calculations are based entirely on marks only/i)
