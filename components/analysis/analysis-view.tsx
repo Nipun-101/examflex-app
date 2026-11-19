@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { AnalysisDisclaimerCard } from "@/components/analysis/analysis-disclaimer";
 import { AnalysisHistoryCard } from "@/components/analysis/analysis-history-card";
 import { AnalysisPathwayCard } from "@/components/analysis/analysis-pathway-card";
@@ -113,14 +113,14 @@ export function AnalysisView({ data }: AnalysisViewProps) {
 
         <div className="flex flex-col gap-3">
           <AnalysisDisclaimerCard disclaimer={data.disclaimer} />
-          <Link
+          <StudyNavLink
             href={data.cutoffHref}
             target="_blank"
             rel="noreferrer"
             className="self-start text-xs font-medium text-study-green transition-colors hover:text-study-ink"
           >
             {data.cutoffLabel}
-          </Link>
+          </StudyNavLink>
         </div>
       </section>
 

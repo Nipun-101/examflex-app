@@ -66,4 +66,29 @@ describe("MistakeBookSummaryCard", () => {
     expect(segments[1]).toHaveClass("rounded-none");
     expect(segments[2]).toHaveClass("rounded-r-full");
   });
+
+  it("gives Physics and Physics Core different bar colors", () => {
+    const { container } = render(
+      <MistakeBookSummaryCard
+        summary={{
+          totalMistakes: 10,
+          sessionCount: 2,
+          bySubject: [
+            { id: "s1", label: "Physics", count: 4 },
+            { id: "s2", label: "Physics Core", count: 3 },
+            { id: "s3", label: "Chemistry", count: 3 },
+          ],
+          subjects: [],
+          chapters: [],
+          startWith: null,
+        }}
+      />
+    );
+
+    const segments = container.querySelectorAll('[aria-hidden="true"] > span');
+    const colors = [...segments].map(
+      (el) => (el as HTMLElement).style.backgroundColor
+    );
+    expect(new Set(colors).size).toBe(3);
+  });
 });

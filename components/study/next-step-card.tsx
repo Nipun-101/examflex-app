@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { TodayPathIllustration } from "@/components/study/today-path-illustration";
 import type { TodayNextStep } from "@/types/today";
 
@@ -27,12 +27,12 @@ export function NextStepCard({ data }: NextStepCardProps) {
             {data.body}
           </p>
           <div className="mt-6 flex flex-col items-start gap-3">
-            <Link
+            <StudyNavLink
               href={data.ctaHref}
               className="inline-flex h-[42px] items-center justify-center rounded-[10px] bg-study-lime px-5 text-sm font-medium whitespace-pre text-study-ink transition-[filter] hover:brightness-105"
             >
               {data.ctaLabel}
-            </Link>
+            </StudyNavLink>
             <p className="text-[0.8125rem] leading-[1.4] text-study-on-dark">
               {data.aside}
             </p>

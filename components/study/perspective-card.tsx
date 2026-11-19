@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { TodayGaugeIllustration } from "@/components/study/today-gauge-illustration";
 import type { TodayPerspective } from "@/types/today";
 
@@ -34,12 +34,12 @@ export function PerspectiveCard({
           {data.ctaLabel}
         </p>
       ) : (
-        <Link
+        <StudyNavLink
           href={data.ctaHref}
           className="mt-4 inline-flex text-sm font-semibold whitespace-pre text-study-green transition-colors hover:text-study-ink"
         >
           {data.ctaLabel}
-        </Link>
+        </StudyNavLink>
       )}
     </article>
   );

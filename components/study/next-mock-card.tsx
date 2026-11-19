@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import type { TodayNextMock } from "@/types/today";
 
 type NextMockCardProps = {
@@ -17,12 +17,12 @@ export function NextMockCard({ data }: NextMockCardProps) {
       <p className="mt-3 text-[0.8125rem] leading-[1.4] whitespace-pre-wrap text-study-muted-soft">
         {data.meta}
       </p>
-      <Link
+      <StudyNavLink
         href={data.ctaHref}
         className="mt-4 inline-flex text-[0.8125rem] font-semibold whitespace-pre text-study-green transition-colors hover:text-study-ink"
       >
         {data.ctaLabel}
-      </Link>
+      </StudyNavLink>
     </article>
   );
 }

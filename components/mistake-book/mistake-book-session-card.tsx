@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { ArrowRight } from "lucide-react";
 import { formatSubmittedAt } from "@/lib/mistake-book/format-submitted-at";
 import { paperTypeLabel } from "@/lib/mistake-book/selectors";
@@ -124,7 +124,7 @@ export function MistakeBookSessionCard({
   const dots = mistakeDotCount(session.remainingCount);
 
   return (
-    <Link
+    <StudyNavLink
       href={href}
       className="group block overflow-hidden rounded-[18px] border border-study-divider bg-white shadow-soft transition-colors hover:border-study-green/25"
     >
@@ -210,6 +210,6 @@ export function MistakeBookSessionCard({
           <SessionCount remainingCount={session.remainingCount} />
         </div>
       </div>
-    </Link>
+    </StudyNavLink>
   );
 }

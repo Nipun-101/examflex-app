@@ -1,10 +1,10 @@
-import Link from "next/link";
 import type {
   AriaAttributes,
   ButtonHTMLAttributes,
   MouseEventHandler,
   ReactNode,
 } from "react";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import {
   studyControlClass,
   type StudyControlVariant,
@@ -53,7 +53,7 @@ export function StudyControlLink({
   "aria-label": ariaLabel,
 }: StudyControlLinkProps) {
   return (
-    <Link
+    <StudyNavLink
       href={href}
       className={studyControlClass(variant, className)}
       {...(onClick ? { onClick } : {})}
@@ -61,6 +61,6 @@ export function StudyControlLink({
       {...(ariaLabel !== undefined ? { "aria-label": ariaLabel } : {})}
     >
       {children}
-    </Link>
+    </StudyNavLink>
   );
 }

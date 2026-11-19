@@ -6,6 +6,11 @@ import {
   StudyControlLink,
 } from "@/components/study/study-button";
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/today",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 describe("StudyButton", () => {
   it("renders a surface control and handles clicks", async () => {
     const user = userEvent.setup();

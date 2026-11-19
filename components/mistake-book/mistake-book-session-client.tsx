@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MistakeBookView } from "@/components/mistake-book/mistake-book-view";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import {
   deleteMistakeBookEntry,
   getMistakeBookSession,
@@ -135,13 +135,7 @@ export function MistakeBookSessionClient({
   }
 
   if (loading && !gone) {
-    return (
-      <StudyLoadingOverlay
-        open
-        scope="viewport"
-        label="Loading this review..."
-      />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   if (gone) {
@@ -151,12 +145,12 @@ export function MistakeBookSessionClient({
           Nothing left in this paper’s Mistake Book. Head back to pick another
           session.
         </p>
-        <Link
+        <StudyNavLink
           href="/mistake-book"
           className="text-sm font-medium text-study-green"
         >
           ← All Mistake Book sessions
-        </Link>
+        </StudyNavLink>
       </div>
     );
   }
@@ -185,12 +179,12 @@ export function MistakeBookSessionClient({
 
   return (
     <div className="flex flex-col gap-4">
-      <Link
+      <StudyNavLink
         href="/mistake-book"
         className="text-sm font-medium text-study-green w-fit"
       >
         ← All sessions
-      </Link>
+      </StudyNavLink>
       {actionError ? (
         <p className="text-sm text-study-muted-soft" role="status">
           {actionError}

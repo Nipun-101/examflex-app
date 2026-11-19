@@ -8,6 +8,11 @@ import { profileChromeFromPageData } from "@/lib/profile/chrome";
 import { PROFILE_PAGE_DATA } from "@/lib/profile/static-data";
 import type { ApiUserProfile } from "@/types/user";
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/profile",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 function renderProfile(ui: ReactElement) {
   return render(<StudyLoadingProvider>{ui}</StudyLoadingProvider>);
 }
@@ -96,7 +101,7 @@ describe("ProfileView", () => {
 
     renderProfile(<ProfileView chrome={chrome} />);
     expect(
-      screen.getByRole("alertdialog", { name: "Loading your desk..." })
+      screen.getByRole("alertdialog", { name: "Loading your study space..." })
     ).toBeInTheDocument();
     expect(getMyProfile).not.toHaveBeenCalled();
   });
@@ -112,7 +117,7 @@ describe("ProfileView", () => {
     renderProfile(<ProfileView chrome={chrome} />);
     // Still loading profile state until auth resolves; overlay stays up.
     expect(
-      screen.getByRole("alertdialog", { name: "Loading your desk..." })
+      screen.getByRole("alertdialog", { name: "Loading your study space..." })
     ).toBeInTheDocument();
     expect(getMyProfile).not.toHaveBeenCalled();
   });
@@ -121,7 +126,7 @@ describe("ProfileView", () => {
     renderProfile(<ProfileView chrome={chrome} />);
 
     expect(
-      screen.getByRole("alertdialog", { name: "Loading your desk..." })
+      screen.getByRole("alertdialog", { name: "Loading your study space..." })
     ).toBeInTheDocument();
 
     await waitFor(() => {

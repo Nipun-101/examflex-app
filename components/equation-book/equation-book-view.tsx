@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   MathpixBoundary,
   preloadMathpix,
 } from "@/components/attempt/mathpix-boundary";
+import { useStudyRouter } from "@/hooks/use-study-router";
 import { ChapterRail } from "@/components/equation-book/chapter-rail";
 import { ChapterSelect } from "@/components/equation-book/chapter-select";
 import {
@@ -66,7 +66,7 @@ export function EquationBookView({
   loadingCards = false,
   onFiltersChange,
 }: EquationBookViewProps) {
-  const router = useRouter();
+  const router = useStudyRouter();
   const subjectOptions = subjectsFromCatalog(subjects);
   const defaults = defaultSubjectAndChapter(
     subjects,

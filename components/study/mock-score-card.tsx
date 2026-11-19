@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { buildScoreBars } from "@/lib/today/score-bars";
 import type { TodayLatestMock } from "@/types/today";
 
@@ -71,12 +71,12 @@ export function MockScoreCard({ data }: MockScoreCardProps) {
             </p>
           ) : null}
 
-          <Link
+          <StudyNavLink
             href="/mocks"
             className="mt-6 inline-flex self-start text-[0.8125rem] font-semibold text-study-green transition-colors hover:text-study-ink"
           >
             Open mocks →
-          </Link>
+          </StudyNavLink>
         </div>
 
         <div

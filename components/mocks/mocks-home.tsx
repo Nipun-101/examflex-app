@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import {
   CategoryPager,
@@ -9,7 +9,8 @@ import {
 } from "@/components/mocks/category-pager";
 import { ExamFeatureCard } from "@/components/mocks/exam-feature-card";
 import { MocksStaticSections } from "@/components/mocks/mocks-static-sections";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
+import { useStudyRouter } from "@/hooks/use-study-router";
 import { getExamsByCategory } from "@/lib/api/exams";
 import type {
   ApiCategoryPagination,
@@ -33,7 +34,7 @@ function readPage(searchParams: URLSearchParams): number {
 }
 
 export function MocksHome() {
-  const router = useRouter();
+  const router = useStudyRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = readPage(searchParams);
@@ -108,11 +109,7 @@ export function MocksHome() {
     return (
       <>
         <MocksHomeHeader pager={null} hint={null} />
-        <StudyLoadingOverlay
-          open
-          scope="viewport"
-          label="Loading mock exams..."
-        />
+        <StudyRouteLoading busy />
       </>
     );
   }

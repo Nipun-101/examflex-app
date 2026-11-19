@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { TodayEquationIllustration } from "@/components/study/today-equation-illustration";
 import type { TodayEquationBook } from "@/types/today";
 
@@ -31,12 +31,12 @@ export function EquationBookCard({ data }: EquationBookCardProps) {
           </p>
         ) : null}
 
-        <Link
+        <StudyNavLink
           href={data.ctaHref}
           className="ml-1 inline-flex text-sm font-semibold whitespace-pre text-study-green transition-colors hover:text-study-ink"
         >
           {data.ctaLabel}
-        </Link>
+        </StudyNavLink>
       </div>
     </article>
   );

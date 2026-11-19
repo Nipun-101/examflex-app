@@ -1,7 +1,12 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { NextStepCard } from "@/components/study/next-step-card";
 import { TODAY_EMPTY_SEED, TODAY_PAGE_DATA } from "@/lib/today/static-data";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/today",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 describe("NextStepCard", () => {
   it("links to the mistake book", () => {

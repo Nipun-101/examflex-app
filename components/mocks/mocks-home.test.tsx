@@ -75,7 +75,7 @@ describe("MocksHome", () => {
     });
 
     renderHome();
-    expect(screen.getByText("Loading mock exams...")).toBeInTheDocument();
+    expect(screen.getByText("Loading your study space...")).toBeInTheDocument();
     expect(
       await screen.findByRole("heading", { name: "NATIONAL TESTING AGENCY" })
     ).toBeInTheDocument();

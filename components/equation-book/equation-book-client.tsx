@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { EquationBookView } from "@/components/equation-book/equation-book-view";
 import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { listEquations } from "@/lib/api/equation-book";
 import { optionalField } from "@/lib/api/parse-fields";
 import { getSubjectsForExam } from "@/lib/api/exams";
@@ -163,13 +163,7 @@ export function EquationBookClient() {
   }, [canLoadCards, exam, subjectId, topicId]);
 
   if (bootLoading) {
-    return (
-      <StudyLoadingOverlay
-        open
-        scope="viewport"
-        label="Loading Equation Book..."
-      />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   if (error && !exam) {

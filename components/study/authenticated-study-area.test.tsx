@@ -4,6 +4,7 @@ import { AuthenticatedStudyArea } from "@/components/study/authenticated-study-a
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/today",
+  useSearchParams: () => new URLSearchParams(),
   redirect: vi.fn(),
 }));
 

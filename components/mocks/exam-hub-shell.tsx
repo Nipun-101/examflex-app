@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { ExamHubNav } from "@/components/mocks/exam-hub-nav";
 import { StudyButton } from "@/components/study/study-button";
@@ -28,14 +28,14 @@ function ExamHubShellInner({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Link
+        <StudyNavLink
           href="/mocks"
           aria-label="Back to Mocks"
           className="inline-flex h-11 items-center gap-2 text-sm font-medium text-study-muted-soft hover:text-study-ink"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           <span className="hidden sm:inline">Back to Mocks</span>
-        </Link>
+        </StudyNavLink>
         {exam ? (
           <h1 className="min-w-0 flex-1 truncate font-display text-lg font-semibold text-study-ink sm:text-2xl">
             {exam.name}

@@ -13,6 +13,7 @@ const getSubjectsForExam = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => "/mocks/exam/ex1",
   useSearchParams: () => new URLSearchParams(),
 }));
 

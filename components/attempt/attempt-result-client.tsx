@@ -5,7 +5,7 @@ import { PlayCircle, RefreshCw } from "lucide-react";
 import { AttemptErrorState } from "@/components/attempt/attempt-error-state";
 import { MockTestResults } from "@/components/attempt/mock-test-results";
 import { StudyButton, StudyControlLink } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { getAttempt } from "@/lib/api/attempts";
 import { adaptAttemptDetailsToResults } from "@/lib/mocks/adapt-results";
 import { readAttemptLanguage } from "@/lib/mocks/attempt-language";
@@ -45,9 +45,7 @@ export function AttemptResultClient({ attemptId }: AttemptResultClientProps) {
   }, [attemptId, attempt]);
 
   if (state.status === "loading") {
-    return (
-      <StudyLoadingOverlay open scope="viewport" label="Loading your results..." />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   if (state.status === "error") {

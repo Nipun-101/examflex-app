@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 
 type PlaceholderPageProps = {
   title: string;
@@ -15,12 +15,12 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
         {title}
       </h1>
       <p className="max-w-xl text-base text-study-muted">{description}</p>
-      <Link
+      <StudyNavLink
         href="/today"
         className="mt-2 inline-flex h-[42px] items-center justify-center rounded-[10px] bg-study-ink px-5 text-sm font-medium text-white transition-colors hover:bg-study-green"
       >
         Back to Today
-      </Link>
+      </StudyNavLink>
     </section>
   );
 }

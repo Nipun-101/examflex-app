@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MocksHome } from "@/components/mocks/mocks-home";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoadingFallback } from "@/components/study/study-route-loading";
 
 export const metadata: Metadata = {
   title: "Mocks",
@@ -9,15 +9,7 @@ export const metadata: Metadata = {
 
 export default function MocksPage() {
   return (
-    <Suspense
-      fallback={
-        <StudyLoadingOverlay
-          open
-          scope="viewport"
-          label="Loading mock exams..."
-        />
-      }
-    >
+    <Suspense fallback={<StudyRouteLoadingFallback />}>
       <MocksHome />
     </Suspense>
   );

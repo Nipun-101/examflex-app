@@ -12,6 +12,8 @@ const resumeAttempt = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  usePathname: () => "/mocks",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/lib/api/attempts", () => ({

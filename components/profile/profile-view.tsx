@@ -8,7 +8,7 @@ import { ProfileIdentityCard } from "@/components/profile/profile-identity-card"
 import { ProfilePrepSnapshot } from "@/components/profile/profile-prep-snapshot";
 import { ProfileTargetExamCard } from "@/components/profile/profile-target-exam-card";
 import { useAuthSession } from "@/components/providers/auth-session-provider";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { useStudyLoadingOverlay } from "@/components/study/study-loading-provider";
 import { getBadges } from "@/lib/api/analytics";
 import { getMyProfile, updateMyProfile } from "@/lib/api/users";
@@ -37,7 +37,6 @@ import type {
   ProfileUser,
 } from "@/types/profile";
 import type { ApiUserProfile } from "@/types/user";
-
 type ProfileViewProps = {
   chrome: ProfilePageChrome;
 };
@@ -257,11 +256,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
     return (
       <div className="flex w-full flex-col gap-5 lg:gap-8">
         <ProfileHeader chrome={chrome} />
-        <StudyLoadingOverlay
-          open
-          scope="viewport"
-          label="Loading your desk..."
-        />
+        <StudyRouteLoading busy />
       </div>
     );
   }

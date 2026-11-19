@@ -15,7 +15,7 @@ import {
   type ResultsQuestionMapItem,
 } from "@/components/attempt/results-question-map";
 import { ScoreRing } from "@/components/attempt/score-ring";
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { StudyControlLink } from "@/components/study/study-button";
 import { buildSectionBreakdown } from "@/lib/mocks/adapt-results";
 import { formatTimeTaken } from "@/lib/mocks/attempt-format";
@@ -400,13 +400,13 @@ export function MockTestResults({
     <div className="min-h-dvh bg-study-canvas py-4 sm:py-6 lg:py-8">
       <div className="mx-auto w-full max-w-6xl px-3 sm:px-4 lg:px-6">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <Link
+          <StudyNavLink
             href={examHref}
             className="inline-flex h-11 items-center gap-1.5 rounded-[10px] px-1.5 text-sm font-semibold text-study-green transition-colors hover:bg-study-mint/70"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {isMalayalam ? "പരീക്ഷയിലേക്ക്" : "Back to Exam"}
-          </Link>
+          </StudyNavLink>
           {mockTestData.exam.hasMultiLingualSupport ? (
             <LanguageToggle language={language} onLanguageChange={setLanguage} />
           ) : null}

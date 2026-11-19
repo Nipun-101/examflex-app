@@ -4,6 +4,8 @@ import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStudyLoadingOverlay } from "@/components/study/study-loading-provider";
 import { resumeAttempt, startMockTestAttempt } from "@/lib/api/attempts";
+import { STUDY_LOADING_HOLD } from "@/lib/study/loading-holds";
+import { STUDY_ROUTE_LOADING_LABEL } from "@/lib/study/loading";
 import type { ApiResult } from "@/lib/api/parse-envelope";
 import { toLaunchError, type LaunchError } from "@/lib/mocks/launch-error";
 import { attemptPath } from "@/lib/mocks/exam-test-routes";
@@ -56,13 +58,24 @@ export function useLaunchAttempt(): LaunchAttemptController {
       setStartError(null);
 
       try {
-        const result = await studyLoading.run(request, { label });
+        studyLoading.hold(STUDY_LOADING_HOLD.manual, { label });
+        const result = await request();
         if (!result.ok) {
+          studyLoading.release(STUDY_LOADING_HOLD.manual);
           setStartError(toLaunchError(result, testId));
           return;
         }
         cacheAttempt(result.data);
+        // Hand Soft Nav the same portal before releasing the launch hold.
+        studyLoading.hold(STUDY_LOADING_HOLD.softNav, {
+          label: STUDY_ROUTE_LOADING_LABEL,
+        });
+        studyLoading.release(STUDY_LOADING_HOLD.manual);
         router.push(attemptPath(result.data.attemptId));
+      } catch (error) {
+        studyLoading.release(STUDY_LOADING_HOLD.manual);
+        studyLoading.release(STUDY_LOADING_HOLD.softNav);
+        throw error;
       } finally {
         releaseLock();
       }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
 import { TodayPageView } from "@/components/study/today-page";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { getToday } from "@/lib/api/today";
 import { getMyProfile } from "@/lib/api/users";
 import { optionalField } from "@/lib/api/parse-fields";
@@ -106,13 +106,7 @@ export function TodayPageClient() {
   };
 
   if (boot.status === "loading") {
-    return (
-      <StudyLoadingOverlay
-        open
-        scope="viewport"
-        label="Loading your study space..."
-      />
-    );
+    return <StudyRouteLoading busy />;
   }
 
   const data =

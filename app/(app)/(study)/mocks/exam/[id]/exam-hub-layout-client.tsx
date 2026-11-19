@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { ExamHubShell } from "@/components/mocks/exam-hub-shell";
 import { StudyControlLink } from "@/components/study/study-button";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { isMongoObjectId, normalizeRouteParam } from "@/lib/api/mongo-id";
 
 type ExamHubLayoutClientProps = {
@@ -23,7 +23,7 @@ export function ExamHubLayoutClient({ children }: ExamHubLayoutClientProps) {
   if (!id) {
     return (
       <>
-        <StudyLoadingOverlay open scope="viewport" label="Loading exam..." />
+        <StudyRouteLoading busy />
         <div className="hidden" aria-hidden>
           {children}
         </div>

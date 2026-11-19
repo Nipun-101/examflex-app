@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import type { MistakeItem } from "@/types/mistake-book";
 
 type MistakeSourceLinkProps = {
@@ -19,12 +19,12 @@ export function MistakeSourceLink({ mistake }: MistakeSourceLinkProps) {
   return (
     <div>
       {mistake.sourceHref ? (
-        <Link
+        <StudyNavLink
           href={mistake.sourceHref}
           className="text-xs font-medium whitespace-pre-wrap text-study-green transition-colors hover:text-study-ink"
         >
           {mistake.sourceLabel || "Source"}
-        </Link>
+        </StudyNavLink>
       ) : (
         <p className="text-xs font-medium whitespace-pre-wrap text-study-green">
           {mistake.sourceLabel}

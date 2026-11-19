@@ -1,6 +1,7 @@
 import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
 import {
   ExamPageProvider,
   useExamPage,
@@ -23,7 +24,11 @@ const exam: ApiExamDetail = {
 };
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <ExamPageProvider examId="ex1">{children}</ExamPageProvider>;
+  return (
+    <StudyLoadingProvider>
+      <ExamPageProvider examId="ex1">{children}</ExamPageProvider>
+    </StudyLoadingProvider>
+  );
 }
 
 describe("useExamPage", () => {
@@ -43,7 +48,7 @@ describe("useExamPage", () => {
 
     expect(result.current.loading).toBe(true);
     expect(result.current.exam).toBeNull();
-    expect(screen.getByText("Loading exam...")).toBeInTheDocument();
+    expect(screen.getByText("Loading your study space...")).toBeInTheDocument();
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.exam).toEqual(exam);
@@ -96,9 +101,11 @@ describe("useExamPage", () => {
       })
     );
     const { unmount } = render(
-      <ExamPageProvider examId="ex1">
-        <p>child</p>
-      </ExamPageProvider>
+      <StudyLoadingProvider>
+        <ExamPageProvider examId="ex1">
+          <p>child</p>
+        </ExamPageProvider>
+      </StudyLoadingProvider>
     );
     unmount();
     finish({ ok: true, data: exam });

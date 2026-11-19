@@ -1,10 +1,15 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   StudyLoadingProvider,
   useStudyLoadingOverlay,
 } from "@/components/study/study-loading-provider";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/today",
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 function Probe() {
   const loading = useStudyLoadingOverlay();

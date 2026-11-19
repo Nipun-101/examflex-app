@@ -6,6 +6,7 @@ let pathname = "/mocks/exam/ex1/chapter-wise";
 
 vi.mock("next/navigation", () => ({
   usePathname: () => pathname,
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe("ExamHubNav", () => {

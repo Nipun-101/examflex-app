@@ -2,7 +2,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ViewPlansDialog } from "@/components/mocks/view-plans-dialog";
+import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
 import type { CatalogProduct } from "@/types/catalog";
+import type { ReactElement } from "react";
+
+function renderDialog(ui: ReactElement) {
+  return render(<StudyLoadingProvider>{ui}</StudyLoadingProvider>);
+}
 
 const getProductsForExam = vi.fn();
 const getProductsForMockTest = vi.fn();
@@ -59,14 +65,14 @@ describe("ViewPlansDialog", () => {
   });
 
   it("renders nothing when closed", () => {
-    render(<ViewPlansDialog open={false} onClose={() => {}} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open={false} onClose={() => {}} mockTestId="t1" />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(getProductsForMockTest).not.toHaveBeenCalled();
   });
 
   it("loads plans for a paper and formats prices", async () => {
     getProductsForMockTest.mockResolvedValue(ready([product()]));
-    render(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
 
     expect(await screen.findByText("NEET all tests")).toBeInTheDocument();
     expect(getProductsForMockTest).toHaveBeenCalledWith("t1");
@@ -80,7 +86,7 @@ describe("ViewPlansDialog", () => {
 
   it("loads plans for an exam", async () => {
     getProductsForExam.mockResolvedValue(ready([product({ description: "" })]));
-    render(<ViewPlansDialog open onClose={() => {}} examId="ex1" />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} examId="ex1" />);
 
     expect(await screen.findByText("NEET all tests")).toBeInTheDocument();
     expect(getProductsForExam).toHaveBeenCalledWith("ex1");
@@ -92,12 +98,12 @@ describe("ViewPlansDialog", () => {
 
   it("shows API errors", async () => {
     getProductsForMockTest.mockResolvedValue({ ok: false, message: "No plans" });
-    render(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
     expect(await screen.findByRole("alert")).toHaveTextContent("No plans");
   });
 
   it("explains when nothing is selected", () => {
-    render(<ViewPlansDialog open onClose={() => {}} />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} />);
     expect(screen.getByRole("alert")).toHaveTextContent(
       "No exam or paper selected for plans."
     );
@@ -105,7 +111,7 @@ describe("ViewPlansDialog", () => {
 
   it("explains when purchases are off or no plans exist", async () => {
     getProductsForMockTest.mockResolvedValueOnce(ready([product()], false));
-    const { unmount } = render(
+    const { unmount } = renderDialog(
       <ViewPlansDialog open onClose={() => {}} mockTestId="t1" />
     );
     expect(
@@ -116,7 +122,7 @@ describe("ViewPlansDialog", () => {
     getProductsForMockTest.mockResolvedValueOnce(
       ready([product({ offers: [] })])
     );
-    render(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
     expect(
       await screen.findByText("No plans are available for this yet.")
     ).toBeInTheDocument();
@@ -142,7 +148,7 @@ describe("ViewPlansDialog", () => {
         },
       ])
     );
-    render(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
     expect(await screen.findByText(/₹499/)).toBeInTheDocument();
     expect(screen.getByText(/3 months/)).toBeInTheDocument();
     // product + two priced offers (NaN offer dropped)
@@ -158,7 +164,7 @@ describe("ViewPlansDialog", () => {
         product({ id: "d", ownedUntil: null }),
       ])
     );
-    render(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open onClose={() => {}} mockTestId="t1" />);
     expect(
       (await screen.findAllByText("You already have lifetime access.")).length
     ).toBe(2);
@@ -170,7 +176,7 @@ describe("ViewPlansDialog", () => {
     const user = userEvent.setup();
     getProductsForMockTest.mockResolvedValue(ready([product()]));
     const onClose = vi.fn();
-    render(<ViewPlansDialog open onClose={onClose} mockTestId="t1" />);
+    renderDialog(<ViewPlansDialog open onClose={onClose} mockTestId="t1" />);
     await screen.findByText("NEET all tests");
 
     const dialog = screen.getByRole("dialog");
@@ -198,10 +204,14 @@ describe("ViewPlansDialog", () => {
         finish = resolve;
       })
     );
-    const { rerender } = render(
+    const { rerender } = renderDialog(
       <ViewPlansDialog open onClose={() => {}} mockTestId="t1" />
     );
-    rerender(<ViewPlansDialog open={false} onClose={() => {}} mockTestId="t1" />);
+    rerender(
+      <StudyLoadingProvider>
+        <ViewPlansDialog open={false} onClose={() => {}} mockTestId="t1" />
+      </StudyLoadingProvider>
+    );
     finish(ready([product()]));
     await waitFor(() =>
       expect(screen.queryByText("NEET all tests")).not.toBeInTheDocument()

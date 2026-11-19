@@ -11,14 +11,12 @@ vi.mock("@/lib/api/mistake-book", () => ({
   deleteMistakeBookEntry: vi.fn(),
   patchMistakeTripReason: vi.fn(),
 }));
-vi.mock("@/components/study/study-loading-overlay", () => ({
-  StudyLoadingOverlay: ({
-    open,
-    label,
-  }: {
-    open: boolean;
-    label?: string;
-  }) => (open ? <div role="status">{label}</div> : null),
+vi.mock("@/components/study/study-route-loading", () => ({
+  StudyRouteLoading: ({ busy }: { busy: boolean }) =>
+    busy ? <div role="status">Loading your study space...</div> : null,
+  StudyRouteLoadingFallback: () => (
+    <div role="status">Loading your study space...</div>
+  ),
 }));
 
 import {

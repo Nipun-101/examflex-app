@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { ExamHubLayoutClient } from "@/app/(app)/(study)/mocks/exam/[id]/exam-hub-layout-client";
-import { StudyLoadingOverlay } from "@/components/study/study-loading-overlay";
+import { StudyRouteLoadingFallback } from "@/components/study/study-route-loading";
 
 type ExamLayoutProps = {
   children: ReactNode;
@@ -12,11 +12,7 @@ type ExamLayoutProps = {
  */
 export default function ExamLayout({ children }: ExamLayoutProps) {
   return (
-    <Suspense
-      fallback={
-        <StudyLoadingOverlay open scope="viewport" label="Loading exam..." />
-      }
-    >
+    <Suspense fallback={<StudyRouteLoadingFallback />}>
       <ExamHubLayoutClient>{children}</ExamHubLayoutClient>
     </Suspense>
   );

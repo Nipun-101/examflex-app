@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import { TodayMistakeIllustration } from "@/components/study/today-mistake-illustration";
 import type { TodayMistakeBook } from "@/types/today";
 
@@ -31,12 +31,12 @@ export function MistakeBookCard({ data }: MistakeBookCardProps) {
           </p>
         ) : null}
 
-        <Link
+        <StudyNavLink
           href={data.ctaHref}
           className="ml-1 inline-flex text-sm font-semibold whitespace-pre text-study-peach-ink transition-colors hover:text-study-ink"
         >
           {data.ctaLabel}
-        </Link>
+        </StudyNavLink>
       </div>
     </article>
   );

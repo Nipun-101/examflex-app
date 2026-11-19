@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { StudyNavLink } from "@/components/study/study-nav-link";
 import type { AnalysisSubjectsSection as SubjectsData } from "@/types/analysis";
 import { examHubPath } from "@/lib/mocks/exam-test-routes";
 
@@ -76,12 +76,12 @@ export function AnalysisSubjectsSection({
                 Finish a few chapter-wise papers for this exam. We’ll surface
                 strengths, weak chapters, and what to practice next.
               </p>
-              <Link
+              <StudyNavLink
                 href={chapterHref}
                 className="mt-4 inline-flex h-11 items-center justify-center rounded-[10px] bg-study-green px-5 text-sm font-semibold text-white transition-colors hover:bg-study-ink"
               >
                 Open chapter wise
-              </Link>
+              </StudyNavLink>
             </div>
           </div>
         </div>
