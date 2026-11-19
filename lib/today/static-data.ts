@@ -14,7 +14,7 @@ export const TODAY_EMPTY_SEED: TodayPageData = {
   nextStep: {
     eyebrow: "START HERE",
     title: "Your first step is one mock.",
-    body: "Take a full-syllabus mock. We turn every miss into your Mistake Book, your Equation Book and a score you can read.",
+    body: "Take a full-syllabus mock. Misses land in your Mistake Book for calm review, and you get a score you can build on.",
     ctaLabel: "Take your first mock  →",
     ctaHref: "/mocks",
     aside: "Small start. Real progress.",
