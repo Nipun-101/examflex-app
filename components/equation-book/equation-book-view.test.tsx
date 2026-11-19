@@ -172,6 +172,9 @@ describe("EquationBookView", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("0 of 0 equations")).toBeInTheDocument();
     expect(screen.getByText(/IN THIS CHAPTER/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Browse all/i })
+    ).toHaveAttribute("href", "/equation-book/browse");
   });
 
   it("defaults to the first subject and chapter when none are provided", () => {

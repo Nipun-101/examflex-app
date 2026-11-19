@@ -3,9 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
   EquationActions,
+  EquationBrowseLink,
   EquationCtas,
   EquationPager,
 } from "@/components/equation-book/equation-actions";
+import { EQUATION_BOOK_COPY } from "@/types/equation-book";
 
 describe("EquationPager", () => {
   it("wires previous and next", async () => {
@@ -40,6 +42,15 @@ describe("EquationPager", () => {
 
     expect(screen.getByRole("button", { name: /Previous/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /Next/i })).toBeDisabled();
+  });
+});
+
+describe("EquationBrowseLink", () => {
+  it("links to the formula shelf with shared copy", () => {
+    render(<EquationBrowseLink />);
+    expect(
+      screen.getByRole("link", { name: /Browse all/i })
+    ).toHaveAttribute("href", EQUATION_BOOK_COPY.browseHref);
   });
 });
 

@@ -1,3 +1,4 @@
+import { EquationBrowseLink } from "@/components/equation-book/equation-actions";
 import { EQUATION_BOOK_COPY } from "@/types/equation-book";
 
 type EquationEmptyStateProps = {
@@ -72,11 +73,14 @@ export function EquationEmptyState({ chapterLabel }: EquationEmptyStateProps) {
             <p className="mt-3 max-w-xl text-sm leading-[1.5] text-study-muted-soft sm:text-[0.9375rem]">
               {EQUATION_BOOK_COPY.emptyBody}
             </p>
+            <div className="mt-5 sm:mt-6">
+              <EquationBrowseLink className="w-full bg-white/70 sm:w-auto" />
+            </div>
           </div>
         </div>
       </article>
 
-      <div className="flex flex-col gap-4 lg:gap-5">
+      <div className="flex min-w-0 flex-col gap-4 lg:gap-5">
         <article className="rounded-[20px] bg-white px-5 py-5 shadow-soft sm:px-6">
           <p className="text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
             Recall session
