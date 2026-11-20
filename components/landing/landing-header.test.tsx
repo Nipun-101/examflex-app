@@ -29,7 +29,7 @@ describe("LandingHeader", () => {
     expect(mobileNav).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Close menu" })).toBeInTheDocument();
 
-    await user.click(within(mobileNav).getByRole("link", { name: "Courses" }));
+    await user.click(within(mobileNav).getByRole("link", { name: "Mocks" }));
     expect(
       screen.queryByRole("navigation", { name: "Mobile" })
     ).not.toBeInTheDocument();

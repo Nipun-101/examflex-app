@@ -1,127 +1,101 @@
-import {
-  CalendarDays,
-  ChartColumn,
-  Target,
-  Trophy,
-  type LucideIcon,
-} from "lucide-react";
 import { SectionHeading } from "@/components/landing/section-heading";
 
-const STATS: {
-  value: string;
-  label: string;
-  Icon: LucideIcon;
-}[] = [
-  { value: "612/720", label: "Predicted score", Icon: Trophy },
-  { value: "81%", label: "Accuracy", Icon: Target },
-  { value: "#1,284", label: "Rank (mock)", Icon: ChartColumn },
-  { value: "23 days", label: "Study streak", Icon: CalendarDays },
-];
+const STATS = [
+  { value: "548 / 720", label: "Latest mock" },
+  { value: "+18", label: "vs Mock 11" },
+  { value: "~14k to 19k", label: "Rank range (illustrative)" },
+  { value: "19", label: "Mistakes to review" },
+] as const;
 
-const WEEKLY_SCORES = [42, 48, 51, 55, 58, 62, 68, 72] as const;
+const MOCKS = [
+  { label: "Mock 10", score: 512, height: 100, current: false },
+  { label: "Mock 11", score: 530, height: 124, current: false },
+  { label: "Mock 12", score: 548, height: 150, current: true },
+] as const;
 
 const SUBJECTS = [
-  { name: "Physics", score: 78 },
-  { name: "Chemistry", score: 86 },
-  { name: "Mathematics", score: 64 },
+  { name: "Physics", score: 124, total: 180 },
+  { name: "Chemistry", score: 140, total: 180 },
+  { name: "Biology", score: 284, total: 360 },
 ] as const;
 
 export function PerformanceSection() {
-  const maxScore = Math.max(...WEEKLY_SCORES);
-
   return (
-    <section
-      id="performance"
-      className="scroll-mt-20 bg-secondary/60 py-16 md:py-24"
-    >
-      <div className="container-x">
+    <section id="performance" className="container-x scroll-mt-20 py-12 md:py-20">
+      <div className="flex flex-col gap-6 rounded-[28px] bg-secondary p-5 sm:p-8 md:gap-7 md:rounded-[36px] md:p-11">
         <SectionHeading
           eyebrow="Performance"
           title="Know exactly where you stand"
-          description="Every test turns into insights — so you always know what moves your score."
+          description="Every test turns into insights, so you always know what moves your score."
         />
 
-        <div className="mt-10">
-          <div className="card-base overflow-hidden p-4 md:p-6">
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {STATS.map((stat) => (
-                <div key={stat.label} className="rounded-xl bg-secondary p-4">
-                  <stat.Icon className="h-5 w-5 text-primary" aria-hidden />
-                  <div className="mt-3 font-display text-xl font-bold md:text-2xl">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {stat.label}
-                  </div>
-                </div>
+        <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="flex flex-col rounded-[18px] bg-study-mint p-[18px]">
+              <dt className="order-2 mt-0.5 text-[13px] text-muted-foreground">
+                {stat.label}
+              </dt>
+              <dd className="font-display text-xl font-extrabold tracking-tight text-primary-deep sm:text-[28px]">
+                {stat.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+          <div className="card-base rounded-[22px] p-5 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-lg font-bold">Mock test scores</h3>
+              <span className="rounded-xl bg-study-mint px-3 py-1.5 text-xs font-semibold text-primary">
+                +36 in 3 mocks
+              </span>
+            </div>
+            <ul className="mt-4 flex items-end gap-4 sm:px-8">
+              {MOCKS.map((mock) => (
+                <li key={mock.label} className="flex-1 text-center">
+                  <p className="text-sm font-semibold">{mock.score}</p>
+                  <div
+                    aria-hidden
+                    className={`my-2 rounded-xl ${
+                      mock.current ? "bg-primary" : "bg-study-mint-bar"
+                    }`}
+                    style={{ height: mock.height }}
+                  />
+                  <p className="text-xs text-muted-foreground">{mock.label}</p>
+                </li>
               ))}
-            </div>
+            </ul>
+          </div>
 
-            <div className="mt-5 grid gap-5 lg:grid-cols-2">
-              <article className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <h4 className="text-lg font-bold">Mock test scores</h4>
-                  <span className="rounded-full bg-neet-soft px-2.5 py-1 text-xs font-semibold text-neet">
-                    +27% in 8 weeks
-                  </span>
+          <div className="card-base flex flex-col gap-4 rounded-[22px] p-5 md:p-6">
+            <h3 className="text-lg font-bold">Subject performance</h3>
+            {SUBJECTS.map((subject) => (
+              <div key={subject.name}>
+                <div className="mb-1.5 flex justify-between text-sm font-medium">
+                  <span>{subject.name}</span>
+                  <b>
+                    {subject.score} / {subject.total}
+                  </b>
                 </div>
-
-                <div className="mt-6">
-                  <div className="flex h-36 items-end gap-1.5 sm:h-40 sm:gap-2.5">
-                    {WEEKLY_SCORES.map((score, index) => {
-                      const heightPct = (score / maxScore) * 100;
-                      return (
-                        <div
-                          key={`bar-${index + 1}`}
-                          className="relative h-full min-w-0 flex-1"
-                        >
-                          <div
-                            className="absolute inset-x-0 bottom-0 rounded-t-md bg-gradient-primary"
-                            style={{ height: `${heightPct}%` }}
-                            title={`Week ${index + 1}: ${score}`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-2 flex gap-1.5 sm:gap-2.5">
-                    {WEEKLY_SCORES.map((_, index) => (
-                      <span
-                        key={`label-${index + 1}`}
-                        className="min-w-0 flex-1 text-center text-[10px] font-medium text-muted-foreground sm:text-xs"
-                      >
-                        W{index + 1}
-                      </span>
-                    ))}
-                  </div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-study-mint">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{
+                      width: `${Math.round((subject.score / subject.total) * 100)}%`,
+                    }}
+                  />
                 </div>
-              </article>
-
-              <article className="rounded-2xl border border-border bg-card p-5">
-                <h4 className="text-lg font-bold">Subject performance</h4>
-                <div className="mt-6 space-y-5">
-                  {SUBJECTS.map((subject) => (
-                    <div key={subject.name}>
-                      <div className="mb-1.5 flex items-center justify-between text-sm">
-                        <span className="font-medium">{subject.name}</span>
-                        <span className="font-semibold">{subject.score}%</span>
-                      </div>
-                      <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-gradient-primary"
-                          style={{ width: `${subject.score}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-6 rounded-2xl bg-secondary px-4 py-3 text-sm text-foreground">
-                  💡 Focus next: Integration by parts — 3 recommended drills
-                </p>
-              </article>
-            </div>
+              </div>
+            ))}
+            <p className="rounded-[14px] bg-study-mint px-3.5 py-3 text-[13px] font-medium">
+              Next up: force and friction need another look.
+            </p>
           </div>
         </div>
+
+        <p className="text-center text-[11px] text-muted-foreground">
+          Illustrative data · No admission prediction
+        </p>
       </div>
     </section>
   );
