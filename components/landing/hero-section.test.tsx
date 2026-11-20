@@ -3,20 +3,23 @@ import { describe, expect, it } from "vitest";
 import { HeroSection } from "@/components/landing/hero-section";
 
 describe("HeroSection", () => {
-  it("renders headline, CTAs, trust markers, and floating stats", () => {
+  it("renders headline, CTAs, trust markers, and the product collage", () => {
     render(<HeroSection />);
 
     expect(
       screen.getByRole("heading", { name: /Rise above cutoffs/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Start Preparing/i })
+      screen.getByRole("link", { name: /Start preparing/i })
     ).toHaveAttribute("href", "/login");
     expect(
-      screen.getByRole("link", { name: /Explore Tests/i })
+      screen.getByRole("link", { name: /Explore tests/i })
     ).toHaveAttribute("href", "#tests");
-    expect(screen.getByText("50,000+ questions")).toBeInTheDocument();
-    expect(screen.getByText("Top 3%")).toBeInTheDocument();
-    expect(screen.getByText("+14%")).toBeInTheDocument();
+    expect(screen.getByText("NTA-pattern mocks")).toBeInTheDocument();
+    expect(screen.getByText("NCERT-referenced")).toBeInTheDocument();
+    expect(screen.getByText("Practice, not classes")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Score 548 of 720" })).toBeInTheDocument();
+    expect(screen.getByText("~14k to 19k")).toBeInTheDocument();
+    expect(screen.getByText("Open Mistake Book →")).toBeInTheDocument();
   });
 });

@@ -4,13 +4,20 @@ import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BrandMark } from "@/components/landing/brand-mark";
-import { NAV_LINKS } from "@/lib/constants";
+
+const NAV_LINKS = [
+  { href: "#", label: "Home" },
+  { href: "#tests", label: "Mocks" },
+  { href: "#equation-book", label: "Equation Book" },
+  { href: "#mistake-book", label: "Mistake Book" },
+  { href: "#performance", label: "Analysis" },
+] as const;
 
 export function LandingHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-md">
       <div className="container-x flex h-16 items-center justify-between">
         <Link href="/" className="shrink-0" onClick={() => setOpen(false)}>
           <BrandMark />

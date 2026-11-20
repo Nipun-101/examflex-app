@@ -7,7 +7,7 @@ const FOOTER_COLUMNS = [
   {
     title: "Platform",
     links: [
-      { label: "Courses", href: "#courses" },
+      { label: "How it works", href: "#how" },
       { label: "Tests", href: "#tests" },
       { label: "Performance", href: "#performance" },
     ],
@@ -40,7 +40,7 @@ export function LandingFooter() {
           <BrandMark />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             Rise above cutoffs. Smart NEET &amp; JEE preparation built for
-            students across India.
+            students across India 🇮🇳
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export function LandingFooter() {
       <div className="border-t border-border">
         <div className="container-x flex flex-col gap-2 py-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 ExamFlex · {APP_DOMAIN}</p>
-          <p>Made for aspirants, in India 🇮🇳</p>
+          <p>Illustrative data · No admission prediction</p>
         </div>
       </div>
     </footer>
