@@ -43,7 +43,6 @@ export type ProfilePageChrome = {
   title: string;
   tagline: string;
   examBadge: string;
-  identityHint: string;
   contactSectionTitle: string;
   contactSectionSubtitle: string;
   snapshotTitle: string;

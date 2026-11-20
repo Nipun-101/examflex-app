@@ -9,7 +9,6 @@ describe("ProfileIdentityCard", () => {
         name="Aarav Mehta"
         examTrack="ExamFlex"
         memberSinceLabel="On ExamFlex since March 2025"
-        identityHint="Google photo when you sign in with Google"
         avatarUrl={null}
       />
     );
@@ -28,7 +27,6 @@ describe("ProfileIdentityCard", () => {
         name="   "
         examTrack="ExamFlex"
         memberSinceLabel="On ExamFlex since March 2025"
-        identityHint="Hint"
         avatarUrl={null}
       />
     );
@@ -44,7 +42,6 @@ describe("ProfileIdentityCard", () => {
         name="Aarav Mehta"
         examTrack="ExamFlex"
         memberSinceLabel="On ExamFlex since March 2025"
-        identityHint="Hint"
         avatarUrl="https://lh3.googleusercontent.com/a/photo"
       />
     );

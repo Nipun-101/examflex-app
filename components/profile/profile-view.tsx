@@ -294,7 +294,6 @@ export function ProfileView({ chrome }: ProfileViewProps) {
         name={draft.name}
         examTrack={user.examTrack}
         memberSinceLabel={user.memberSinceLabel}
-        identityHint={chrome.identityHint}
         avatarUrl={avatarUrl}
       />
 

@@ -8,8 +8,8 @@ const FLOAT_CARD = "absolute rounded-[22px] bg-card p-4 shadow-lift";
  */
 export function HeroVisual() {
   return (
-    <div className="animate-fade-up-delay mx-auto h-[388px] w-[350px] lg:h-[620px] lg:w-[560px]">
-      <div className="relative h-[620px] w-[560px] origin-top-left scale-[0.625] rounded-[40px] bg-[linear-gradient(160deg,var(--secondary)_0%,#bcd3c7_100%)] ring-1 ring-inset ring-white/60 lg:scale-100">
+    <div className="animate-fade-up-delay mx-auto h-[310px] w-[280px] min-[340px]:h-[341px] min-[340px]:w-[308px] min-[390px]:h-[388px] min-[390px]:w-[350px] sm:h-[496px] sm:w-[448px] md:h-[620px] md:w-[560px]">
+      <div className="relative h-[620px] w-[560px] origin-top-left scale-[0.5] min-[340px]:scale-[0.55] min-[390px]:scale-[0.625] sm:scale-[0.8] md:scale-100 rounded-[40px] bg-[linear-gradient(160deg,var(--secondary)_0%,#bcd3c7_100%)] ring-1 ring-inset ring-white/60">
         <div
           className={`${FLOAT_CARD} left-[30px] top-10 w-[362px] bg-study-ink text-white`}
         >

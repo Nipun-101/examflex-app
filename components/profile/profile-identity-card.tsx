@@ -4,7 +4,6 @@ type ProfileIdentityCardProps = {
   name: string;
   examTrack: string;
   memberSinceLabel: string;
-  identityHint: string;
   avatarUrl: string | null;
 };
 
@@ -12,7 +11,6 @@ export function ProfileIdentityCard({
   name,
   examTrack,
   memberSinceLabel,
-  identityHint,
   avatarUrl,
 }: ProfileIdentityCardProps) {
   return (
@@ -34,10 +32,6 @@ export function ProfileIdentityCard({
           </p>
         </div>
       </div>
-
-      <p className="mt-4 text-[0.6875rem] leading-relaxed text-study-on-dark/90">
-        {identityHint}
-      </p>
     </section>
   );
 }

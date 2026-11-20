@@ -35,8 +35,8 @@ const FOOTER_COLUMNS = [
 export function LandingFooter() {
   return (
     <footer className="border-t border-border bg-card">
-      <div className="container-x grid gap-10 py-12 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
+      <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="sm:col-span-2 lg:col-span-1">
           <BrandMark />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             Rise above cutoffs. Smart NEET &amp; JEE preparation built for
