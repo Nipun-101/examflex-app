@@ -118,7 +118,9 @@ describe("MathText", () => {
 
   it("inlines plain text when asked", () => {
     render(<MathText text="plain" inline />);
-    expect(screen.getByText("plain").className).toContain("inline");
+    const node = screen.getByText("plain");
+    expect(node.tagName).toBe("SPAN");
+    expect(node.className).toContain("inline");
   });
 });
 

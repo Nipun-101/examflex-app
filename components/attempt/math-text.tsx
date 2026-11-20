@@ -16,22 +16,25 @@ export function MathText({ text, inline = false, className = "" }: MathTextProps
   const value = sanitizeAttemptRichText(raw);
   if (!value.trim()) return null;
 
+  // Inline uses <span> so callers can nest inside phrasing content (<p>, etc.).
+  const Tag = inline ? "span" : "div";
+
   if (!api) {
     return (
-      <div
+      <Tag
         className={`break-words whitespace-pre-wrap text-inherit ${inline ? "inline" : ""} ${className}`.trim()}
       >
         {value}
-      </div>
+      </Tag>
     );
   }
 
   const Markdown = api.MathpixMarkdown;
   return (
-    <div
+    <Tag
       className={`mathpix-content ${inline ? "mathpix-inline" : "mathpix-block"} ${className}`.trim()}
     >
       <Markdown text={value} htmlTags />
-    </div>
+    </Tag>
   );
 }
