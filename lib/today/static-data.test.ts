@@ -21,8 +21,8 @@ describe("TODAY_EMPTY_SEED", () => {
     expect(TODAY_EMPTY_SEED.perspective.locked).toBe(true);
     expect(TODAY_EMPTY_SEED.sessionPlan.steps.map((s) => s.state)).toEqual([
       "active",
-      "locked",
-      "locked",
+      "active",
+      "active",
     ]);
   });
 });

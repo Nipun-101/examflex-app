@@ -28,12 +28,12 @@ export const TODAY_EMPTY_SEED: TodayPageData = {
       {
         index: "02",
         label: "Understand your saved mistakes",
-        state: "locked",
+        state: "active",
       },
       {
         index: "03",
         label: "Recall your first equations",
-        state: "locked",
+        state: "active",
       },
     ],
   },
@@ -137,11 +137,11 @@ export const TODAY_PAGE_DATA: TodayPageData = {
     title: "Your 20-minute reset",
     steps: [
       { index: "01", label: "Understand 5 saved mistakes", state: "active" },
-      { index: "02", label: "Recall 8 equations", state: "locked" },
+      { index: "02", label: "Recall 8 equations", state: "active" },
       {
         index: "03",
         label: "Retry one without the solution",
-        state: "locked",
+        state: "active",
       },
     ],
   },

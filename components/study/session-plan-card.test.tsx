@@ -14,10 +14,12 @@ describe("SessionPlanCard", () => {
     expect(screen.getByText("Recall 8 equations")).toBeInTheDocument();
   });
 
-  it("marks locked steps for the empty checklist", () => {
+  it("keeps empty checklist steps visually active", () => {
     render(<SessionPlanCard data={TODAY_EMPTY_SEED.sessionPlan} />);
 
     expect(screen.getByText("Take your first mock")).toBeInTheDocument();
-    expect(screen.getAllByText(/\(locked\)/)).toHaveLength(2);
+    expect(screen.getByText("Understand your saved mistakes")).toBeInTheDocument();
+    expect(screen.getByText("Recall your first equations")).toBeInTheDocument();
+    expect(screen.queryByText(/\(locked\)/)).not.toBeInTheDocument();
   });
 });
