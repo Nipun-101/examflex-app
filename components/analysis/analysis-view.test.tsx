@@ -18,6 +18,9 @@ describe("AnalysisView", () => {
       screen.getByText(/Appears after your first full mock/i)
     ).toBeInTheDocument();
     expect(
+      screen.getByTestId("analysis-counseling-card")
+    ).toBeInTheDocument();
+    expect(
       screen.getByRole("heading", { name: "What this level could open up" })
     ).toBeInTheDocument();
     expect(

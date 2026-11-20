@@ -11,6 +11,8 @@ type AttemptModalProps = {
   /** `sheet` slides in from the right (mobile palette). */
   variant?: "dialog" | "sheet";
   dismissible?: boolean;
+  /** Extra classes for the dialog panel (e.g. wider booking forms). */
+  panelClassName?: string;
   children: ReactNode;
 };
 
@@ -25,6 +27,7 @@ export function AttemptModal({
   describedBy,
   variant = "dialog",
   dismissible = true,
+  panelClassName = "",
   children,
 }: AttemptModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
@@ -91,8 +94,8 @@ export function AttemptModal({
         onKeyDown={handleKeyDown}
         className={
           isSheet
-            ? "h-full w-[88%] max-w-sm overflow-y-auto bg-white p-4 shadow-lift outline-none sm:p-5"
-            : "max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-study-divider bg-white p-5 shadow-lift outline-none sm:p-6"
+            ? `h-full w-[88%] max-w-sm overflow-y-auto bg-white p-4 shadow-lift outline-none sm:p-5 ${panelClassName}`.trim()
+            : `max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-study-divider bg-white p-5 shadow-lift outline-none sm:p-6 ${panelClassName}`.trim()
         }
       >
         {children}
