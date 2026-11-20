@@ -1,28 +1,12 @@
-import type { TodaySessionPlan, TodaySessionStepState } from "@/types/today";
+import type { TodaySessionPlan } from "@/types/today";
 
 type SessionPlanCardProps = {
   data: TodaySessionPlan;
 };
 
-function stepTone(state: TodaySessionStepState): string {
-  if (state === "locked") {
-    return "text-study-ink/40";
-  }
-  if (state === "done") {
-    return "text-study-ink/70";
-  }
-  return "text-study-ink";
-}
-
-function indexTone(state: TodaySessionStepState): string {
-  if (state === "active") {
-    return "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-study-ink text-[0.6875rem] font-semibold text-white";
-  }
-  if (state === "done") {
-    return "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-study-ink/30 text-[0.6875rem] font-semibold text-study-ink/70";
-  }
-  return "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-study-ink/20 text-[0.6875rem] font-medium text-study-ink/35";
-}
+/** Checklist chrome — all steps share the active look for now. */
+const STEP_INDEX_CLASS =
+  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-study-ink text-[0.6875rem] font-semibold text-white";
 
 export function SessionPlanCard({ data }: SessionPlanCardProps) {
   return (
@@ -37,20 +21,12 @@ export function SessionPlanCard({ data }: SessionPlanCardProps) {
         {data.steps.map((step) => (
           <li
             key={step.index}
-            className={`flex items-center gap-3 text-[0.9375rem] leading-[1.4] ${stepTone(step.state)}`}
+            className="flex items-center gap-3 text-[0.9375rem] leading-[1.4] text-study-ink"
           >
-            <span className={indexTone(step.state)} aria-hidden>
+            <span className={STEP_INDEX_CLASS} aria-hidden>
               {step.index}
             </span>
-            <span>
-              {step.label}
-              {step.state === "locked" ? (
-                <span className="sr-only"> (locked)</span>
-              ) : null}
-              {step.state === "done" ? (
-                <span className="sr-only"> (done)</span>
-              ) : null}
-            </span>
+            <span>{step.label}</span>
           </li>
         ))}
       </ol>

@@ -1,7 +1,11 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AnswerKeyList } from "@/components/attempt/answer-key-list";
+import {
+  loadMathpix,
+  resetMathpixCache,
+} from "@/components/attempt/mathpix-boundary";
 import { makeQuestion } from "@/test-utils/attempt-fixtures";
 import { mathpixModuleStub } from "@/test-utils/mock-mathpix";
 import type { AttemptQuestion, SubmittedQuestionResult } from "@/types/attempt";
@@ -33,6 +37,7 @@ function renderList(
 }
 
 beforeEach(() => {
+  resetMathpixCache();
   vi.useFakeTimers({ shouldAdvanceTime: true });
 });
 
@@ -238,6 +243,67 @@ describe("AnswerKeyList", () => {
       "src",
       "https://cdn/o.png"
     );
+  });
+
+  it("renders collapsed correct and skipped option labels through Mathpix", async () => {
+    const latex = "$\\left[\\mathrm{ML}^{-1}\\mathrm{T}^{-2}\\right]$";
+    renderList(
+      [
+        makeQuestion("q1", {
+          options: [
+            {
+              id: "q1-a",
+              type: "text",
+              en: latex,
+              ml: "",
+              imageUrl: null,
+            },
+          ],
+        }),
+        makeQuestion("q2", {
+          options: [
+            {
+              id: "q2-a",
+              type: "text",
+              en: latex,
+              ml: "",
+              imageUrl: null,
+            },
+          ],
+        }),
+      ],
+      [
+        {
+          questionId: "q1",
+          selectedOption: "q1-a",
+          correctAnswer: "q1-a",
+          isCorrect: true,
+          marksAwarded: 4,
+        },
+        {
+          questionId: "q2",
+          selectedOption: null,
+          correctAnswer: "q2-a",
+          isCorrect: false,
+          marksAwarded: 0,
+        },
+      ]
+    );
+
+    await act(async () => {
+      await loadMathpix();
+    });
+
+    const correctSummary = screen.getByText(/You chose/).closest("div");
+    const skippedSummary = screen.getByText(/Not attempted/).closest("div");
+    expect(correctSummary).not.toBeNull();
+    expect(skippedSummary).not.toBeNull();
+    expect(
+      within(correctSummary!).getByTestId("mathpix-markdown")
+    ).toHaveTextContent(latex);
+    expect(
+      within(skippedSummary!).getByTestId("mathpix-markdown")
+    ).toHaveTextContent(latex);
   });
 
   it("adds section headings only when the section changes", () => {

@@ -10,7 +10,11 @@ vi.mock("@/components/attempt/attempt-result-client", () => ({
 
 describe("attempt result page", () => {
   it("passes the route param to the client", async () => {
-    render(await AttemptResultPage({ params: Promise.resolve({ attemptId: "att9" }) } as never));
+    render(
+      await AttemptResultPage({
+        params: Promise.resolve({ attemptId: "att9" }),
+      } as never)
+    );
     expect(screen.getByTestId("client")).toHaveTextContent("att9");
   });
 

@@ -129,7 +129,7 @@ function AnswerKeyItem({
 
       {!expanded ? (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-[12px] border border-study-divider bg-study-canvas/80 px-3 py-2.5">
-          <p className="min-w-0 text-sm text-study-ink">
+          <div className="min-w-0 text-sm text-study-ink">
             {outcome === "skipped" ? (
               <>
                 Not attempted
@@ -137,10 +137,15 @@ function AnswerKeyItem({
                   <>
                     {" · "}
                     Correct answer:{" "}
-                    <span className="font-semibold">
-                      {correctOption.type === "image"
-                        ? `(${optionLetter(Math.max(0, correctIndex))})`
-                        : optionLabel(correctOption, language)}
+                    <span className="inline-flex min-w-0 items-baseline font-semibold">
+                      {correctOption.type === "image" ? (
+                        `(${optionLetter(Math.max(0, correctIndex))})`
+                      ) : (
+                        <MathText
+                          text={optionLabel(correctOption, language)}
+                          inline
+                        />
+                      )}
                     </span>
                   </>
                 ) : null}
@@ -148,12 +153,22 @@ function AnswerKeyItem({
             ) : (
               <>
                 You chose{" "}
-                <span className="font-semibold">
-                  {selectedOption
-                    ? selectedOption.type === "image"
-                      ? `(${optionLetter(Math.max(0, selectedIndex))})`
-                      : `(${optionLetter(Math.max(0, selectedIndex))}) ${optionLabel(selectedOption, language)}`
-                    : "—"}
+                <span className="inline-flex min-w-0 items-baseline gap-1 font-semibold">
+                  {selectedOption ? (
+                    selectedOption.type === "image" ? (
+                      `(${optionLetter(Math.max(0, selectedIndex))})`
+                    ) : (
+                      <>
+                        {`(${optionLetter(Math.max(0, selectedIndex))}) `}
+                        <MathText
+                          text={optionLabel(selectedOption, language)}
+                          inline
+                        />
+                      </>
+                    )
+                  ) : (
+                    "—"
+                  )}
                 </span>{" "}
                 <Check
                   className="inline h-3.5 w-3.5 text-study-green"
@@ -162,7 +177,7 @@ function AnswerKeyItem({
                 />
               </>
             )}
-          </p>
+          </div>
           <button
             type="button"
             onClick={() => setExpanded(true)}

@@ -15,6 +15,7 @@ describe("SubjectInsightsCard", () => {
       })
     ).toBeInTheDocument();
     expect(screen.getByText("Physics")).toBeInTheDocument();
+    expect(screen.getByText("Chemistry")).toBeInTheDocument();
     expect(screen.getByText("62%")).toBeInTheDocument();
     expect(
       screen.getByText("Force & friction need another look.")
@@ -29,6 +30,35 @@ describe("SubjectInsightsCard", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByText("— / 180")).toHaveLength(2);
     expect(screen.getByText("— / 360")).toBeInTheDocument();
+  });
+
+  it("uses the same desktop guidance copy for empty and filled states", () => {
+    const { rerender } = render(
+      <SubjectInsightsCard section={TODAY_EMPTY_SEED.subjectInsights} />
+    );
+
+    expect(screen.getByText("From chapter practice")).toBeInTheDocument();
+    expect(
+      screen.getByText(/subject average from chapter-wise attempts/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        /Averages and chapter tips come from your chapter-wise practice in Analysis/i
+      )
+    ).toHaveLength(1);
+
+    rerender(
+      <SubjectInsightsCard section={TODAY_PAGE_DATA.subjectInsights} />
+    );
+    expect(screen.getByText("From chapter practice")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Open Analysis for the full subject and chapter breakdown/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        /Averages and chapter tips come from your chapter-wise practice in Analysis/i
+      )
+    ).toHaveLength(1);
   });
 
   it("accepts a layout className for stretched desktop columns", () => {
