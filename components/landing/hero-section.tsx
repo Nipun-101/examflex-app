@@ -11,11 +11,11 @@ const TRUST_ITEMS = [
 export function HeroSection() {
   return (
     <section className="bg-hero-gradient relative overflow-hidden">
-      <div className="container-x grid items-center gap-10 pb-12 pt-6 md:pt-10 lg:grid-cols-[minmax(0,1fr)_560px] lg:gap-14 lg:pb-20">
-        <div className="animate-fade-up flex flex-col items-start gap-5 lg:gap-6">
+      <div className="container-x grid grid-cols-[minmax(0,1fr)] items-center gap-10 pb-12 pt-6 md:pt-10 lg:grid-cols-[minmax(0,1fr)_560px] lg:gap-14 lg:pb-20">
+        <div className="animate-fade-up flex flex-col items-start gap-5 sm:items-center sm:text-center lg:items-start lg:gap-6 lg:text-left">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3.5 py-2 text-xs font-semibold text-primary sm:text-sm">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            NEET 2027 batches are live · JEE coming soon
+            NEET 2027 prep is live · JEE coming soon
           </span>
 
           <h1 className="text-5xl font-extrabold leading-none tracking-tighter text-primary-deep sm:text-6xl lg:text-7xl">
@@ -27,7 +27,7 @@ export function HeroSection() {
             score you can read in college terms. So every hour you study counts.
           </p>
 
-          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row lg:justify-start">
             <Link
               href="/login"
               className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-gradient-primary px-7 text-base font-semibold text-primary-foreground shadow-lift transition-[filter] hover:brightness-110"
@@ -43,7 +43,7 @@ export function HeroSection() {
             </Link>
           </div>
 
-          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium sm:justify-center lg:justify-start text-muted-foreground">
             {TRUST_ITEMS.map((item) => (
               <li key={item} className="inline-flex items-center gap-1.5">
                 <Check className="h-4 w-4 text-success" aria-hidden />

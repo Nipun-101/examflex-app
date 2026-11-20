@@ -7,7 +7,6 @@ export function profileChromeFromPageData(
     title: data.title,
     tagline: data.tagline,
     examBadge: data.examBadge,
-    identityHint: data.identityHint,
     contactSectionTitle: data.contactSectionTitle,
     contactSectionSubtitle: data.contactSectionSubtitle,
     snapshotTitle: data.snapshotTitle,
