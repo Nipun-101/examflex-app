@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnalysisView } from "@/components/analysis/analysis-view";
 import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
 import { StudyRouteLoading } from "@/components/study/study-route-loading";
 import { getAnalysisOverview } from "@/lib/api/analysis";
+import { getMyCounseling } from "@/lib/api/counseling";
 import { getMyProfile } from "@/lib/api/users";
 import { optionalField } from "@/lib/api/parse-fields";
 import {
@@ -13,9 +14,15 @@ import {
 } from "@/lib/analysis/static-data";
 import { listShowInAppExams } from "@/lib/equation-book/list-show-in-app-exams";
 import { resolveEquationExam } from "@/lib/equation-book/resolve-exam";
+import {
+  displayEmailFromApi,
+  displayPhoneFromApi,
+} from "@/lib/profile/map-user";
 import { persistTargetExam } from "@/lib/profile/persist-target-exam";
 import type { AnalysisPageData } from "@/types/analysis";
+import type { CounselingPrefill } from "@/types/counseling";
 import type { EquationExamOption } from "@/types/equation-book";
+import type { ApiUserProfile } from "@/types/user";
 
 type BootState =
   | { status: "loading" }
@@ -27,17 +34,32 @@ export function AnalysisPageClient() {
   const [chooseExams, setChooseExams] = useState<EquationExamOption[] | null>(
     null
   );
+  const [profile, setProfile] = useState<ApiUserProfile | null>(null);
+  const [canRequestCounseling, setCanRequestCounseling] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
     async function bootPage() {
       setBoot({ status: "loading" });
-      const [profileResult, exams] = await Promise.all([
+      const [profileResult, exams, counselingResult] = await Promise.all([
         getMyProfile(),
         listShowInAppExams(),
+        getMyCounseling(),
       ]);
       if (cancelled) return;
+
+      if (profileResult.ok) {
+        setProfile(profileResult.data);
+      } else {
+        setProfile(null);
+      }
+
+      if (counselingResult.ok) {
+        setCanRequestCounseling(counselingResult.data.canRequest);
+      } else {
+        setCanRequestCounseling(true);
+      }
 
       const preferred =
         profileResult.ok && profileResult.data.targetExam
@@ -120,6 +142,19 @@ export function AnalysisPageClient() {
     });
   };
 
+  const counselingPrefill = useMemo((): CounselingPrefill => {
+    return {
+      studentName: profile?.name?.trim() ?? "",
+      email: displayEmailFromApi(profile?.email ?? ""),
+      phone: displayPhoneFromApi(profile?.phoneNumber),
+      state: profile?.location?.state?.trim() ?? "",
+      courseInterestedIn: profile?.targetExam?.name?.trim() ?? "",
+      expectedMark: "",
+      latestMockScore: null,
+      latestMockMaxScore: null,
+    };
+  }, [profile]);
+
   if (boot.status === "loading") {
     return <StudyRouteLoading busy />;
   }
@@ -136,7 +171,12 @@ export function AnalysisPageClient() {
           {boot.message}
         </p>
       ) : null}
-      <AnalysisView data={data} />
+      <AnalysisView
+        data={data}
+        canRequestCounseling={canRequestCounseling}
+        counselingPrefill={counselingPrefill}
+        onCounselingBooked={() => setCanRequestCounseling(false)}
+      />
       <ExamChoiceModal
         open={Boolean(chooseExams && chooseExams.length > 0)}
         exams={chooseExams ?? []}

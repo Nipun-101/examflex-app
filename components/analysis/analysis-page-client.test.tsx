@@ -7,6 +7,10 @@ vi.mock("@/lib/api/users", () => ({
   getMyProfile: vi.fn(),
 }));
 
+vi.mock("@/lib/api/counseling", () => ({
+  getMyCounseling: vi.fn(),
+}));
+
 vi.mock("@/lib/equation-book/list-show-in-app-exams", () => ({
   listShowInAppExams: vi.fn(),
 }));
@@ -28,12 +32,17 @@ vi.mock("@/components/study/study-route-loading", () => ({
 }));
 
 import { getAnalysisOverview } from "@/lib/api/analysis";
+import { getMyCounseling } from "@/lib/api/counseling";
 import { getMyProfile } from "@/lib/api/users";
 import { listShowInAppExams } from "@/lib/equation-book/list-show-in-app-exams";
 
 describe("AnalysisPageClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getMyCounseling).mockResolvedValue({
+      ok: true,
+      data: { canRequest: true, activeRequest: null },
+    });
   });
 
   it("loads live overview when target exam is set", async () => {

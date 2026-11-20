@@ -48,6 +48,8 @@
   --study-select-soft: #e7eef8;
   --study-divider: #dee2d9;
   --study-on-dark: #d3e0d8;
+  --study-gold: #ffd56b;
+  --study-forest: #1b3022;
   --gradient-hero: linear-gradient(
     135deg,
     oklch(98% 0.008 95),
@@ -117,6 +119,9 @@
   --color-study-select-soft: #e7eef8;
   --color-study-divider: #dee2d9;
   --color-study-on-dark: #d3e0d8;
+  /* Counseling premium card accents (also mirrored as --study-* on :root) */
+  --color-study-gold: #ffd56b;
+  --color-study-forest: #1b3022;
   --font-sans: var(--font-plus-jakarta);
   --font-display: var(--font-bricolage);
   --radius-lg: var(--radius);

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { AnalysisCounselingBookingModal } from "@/components/analysis/analysis-counseling-booking-modal";
+import { AnalysisCounselingCard } from "@/components/analysis/analysis-counseling-card";
 import { StudyNavLink } from "@/components/study/study-nav-link";
 import { AnalysisDisclaimerCard } from "@/components/analysis/analysis-disclaimer";
 import { AnalysisHistoryCard } from "@/components/analysis/analysis-history-card";
@@ -9,18 +11,40 @@ import { AnalysisPathwaysEmpty } from "@/components/analysis/analysis-pathways-e
 import { AnalysisPerformanceCard } from "@/components/analysis/analysis-performance-card";
 import { AnalysisSubjectsSection } from "@/components/analysis/analysis-subjects-section";
 import type { AnalysisPageData, AnalysisPathway } from "@/types/analysis";
+import type { CounselingPrefill } from "@/types/counseling";
 
 type AnalysisViewProps = {
   data: AnalysisPageData;
+  canRequestCounseling?: boolean;
+  counselingPrefill?: CounselingPrefill;
+  onCounselingBooked?: () => void;
 };
 
-export function AnalysisView({ data }: AnalysisViewProps) {
+const DEFAULT_PREFILL: CounselingPrefill = {
+  studentName: "",
+  email: "",
+  phone: "",
+  state: "",
+  courseInterestedIn: "",
+  expectedMark: "",
+  latestMockScore: null,
+  latestMockMaxScore: null,
+};
+
+export function AnalysisView({
+  data,
+  canRequestCounseling = true,
+  counselingPrefill = DEFAULT_PREFILL,
+  onCounselingBooked,
+}: AnalysisViewProps) {
   const overview = data.overview;
   const latest = overview?.fullMocks.latest ?? null;
   const maxScore = latest?.maxScore ?? overview?.exam.totalMarks ?? 720;
   const hasScore = latest !== null;
   const lockedHistory =
     data.illustrative || !overview?.engagement.hasFullMocks;
+  const examName = overview?.exam.name ?? "ExamFlex";
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   const pathways = useMemo(() => {
     const base = overview?.pathways.offerings ?? [];
@@ -53,6 +77,27 @@ export function AnalysisView({ data }: AnalysisViewProps) {
     ? data.sectionSubtitle
     : "Example guidance · not a validated prediction";
 
+  const prefill = useMemo((): CounselingPrefill => {
+    const course =
+      counselingPrefill.courseInterestedIn.trim().length > 0
+        ? counselingPrefill.courseInterestedIn
+        : examName;
+    const expected =
+      counselingPrefill.expectedMark.trim().length > 0
+        ? counselingPrefill.expectedMark
+        : latest
+          ? `${latest.score} out of ${latest.maxScore}`
+          : "";
+    return {
+      ...counselingPrefill,
+      courseInterestedIn: course,
+      expectedMark: expected,
+      latestMockScore: latest?.score ?? counselingPrefill.latestMockScore,
+      latestMockMaxScore:
+        latest?.maxScore ?? counselingPrefill.latestMockMaxScore,
+    };
+  }, [counselingPrefill, examName, latest]);
+
   return (
     <div className="flex w-full flex-col gap-5 lg:gap-8">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -77,6 +122,12 @@ export function AnalysisView({ data }: AnalysisViewProps) {
         score={hasScore ? latest.score : null}
         maxScore={maxScore}
         scoreHint={scoreHint}
+      />
+
+      <AnalysisCounselingCard
+        examName={examName}
+        canRequest={canRequestCounseling}
+        onBook={() => setBookingOpen(true)}
       />
 
       {overview ? (
@@ -128,6 +179,18 @@ export function AnalysisView({ data }: AnalysisViewProps) {
         <AnalysisSubjectsSection
           examId={overview.exam.id}
           subjects={overview.subjects}
+        />
+      ) : null}
+
+      {bookingOpen ? (
+        <AnalysisCounselingBookingModal
+          open={bookingOpen}
+          onClose={() => setBookingOpen(false)}
+          examName={examName}
+          prefill={prefill}
+          onBooked={() => {
+            onCounselingBooked?.();
+          }}
         />
       ) : null}
     </div>
