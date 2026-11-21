@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mathpixModuleStub } from "@/test-utils/mock-mathpix";
 
@@ -124,6 +125,62 @@ describe("EquationBrowseView", () => {
     expect(card).toHaveClass("min-w-0");
     expect(title).toHaveClass("break-words");
     expect(title.closest("li")).toHaveClass("min-w-0");
+  });
+
+  it("shows an equation's picture only when it has one", async () => {
+    vi.mocked(listEquations).mockResolvedValue({
+      ok: true,
+      data: {
+        items: [
+          { ...TEST_EQUATIONS[0]!, imageUrl: "https://cdn/force-diagram.png" },
+          TEST_EQUATIONS[1]!,
+        ],
+        pagination: {
+          total: 2,
+          page: 1,
+          limit: 50,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+    });
+
+    render(<EquationBrowseView />);
+
+    const withImage = (
+      await screen.findByRole("heading", { name: "Net force on a free body?" })
+    ).closest("article") as HTMLElement;
+    const without = screen
+      .getByRole("heading", { name: "Static friction limit?" })
+      .closest("article") as HTMLElement;
+
+    const picture = within(withImage).getByRole("img", {
+      name: "Net force on a free body? illustration",
+    });
+    expect(picture).toHaveAttribute("src", "https://cdn/force-diagram.png");
+    // fits its card instead of widening it
+    expect(picture).toHaveClass("max-w-full", "max-h-60", "w-auto");
+    expect(within(without).queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      within(without).queryByRole("button", { name: /full size/ })
+    ).not.toBeInTheDocument();
+
+    // opens full size on request
+    const user = userEvent.setup();
+    await user.click(
+      within(withImage).getByRole("button", {
+        name: "View Net force on a free body? illustration full size",
+      })
+    );
+    const dialog = screen.getByRole("dialog", { name: "Net force on a free body?" });
+    expect(within(dialog).getByRole("img", { name: /full size/ })).toHaveAttribute(
+      "src",
+      "https://cdn/force-diagram.png"
+    );
+    expect(withImage).not.toContainElement(dialog);
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("shows the equation book empty state when there is no data", async () => {

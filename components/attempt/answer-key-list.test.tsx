@@ -385,3 +385,88 @@ describe("AnswerKeyList", () => {
     expect(screen.getAllByText(/^Question \d+$/)).toHaveLength(3);
   });
 });
+
+describe("AnswerKeyList pictures", () => {
+  it("shows the question's picture in the results", () => {
+    renderList(
+      [
+        makeQuestion("q1", {
+          questionText: {
+            en: { text: "Study the figure", imageUrl: "https://cdn/q.png" },
+            ml: { text: "", imageUrl: null },
+          },
+        }),
+      ],
+      []
+    );
+    expect(screen.getByRole("img", { name: "Question" })).toHaveAttribute(
+      "src",
+      "https://cdn/q.png"
+    );
+  });
+
+  it("falls back to the English question picture in Malayalam", () => {
+    renderList(
+      [
+        makeQuestion("q1", {
+          questionText: {
+            en: { text: "Figure", imageUrl: "https://cdn/q-en.png" },
+            ml: { text: "ചിത്രം", imageUrl: null },
+          },
+        }),
+      ],
+      [],
+      { language: "ml" }
+    );
+    expect(screen.getByRole("img", { name: "Question" })).toHaveAttribute(
+      "src",
+      "https://cdn/q-en.png"
+    );
+  });
+
+  it("does not render a question picture when there is none", () => {
+    renderList([makeQuestion("q1")], []);
+    expect(screen.queryByRole("img", { name: "Question" })).not.toBeInTheDocument();
+  });
+
+  it("shows option pictures that are not flagged as image options, with their text", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    renderList(
+      [
+        makeQuestion("q1", {
+          options: [
+            { id: "a", type: "text", en: "Option text", ml: "", imageUrl: "https://cdn/a.png" },
+          ],
+        }),
+      ],
+      []
+    );
+    await user.click(screen.getByRole("button", { name: /Show options/ }));
+    expect(screen.getByRole("img", { name: "Option" })).toHaveAttribute("src", "https://cdn/a.png");
+    expect(screen.getByText("Option text")).toBeInTheDocument();
+  });
+
+  it("refers to a picture-only option by its letter in the collapsed summary", () => {
+    renderList(
+      [
+        makeQuestion("q1", {
+          options: [
+            { id: "a", type: "text", en: "x", ml: "", imageUrl: null },
+            { id: "b", type: "image", en: "", ml: "", imageUrl: "https://cdn/b.png" },
+          ],
+        }),
+      ],
+      [
+        {
+          questionId: "q1",
+          selectedOption: "b",
+          correctAnswer: "b",
+          isCorrect: true,
+          marksAwarded: 1,
+        },
+      ]
+    );
+    expect(screen.getByText(/\(B\)/)).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Option" })).not.toBeInTheDocument();
+  });
+});

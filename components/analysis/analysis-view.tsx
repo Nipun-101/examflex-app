@@ -53,6 +53,13 @@ export function AnalysisView({
       return base.map(
         (pathway): AnalysisPathway => ({
           ...pathway,
+          status: "NO_ATTEMPTS",
+          yourMarks: null,
+          cutoffMarks: null,
+          comfortMarks: null,
+          gapMarks: null,
+          attemptsConsidered: 0,
+          attemptsInWindow: 0,
           userPercent: null,
           progress01: 0,
           band: "below",

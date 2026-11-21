@@ -49,6 +49,66 @@ describe("MockTestResults", () => {
     expect(within(summary).getByText("Skipped")).toBeInTheDocument();
   });
 
+  describe("Mistake Book shortcut", () => {
+    function details(
+      overrides: { mockTestId?: string } = {},
+      counts?: { correct: number; wrong: number; skipped: number }
+    ) {
+      const base = makeDetails();
+      return {
+        test: { ...base.test, ...overrides },
+        ...(counts
+          ? {
+              correctAnswers: counts.correct,
+              incorrectAnswers: counts.wrong,
+              unansweredQuestions: counts.skipped,
+            }
+          : {}),
+      };
+    }
+
+    it("links to this paper's Mistake Book with the wrong + skipped count", () => {
+      // fixture: 1 correct, 1 wrong, 1 skipped
+      renderAdapted(details({ mockTestId: "mock-77" }));
+      const cta = screen.getByRole("complementary", { name: "Mistake Book" });
+      expect(within(cta).getByText("2 questions saved from this test")).toBeInTheDocument();
+      expect(
+        within(cta).getByRole("link", { name: "Review mistakes" })
+      ).toHaveAttribute("href", "/mistake-book/mock-77");
+    });
+
+    it("sits right under the score summary, above the question map", () => {
+      renderAdapted(details({ mockTestId: "mock-77" }));
+      const summary = screen.getByRole("region", { name: "Score summary" });
+      const cta = screen.getByRole("complementary", { name: "Mistake Book" });
+      const map = screen.getByRole("heading", { name: "Question map" });
+      expect(
+        summary.compareDocumentPosition(cta) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      expect(
+        cta.compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+      // same column as the summary, so it follows it on every breakpoint
+      expect(cta.parentElement).toBe(summary.parentElement);
+    });
+
+    it("is hidden when the API did not say which paper this was", () => {
+      renderAdapted(details());
+      expect(
+        screen.queryByRole("complementary", { name: "Mistake Book" })
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Review mistakes" })).not.toBeInTheDocument();
+    });
+
+    it("congratulates instead of linking when nothing needs reviewing", () => {
+      renderAdapted(
+        details({ mockTestId: "mock-77" }, { correct: 3, wrong: 0, skipped: 0 })
+      );
+      expect(screen.getByText("Clean sheet.")).toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Review mistakes" })).not.toBeInTheDocument();
+    });
+  });
+
   it("reports zero accuracy when nothing was attempted", () => {
     render(
       <MockTestResults

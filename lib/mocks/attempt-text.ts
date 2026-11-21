@@ -26,6 +26,25 @@ export function questionImageUrl(
   );
 }
 
+/** An option shows its picture whenever the API sent a URL, whatever its `type`. */
+export function optionHasImage(option: OptionLike): boolean {
+  return Boolean(option.imageUrl);
+}
+
+/**
+ * True when an option has nothing to show but a picture (or is flagged as an
+ * image option): summaries refer to it by letter instead of printing text.
+ */
+export function isImageOnlyOption(
+  option: OptionLike,
+  language: AttemptLanguage
+): boolean {
+  return (
+    (option.type === "image" || optionHasImage(option)) &&
+    optionLabel(option, language).length === 0
+  );
+}
+
 export function optionLabel(
   option: OptionLike,
   language: AttemptLanguage

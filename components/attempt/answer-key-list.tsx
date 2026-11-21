@@ -10,7 +10,13 @@ import {
 } from "@/components/attempt/mathpix-boundary";
 import { QuestionRenderGuard } from "@/components/attempt/question-render-guard";
 import { answerKeyQuestionDomId } from "@/components/attempt/results-question-map";
-import { optionLabel, questionStem } from "@/lib/mocks/attempt-text";
+import {
+  isImageOnlyOption,
+  optionHasImage,
+  optionLabel,
+  questionImageUrl,
+  questionStem,
+} from "@/lib/mocks/attempt-text";
 import { optionLetter, resultOutcome } from "@/lib/mocks/result-outcome";
 import type {
   AttemptDifficulty,
@@ -58,6 +64,7 @@ function AnswerKeyItem({
   const outcome = resultOutcome(result);
   const [expanded, setExpanded] = useState(outcome === "wrong");
   const explanation = result?.explanation;
+  const questionImage = questionImageUrl(question, language);
   const explanationText = explanation
     ? explanation[language] || explanation.en || explanation.ml
     : null;
@@ -123,8 +130,11 @@ function AnswerKeyItem({
         ) : null}
       </div>
 
-      <div className="mt-3 text-sm font-medium text-study-ink sm:text-[0.9375rem]">
+      <div className="mt-3 min-w-0 text-sm font-medium text-study-ink sm:text-[0.9375rem]">
         <MathText text={questionStem(question, language)} />
+        {questionImage ? (
+          <AttemptImage src={questionImage} alt="Question" className="mt-3" />
+        ) : null}
       </div>
 
       {!expanded ? (
@@ -138,7 +148,7 @@ function AnswerKeyItem({
                     {" · "}
                     Correct answer:{" "}
                     <span className="inline-flex min-w-0 items-baseline font-semibold">
-                      {correctOption.type === "image" ? (
+                      {isImageOnlyOption(correctOption, language) ? (
                         `(${optionLetter(Math.max(0, correctIndex))})`
                       ) : (
                         <MathText
@@ -155,7 +165,7 @@ function AnswerKeyItem({
                 You chose{" "}
                 <span className="inline-flex min-w-0 items-baseline gap-1 font-semibold">
                   {selectedOption ? (
-                    selectedOption.type === "image" ? (
+                    isImageOnlyOption(selectedOption, language) ? (
                       `(${optionLetter(Math.max(0, selectedIndex))})`
                     ) : (
                       <>
@@ -239,19 +249,18 @@ function AnswerKeyItem({
                       {isUserAnswer && !isCorrectAnswer ? (
                         <span className="sr-only">Your answer: </span>
                       ) : null}
-                      {option.type === "image" && option.imageUrl ? (
+                      {optionHasImage(option) ? (
                         <AttemptImage
-                          src={option.imageUrl}
+                          src={option.imageUrl as string}
                           alt="Option"
                           className="rounded"
                         />
-                      ) : (
-                        <MathText
-                          text={optionLabel(option, language)}
-                          inline
-                          className="text-sm text-study-ink sm:text-base"
-                        />
-                      )}
+                      ) : null}
+                      <MathText
+                        text={optionLabel(option, language)}
+                        inline
+                        className="text-sm text-study-ink sm:text-base"
+                      />
                     </div>
                     {isCorrectAnswer ? (
                       <span className="inline-flex shrink-0 items-center gap-1 pt-1 text-xs font-semibold text-study-green">

@@ -4,6 +4,7 @@ import {
   examHubPath,
   examTestExitLabel,
   examTestListPath,
+  mistakeBookPath,
 } from "@/lib/mocks/exam-test-routes";
 
 describe("examHubPath", () => {
@@ -75,5 +76,12 @@ describe("examTestExitLabel", () => {
     expect(examTestExitLabel(undefined, { treatMissingAsFullMock: true })).toBe(
       "Exit to Full Mocks"
     );
+  });
+});
+
+describe("mistakeBookPath", () => {
+  it("builds the Mistake Book review path and encodes the id", () => {
+    expect(mistakeBookPath("m1")).toBe("/mistake-book/m1");
+    expect(mistakeBookPath("a/b")).toBe("/mistake-book/a%2Fb");
   });
 });

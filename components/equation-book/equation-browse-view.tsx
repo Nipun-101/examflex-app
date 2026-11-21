@@ -7,6 +7,7 @@ import {
   MathpixBoundary,
   preloadMathpix,
 } from "@/components/attempt/mathpix-boundary";
+import { EquationImage } from "@/components/equation-book/equation-image";
 import { MathText } from "@/components/attempt/math-text";
 import { EquationEmptyState } from "@/components/equation-book/equation-empty-state";
 import { SubjectTabs } from "@/components/equation-book/subject-tabs";
@@ -223,6 +224,15 @@ export function EquationBrowseView() {
                   <div className="mt-4 min-w-0 overflow-x-auto text-base font-medium text-study-ink [-webkit-overflow-scrolling:touch] [&_#preview]:!block [&_#preview]:!max-w-full [&_#preview]:!p-0">
                     <MathText text={item.equation} />
                   </div>
+                  {item.imageUrl ? (
+                    <div className="mt-4 flex min-w-0 justify-center">
+                      <EquationImage
+                        src={item.imageUrl}
+                        title={item.title}
+                        className="max-h-60 w-auto"
+                      />
+                    </div>
+                  ) : null}
                   <div className="mt-auto pt-5">
                     <StudyButton
                       variant="solid"

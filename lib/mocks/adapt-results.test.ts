@@ -194,6 +194,18 @@ describe("adaptAttemptDetailsToResults", () => {
     );
     expect(fromTest.mockTestData.sessions).toEqual(sessions);
   });
+
+  it("carries the paper id through to the results data", () => {
+    const base = details();
+    const withId = adaptAttemptDetailsToResults({
+      ...base,
+      test: { ...base.test, mockTestId: "mock-9" },
+    });
+    expect(withId.mockTestData.mockTestId).toBe("mock-9");
+    expect(adaptAttemptDetailsToResults(base).mockTestData).not.toHaveProperty(
+      "mockTestId"
+    );
+  });
 });
 
 describe("buildSectionBreakdown", () => {

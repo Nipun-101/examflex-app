@@ -183,6 +183,7 @@ export function parseAttemptMockTestData(
     return null;
   }
   return {
+    ...optionalField("mockTestId", readString(value.mockTestId)),
     title: readStringOrNull(value.title),
     durationInMinutes,
     totalQuestions,

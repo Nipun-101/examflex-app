@@ -8,7 +8,7 @@ export const ANALYSIS_PAGE_CHROME = {
   tagline: "Explore a path, not a promise.",
   outlookLabel: "MARKS-BASED OUTLOOK · FULL MOCKS",
   sectionTitle: "What this level could open up",
-  sectionSubtitle: "Compared with your recent full-mock average",
+  sectionSubtitle: "Your recent full mocks vs each course's cut-off",
   cutoffLabel: "Check official counselling cutoffs  ↗",
   cutoffHref: CUTOFF_HREF,
   disclaimer: {

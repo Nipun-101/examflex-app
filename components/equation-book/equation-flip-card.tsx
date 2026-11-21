@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { FlipHorizontal2 } from "lucide-react";
+import { EquationImage } from "@/components/equation-book/equation-image";
 import { MathText } from "@/components/attempt/math-text";
 import { EQUATION_BOOK_COPY } from "@/types/equation-book";
 import type { EquationItem } from "@/types/equation-book";
@@ -38,10 +39,20 @@ export function EquationFlipCard({
     setFlipped(revealed);
   }
 
+  // The flip container needs an explicit height (the two faces overlap), but
+  // that height must follow the visible face: equations render asynchronously
+  // and re-wrap when the viewport changes, so a one-time measurement clips them.
   useLayoutEffect(() => {
     const node = flipped ? backRef.current : frontRef.current;
     if (!node) return;
-    setHeight(node.scrollHeight);
+
+    const measure = () => setHeight(Math.ceil(node.scrollHeight));
+    measure();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [flipped, card, hasLong, hasMnemonic, bullets.length]);
 
   function handleFlip() {
@@ -122,6 +133,17 @@ export function EquationFlipCard({
               <div className="mt-3 min-w-0 overflow-x-auto font-display text-[1.25rem] font-medium leading-[1.35] text-study-ink [-webkit-overflow-scrolling:touch] [&_#preview]:!block [&_#preview]:!max-w-full [&_#preview]:!p-0 sm:text-[1.75rem] lg:text-[2rem]">
                 <MathText text={card.equation} />
               </div>
+
+              {card.imageUrl ? (
+                <div className="mt-4 flex min-w-0 justify-center">
+                  <EquationImage
+                    src={card.imageUrl}
+                    title={card.title}
+                    loading="eager"
+                    className="max-h-80 w-auto"
+                  />
+                </div>
+              ) : null}
 
               {hasLong ? (
                 <p className="mt-4 text-sm leading-[1.5] text-study-ink sm:text-base lg:mt-5">

@@ -83,4 +83,69 @@ describe("QuestionPanel", () => {
     });
     expect(screen.getByText("Fallback")).toBeInTheDocument();
   });
+
+  it("loads the question and option pictures eagerly", () => {
+    setup({
+      question: makeQuestion("q1", {
+        questionText: {
+          en: { text: "Look", imageUrl: "https://cdn/q.png" },
+          ml: { text: "", imageUrl: null },
+        },
+        options: [
+          { id: "i1", type: "image", en: "", ml: "", imageUrl: "https://cdn/o.png" },
+        ],
+      }),
+    });
+    expect(screen.getByRole("img", { name: "Question" })).toHaveAttribute("loading", "eager");
+    expect(screen.getByRole("img", { name: "Option i1" })).toHaveAttribute("loading", "eager");
+  });
+
+  it("falls back to the English picture when the chosen language has none", () => {
+    setup({
+      language: "ml",
+      question: makeQuestion("q1", {
+        questionText: {
+          en: { text: "Look", imageUrl: "https://cdn/q-en.png" },
+          ml: { text: "നോക്കൂ", imageUrl: null },
+        },
+      }),
+    });
+    expect(screen.getByRole("img", { name: "Question" })).toHaveAttribute("src", "https://cdn/q-en.png");
+  });
+
+  it("shows an option picture even when the option is not flagged as an image option", () => {
+    setup({
+      question: makeQuestion("q1", {
+        options: [
+          { id: "t1", type: "text", en: "", ml: "", imageUrl: "https://cdn/legacy.png" },
+        ],
+      }),
+    });
+    expect(screen.getByRole("img", { name: "Option t1" })).toHaveAttribute("src", "https://cdn/legacy.png");
+  });
+
+  it("shows both the picture and the text when an option has both", () => {
+    setup({
+      question: makeQuestion("q1", {
+        options: [
+          { id: "b1", type: "image", en: "Figure A", ml: "", imageUrl: "https://cdn/b.png" },
+        ],
+      }),
+    });
+    expect(screen.getByRole("img", { name: "Option b1" })).toBeInTheDocument();
+    expect(screen.getByText("Figure A")).toBeInTheDocument();
+  });
+
+  it("still lets the student pick an option by clicking its picture", async () => {
+    const user = userEvent.setup();
+    const { onSelectOption } = setup({
+      question: makeQuestion("q1", {
+        options: [
+          { id: "i1", type: "image", en: "", ml: "", imageUrl: "https://cdn/o.png" },
+        ],
+      }),
+    });
+    await user.click(screen.getByRole("img", { name: "Option i1" }));
+    expect(onSelectOption).toHaveBeenCalledWith("i1");
+  });
 });
