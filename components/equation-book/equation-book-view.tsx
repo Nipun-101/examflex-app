@@ -214,15 +214,15 @@ export function EquationBookView({
             Loading equations…
           </p>
         ) : activeChapter && activeCard ? (
-          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.9fr)] lg:items-stretch lg:gap-8">
-            <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:h-full lg:gap-5">
+          <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.9fr)] lg:items-start lg:gap-8">
+            <div className="flex min-w-0 flex-col gap-4 lg:gap-5">
               <EquationProgress
                 chapterLabel={activeChapter.label}
                 current={safeIndex + 1}
                 total={cards.length}
                 percent={percent}
               />
-              <div className="min-h-0 min-w-0 flex-1">
+              <div className="min-w-0">
                 <EquationFlipCard
                   key={activeCard.id}
                   card={activeCard}
