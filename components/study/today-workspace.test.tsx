@@ -63,18 +63,18 @@ describe("TodayWorkspace", () => {
     expect(nextMockHeading.closest(".order-5")).toHaveClass("lg:order-none");
     expect(perspectiveHeading.closest(".order-6")).toHaveClass("lg:order-none");
     expect(insightsHeading.closest(".order-7")).toHaveClass("lg:order-none");
-    expect(sessionHeading.closest(".order-8")).toHaveClass("lg:order-none");
+    expect(sessionHeading.closest(".order-9")).toHaveClass("lg:order-none");
 
     const leftCards = columns[0].querySelectorAll(":scope > div");
     const rightCards = columns[1].querySelectorAll(":scope > div");
     expect(leftCards[0]).toContainElement(nextStepHeading);
     expect(leftCards[1]).toContainElement(scoreHeading);
     expect(leftCards[2]).toContainElement(insightsHeading);
-    expect(rightCards[0]).toContainElement(sessionHeading);
-    expect(rightCards[1]).toContainElement(equationHeading);
-    expect(rightCards[2]).toContainElement(mistakeHeading!);
-    expect(rightCards[3]).toContainElement(nextMockHeading);
-    expect(rightCards[4]).toContainElement(perspectiveHeading);
+    expect(rightCards[0]).toContainElement(equationHeading);
+    expect(rightCards[1]).toContainElement(mistakeHeading!);
+    expect(rightCards[2]).toContainElement(nextMockHeading);
+    expect(rightCards[3]).toContainElement(perspectiveHeading);
+    expect(rightCards[4]).toContainElement(sessionHeading);
   });
 
   it("uses empty-state mobile order for new users", () => {
@@ -94,7 +94,7 @@ describe("TodayWorkspace", () => {
     });
 
     expect(startHeading.closest(".order-1")).toHaveClass("lg:order-none");
-    expect(sessionHeading.closest(".order-2")).toHaveClass("lg:order-none");
+    expect(sessionHeading.closest(".order-9")).toHaveClass("lg:order-none");
     expect(scoreHeading.closest(".order-3")).toHaveClass("lg:order-none");
     expect(mistakeHeading.closest(".order-5")).toHaveClass("lg:order-none");
   });

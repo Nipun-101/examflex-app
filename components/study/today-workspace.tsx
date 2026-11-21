@@ -14,7 +14,7 @@ type TodayWorkspaceProps = {
 
 /**
  * Desktop: left = next step → score → subjects;
- * right = session → equation → mistake → mock → perspective.
+ * right = equation → mistake → mock → perspective → session.
  * Mobile order differs for empty vs active.
  */
 export function TodayWorkspace({ data }: TodayWorkspaceProps) {
@@ -39,9 +39,6 @@ export function TodayWorkspace({ data }: TodayWorkspaceProps) {
         </div>
 
         <div className="contents lg:flex lg:h-full lg:flex-col lg:gap-5">
-          <div className={`${empty ? "order-2" : "order-8"} lg:order-none`}>
-            <SessionPlanCard data={data.sessionPlan} />
-          </div>
           <div className={`${empty ? "order-4" : "order-3"} lg:order-none`}>
             <EquationBookCard data={data.equationBook} />
           </div>
@@ -53,6 +50,9 @@ export function TodayWorkspace({ data }: TodayWorkspaceProps) {
           </div>
           <div className={`${empty ? "order-8" : "order-6"} lg:order-none lg:flex lg:flex-1 lg:flex-col`}>
             <PerspectiveCard data={data.perspective} className="lg:flex-1" />
+          </div>
+          <div className="order-9 lg:order-none">
+            <SessionPlanCard data={data.sessionPlan} />
           </div>
         </div>
       </div>
