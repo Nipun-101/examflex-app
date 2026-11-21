@@ -27,6 +27,44 @@ describe("parseEquationItem", () => {
   it("rejects incomplete payloads", () => {
     expect(parseEquationItem({ id: "1" })).toBeNull();
   });
+
+  describe("optional picture", () => {
+    const payload = {
+      id: "1",
+      title: "Force",
+      shortDescription: "cue",
+      equation: "$$F=ma$$",
+      bulletPoints: [],
+      subject: { id: "s", name: "Physics" },
+      topic: { id: "t", name: "Motion" },
+      exams: [{ id: "e", name: "NEET" }],
+      isActive: true,
+    };
+
+    it("keeps the signed URL when the API sends one", () => {
+      const url =
+        "https://examflex-images.s3.ap-south-1.amazonaws.com/admin-images/a.png?X-Amz-Signature=abc";
+      expect(parseEquationItem({ ...payload, imageUrl: url })?.imageUrl).toBe(url);
+    });
+
+    it.each([
+      ["missing", undefined],
+      ["null (could not be signed)", null],
+      ["an empty string", ""],
+      ["only whitespace", "   "],
+      ["not a string", 42],
+    ])("has no picture when imageUrl is %s", (_label, value) => {
+      const parsed = parseEquationItem({ ...payload, imageUrl: value });
+      expect(parsed).not.toBeNull();
+      expect(parsed).not.toHaveProperty("imageUrl");
+    });
+
+    it("still parses an equation from an older API that has no image field", () => {
+      const parsed = parseEquationItem(payload);
+      expect(parsed).toMatchObject({ id: "1", title: "Force" });
+      expect(parsed).not.toHaveProperty("imageUrl");
+    });
+  });
 });
 
 describe("listEquations", () => {

@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MathpixBoundary } from "@/components/attempt/mathpix-boundary";
@@ -233,4 +233,76 @@ describe("EquationFlipCard", () => {
       expect(observers.at(-1)!.observed).toEqual([front]);
     });
   });
+
+  describe("equation picture", () => {
+    const withImage = {
+      ...TEST_EQUATIONS[0]!,
+      imageUrl: "https://cdn/force-diagram.png",
+    };
+
+    function renderCard(card = withImage) {
+      return render(
+        <MathpixBoundary>
+          <EquationFlipCard card={card} revealed onReveal={vi.fn()} />
+        </MathpixBoundary>
+      );
+    }
+
+    it("shows the picture under the equation once it is revealed", async () => {
+      const { container } = renderCard();
+      await screen.findAllByTestId("mathpix-markdown");
+      const picture = screen.getByRole("img", {
+        name: "Net force on a free body? illustration",
+      });
+      expect(picture).toHaveAttribute("src", "https://cdn/force-diagram.png");
+      // on the back (revealed) face, not the front
+      expect(
+        container.querySelector(".equation-flip-face--back")
+      ).toContainElement(picture);
+      expect(
+        container.querySelector(".equation-flip-face--front")
+      ).not.toContainElement(picture);
+      // follows the equation in the DOM
+      const equationBlock = container.querySelector(
+        ".equation-flip-face--back [data-testid='mathpix-markdown']"
+      );
+      expect(
+        equationBlock!.compareDocumentPosition(picture) &
+          Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
+    });
+
+    it("keeps the picture inside the card on narrow screens and tall images", () => {
+      renderCard();
+      const picture = screen.getByRole("img", {
+        name: "Net force on a free body? illustration",
+      });
+      expect(picture).toHaveClass("max-w-full", "max-h-80", "w-auto", "h-auto");
+      expect(picture.parentElement).toHaveClass("min-w-0", "justify-center");
+    });
+
+    it("loads the picture right away (it is already on screen when revealed)", () => {
+      renderCard();
+      expect(
+        screen.getByRole("img", { name: /illustration/ })
+      ).toHaveAttribute("loading", "eager");
+    });
+
+    it("shows a notice instead of a blank gap if the picture fails to load", () => {
+      renderCard();
+      fireEvent.error(screen.getByRole("img", { name: /illustration/ }));
+      expect(screen.getByRole("status")).toHaveTextContent(
+        "Image couldn't be loaded"
+      );
+      // the rest of the card is unaffected
+      expect(screen.getByText(/Memory trick/i)).toBeInTheDocument();
+    });
+
+    it("renders no picture block for an equation without one", () => {
+      const { container } = renderCard(TEST_EQUATIONS[0]!);
+      expect(screen.queryByRole("img")).not.toBeInTheDocument();
+      expect(container.querySelector("img")).toBeNull();
+    });
+  });
 });
+

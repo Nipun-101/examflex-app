@@ -17,6 +17,12 @@ import type {
 
 const EQUATION_BOOK_PATH = "/api/v1/equation-book";
 
+/** The API sends null / omits the field when there is no picture. */
+function readImageUrl(value: unknown): string | undefined {
+  const url = readString(value);
+  return url && url.trim() ? url : undefined;
+}
+
 function parseNamedRef(value: unknown): EquationNamedRef | null {
   if (typeof value === "string" && value.trim()) {
     return { id: value, name: value };
@@ -61,6 +67,7 @@ export function parseEquationItem(value: unknown): EquationItem | null {
     isActive: readBoolean(value.isActive) ?? true,
     ...optionalField("longDescription", readString(value.longDescription)),
     ...optionalField("mnemonic", readString(value.mnemonic)),
+    ...optionalField("imageUrl", readImageUrl(value.imageUrl)),
     ...optionalField("createdAt", readString(value.createdAt)),
     ...optionalField("updatedAt", readString(value.updatedAt)),
   };

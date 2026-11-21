@@ -11,6 +11,8 @@ export type EquationItem = {
   longDescription?: string;
   mnemonic?: string;
   bulletPoints: string[];
+  /** Pre-signed URL of the optional picture; absent when the equation has none. */
+  imageUrl?: string;
   subject: EquationNamedRef;
   topic: EquationNamedRef;
   exams: EquationNamedRef[];
