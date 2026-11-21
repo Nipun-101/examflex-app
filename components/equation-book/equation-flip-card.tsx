@@ -77,7 +77,7 @@ export function EquationFlipCard({
   }
 
   return (
-    <article className="flex h-full min-w-0 flex-col rounded-[20px] bg-study-lilac px-5 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+    <article className="flex min-w-0 flex-col rounded-[20px] bg-study-lilac px-5 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
       <p className="text-[0.6875rem] font-semibold tracking-[0.08em] text-study-green uppercase">
         {revealed ? EQUATION_BOOK_COPY.revealedLabel : EQUATION_BOOK_COPY.eyebrow}
       </p>
@@ -90,7 +90,7 @@ export function EquationFlipCard({
 
       <div className="my-6 h-px w-full bg-study-lilac-ink/20 lg:my-8" aria-hidden />
 
-      <div className="equation-flip-scene mt-auto min-w-0">
+      <div className="equation-flip-scene min-w-0">
         <div
           className={`equation-flip-inner${flipped ? " equation-flip-inner--flipped" : ""}`}
           style={height != null ? { height } : undefined}

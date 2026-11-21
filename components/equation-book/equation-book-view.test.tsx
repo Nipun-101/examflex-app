@@ -61,6 +61,41 @@ describe("EquationBookView", () => {
     ).toBeInTheDocument();
   });
 
+  it("lets the desktop card hug its content instead of stretching to the sidebar", () => {
+    const { container } = render(
+      <EquationBookView
+        examId="exam-neet"
+        examName="NEET"
+        availableExams={TEST_EXAMS}
+        subjects={TEST_SUBJECTS}
+        cards={TEST_EQUATIONS}
+        initialSubjectId="sub-physics"
+        initialTopicId="top-lom"
+        onFiltersChange={vi.fn()}
+      />
+    );
+
+    const card = screen
+      .getByRole("heading", { name: "Net force on a free body?" })
+      .closest("article") as HTMLElement;
+    const layout = card.closest("div.grid") as HTMLElement;
+
+    // columns align to the top; the tall chapter list no longer sets the card's height
+    expect(layout).toHaveClass("lg:items-start");
+    expect(layout).not.toHaveClass("lg:items-stretch");
+    const column = layout.firstElementChild as HTMLElement;
+    expect(column).not.toHaveClass("lg:h-full");
+    expect(card).not.toHaveClass("h-full");
+    // nothing pins the flip box to the bottom of a stretched card
+    expect(container.querySelector(".equation-flip-scene")).not.toHaveClass("mt-auto");
+    expect(card.parentElement).not.toHaveClass("flex-1");
+    // the sidebar keeps its own sticky behaviour
+    expect(screen.getByText(/Recall session/i).closest("aside")).toHaveClass(
+      "lg:sticky",
+      "lg:self-start"
+    );
+  });
+
   it("flips the card to reveal the equation", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
