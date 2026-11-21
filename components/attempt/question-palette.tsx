@@ -1,8 +1,10 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import { Check, Pause, Play } from "lucide-react";
 import { StudyButton } from "@/components/study/study-button";
 import { countStatus } from "@/lib/mocks/question-status";
+import type { PaletteGroup } from "@/lib/mocks/palette-groups";
 import type { QuestionStatus } from "@/types/attempt-runner";
 
 type QuestionPaletteProps = {
@@ -14,6 +16,8 @@ type QuestionPaletteProps = {
   testTitle: string;
   /** Session-wise papers show the section name instead of "Question Palette". */
   sectionTitle?: string;
+  /** Full mocks: palette buttons grouped under each subject's name. */
+  groups?: readonly PaletteGroup[];
   onSubmit: () => void;
   submitLabel: string;
 };
@@ -43,12 +47,40 @@ const STATUS_CLASS: Record<QuestionStatus, string> = {
 };
 
 function statusStyle(
-  status: QuestionStatus
+  status: QuestionStatus,
 ): { backgroundColor: string } | undefined {
   if (status === "marked" || status === "marked-answered") {
     return { backgroundColor: MARKED_FILL };
   }
   return undefined;
+}
+
+/**
+ * Shapes follow the exam-interface convention: not visited = rounded square,
+ * not answered / answered = trapezoid (wide top, narrow bottom), marked and
+ * marked-answered = circle. Shape only; colours live in STATUS_CLASS.
+ * clip-path would cut off box-shadow, so the current question (which draws a
+ * ring) keeps a ring-friendly shape: a circle if it is marked, else a rounded
+ * square.
+ */
+const SQUARE_SHAPE = "rounded-lg";
+const CIRCLE_SHAPE = "rounded-full";
+const TRAPEZOID_SHAPE =
+  "rounded-sm [clip-path:polygon(0_0,100%_0,86%_100%,14%_100%)]";
+
+const SHAPE_CLASS: Record<QuestionStatus, string> = {
+  "not-visited": SQUARE_SHAPE,
+  "not-answered": TRAPEZOID_SHAPE,
+  answered: TRAPEZOID_SHAPE,
+  marked: CIRCLE_SHAPE,
+  "marked-answered": CIRCLE_SHAPE,
+};
+
+function shapeClass(status: QuestionStatus, isCurrent: boolean): string {
+  if (!isCurrent) return SHAPE_CLASS[status];
+  return status === "marked" || status === "marked-answered"
+    ? CIRCLE_SHAPE
+    : SQUARE_SHAPE;
 }
 
 const CURRENT_CLASS =
@@ -80,9 +112,53 @@ export function QuestionPalette({
   onTogglePause,
   testTitle,
   sectionTitle,
+  groups,
   onSubmit,
   submitLabel,
 }: QuestionPaletteProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const currentRef = useRef<HTMLButtonElement>(null);
+
+  // When the palette opens, bring the row holding the active question to the
+  // top of the question list. Only the list scrolls (not the page or the
+  // surrounding panel), and only on open, so later manual scrolling is kept.
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    const current = currentRef.current;
+    if (!scroller || !current) return;
+    const offset =
+      current.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top -
+      parseFloat(getComputedStyle(scroller).paddingTop || "0");
+    scroller.scrollTop += offset;
+  }, []);
+
+  const renderQuestionButton = (index: number) => {
+    const status = statuses[index];
+    if (!status) return null;
+    const isCurrent = index === currentIndex;
+    return (
+      <button
+        key={index}
+        ref={isCurrent ? currentRef : undefined}
+        type="button"
+        onClick={() => onSelect(index)}
+        aria-label={`Question ${index + 1}, ${STATUS_LABEL[status]}`}
+        {...(isCurrent ? { "aria-current": "true" as const } : {})}
+        className={`relative h-11 cursor-pointer text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${shapeClass(
+          status,
+          isCurrent,
+        )} ${isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]}`}
+        style={isCurrent ? undefined : statusStyle(status)}
+      >
+        {index + 1}
+        {status === "marked-answered" && !isCurrent ? (
+          <MarkedAnsweredBadge />
+        ) : null}
+      </button>
+    );
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto px-1">
@@ -114,11 +190,13 @@ export function QuestionPalette({
             {LEGEND.map(({ status, label }) => (
               <li key={status} className="flex min-w-0 items-center gap-2.5">
                 <span
-                  className={`relative grid h-7 w-7 shrink-0 place-items-center rounded-md text-xs font-bold shadow-sm ${STATUS_CLASS[status]}`}
+                  className={`relative grid h-7 w-7 shrink-0 place-items-center text-xs font-bold shadow-sm ${SHAPE_CLASS[status]} ${STATUS_CLASS[status]}`}
                   style={statusStyle(status)}
                 >
                   {countStatus(statuses, status)}
-                  {status === "marked-answered" ? <MarkedAnsweredBadge /> : null}
+                  {status === "marked-answered" ? (
+                    <MarkedAnsweredBadge />
+                  ) : null}
                 </span>
                 <span className="leading-snug font-medium text-study-ink">
                   {label}
@@ -132,29 +210,38 @@ export function QuestionPalette({
           <h3 className="text-xs font-semibold text-study-muted-soft">
             {sectionTitle ? `${sectionTitle} :` : "Question Palette:"}
           </h3>
-          <div className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5">
-            {statuses.map((status, index) => {
-              const isCurrent = index === currentIndex;
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => onSelect(index)}
-                  aria-label={`Question ${index + 1}, ${STATUS_LABEL[status]}`}
-                  {...(isCurrent ? { "aria-current": "true" as const } : {})}
-                  className={`relative h-11 cursor-pointer rounded-md text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${
-                    isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]
-                  }`}
-                  style={isCurrent ? undefined : statusStyle(status)}
+          {groups ? (
+            <div
+              ref={scrollerRef}
+              className="max-h-[18.75rem] space-y-4 overflow-y-auto p-1.5"
+            >
+              {groups.map((group) => (
+                <div
+                  key={group.id}
+                  role="group"
+                  aria-label={group.name}
+                  className="space-y-2"
                 >
-                  {index + 1}
-                  {status === "marked-answered" && !isCurrent ? (
-                    <MarkedAnsweredBadge />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
+                  <h4 className="truncate text-xs font-bold text-study-ink">
+                    {group.name}
+                    <span className="ml-1.5 font-medium text-study-muted-soft">
+                      · {group.indices.length}
+                    </span>
+                  </h4>
+                  <div className="grid grid-cols-5 gap-2.5">
+                    {group.indices.map(renderQuestionButton)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              ref={scrollerRef}
+              className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5"
+            >
+              {statuses.map((_, index) => renderQuestionButton(index))}
+            </div>
+          )}
         </section>
       </div>
 

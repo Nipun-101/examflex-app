@@ -134,7 +134,7 @@ export function MistakeBookSessions() {
         </p>
       </header>
 
-      <aside className="flex flex-col gap-4 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:sticky lg:top-6">
+      <aside className="flex flex-col gap-4 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:sticky lg:top-28">
         {summary ? <MistakeBookSummaryCard summary={summary} /> : null}
         <div className="hidden lg:block">
           <MistakeBookNudgeCard />

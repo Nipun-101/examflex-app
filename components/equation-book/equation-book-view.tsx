@@ -232,7 +232,7 @@ export function EquationBookView({
               </div>
             </div>
 
-            <aside className="flex min-w-0 flex-col gap-5 rounded-[20px] bg-white p-4 shadow-soft sm:p-5 lg:sticky lg:top-6 lg:self-start lg:gap-6 lg:p-6">
+            <aside className="flex min-w-0 flex-col gap-5 rounded-[20px] bg-white p-4 shadow-soft sm:p-5 lg:sticky lg:top-28 lg:self-start lg:gap-6 lg:p-6">
               <div className="hidden min-w-0 lg:block">
                 <p className="text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
                   Recall session

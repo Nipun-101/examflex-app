@@ -161,6 +161,7 @@ export function attemptDetailsToRunnerData(
       options: q.options,
       subject: q.subject,
       selectedOption: q.selectedOption ?? null,
+      ...optionalField("subjectName", q.subjectName),
       ...optionalField("optionType", q.optionType),
       ...optionalField("topic", q.topic),
       ...optionalField("sessionOrder", q.sessionOrder),

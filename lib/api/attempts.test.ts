@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  makeDetails,
+  makeDetailsQuestion,
+} from "@/test-utils/attempt-fixtures";
+import {
+  attemptDetailsToRunnerData,
   completeSession,
   getAttempt,
   patchAttemptAnswer,
@@ -77,7 +82,9 @@ describe("attempts API", () => {
   });
 
   it("starts an attempt", async () => {
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({ message: "ok", data: start }));
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ message: "ok", data: start }),
+    );
     const result = await startMockTestAttempt("m1");
     expect(result).toEqual({ ok: true, data: start });
     const { url, init } = lastRequest();
@@ -88,7 +95,7 @@ describe("attempts API", () => {
 
   it("surfaces start failures such as denied access", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
-      jsonResponse({ message: "Access denied" }, 403)
+      jsonResponse({ message: "Access denied" }, 403),
     );
     expect(await startMockTestAttempt("m1")).toEqual({
       ok: false,
@@ -110,23 +117,23 @@ describe("attempts API", () => {
     });
     let request = lastRequest();
     expect(request.url).toBe(
-      "http://localhost:3000/api/v1/mock-test-attempts/a%201/answer"
+      "http://localhost:3000/api/v1/mock-test-attempts/a%201/answer",
     );
     expect(request.init.method).toBe("PATCH");
     expect(request.init.body).toBe(
-      JSON.stringify({ questionId: "q1", selectedOptionId: "a" })
+      JSON.stringify({ questionId: "q1", selectedOptionId: "a" }),
     );
 
     await patchAttemptAnswer("a1", "q1", null);
     request = lastRequest();
     expect(request.init.body).toBe(
-      JSON.stringify({ questionId: "q1", selectedOptionId: null })
+      JSON.stringify({ questionId: "q1", selectedOptionId: null }),
     );
   });
 
   it("reports patch failures and network errors", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
-      jsonResponse({ message: "Time is up" }, 400)
+      jsonResponse({ message: "Time is up" }, 400),
     );
     expect(await patchAttemptAnswer("a1", "q1", "a")).toEqual({
       ok: false,
@@ -149,10 +156,14 @@ describe("attempts API", () => {
       pausedAt: "2026-01-01T00:10:00.000Z",
       pauseCount: 1,
     };
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({ message: "ok", data: pause }));
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ message: "ok", data: pause }),
+    );
     expect(await pauseAttempt("a1")).toEqual({ ok: true, data: pause });
     const { url, init } = lastRequest();
-    expect(url).toBe("http://localhost:3000/api/v1/mock-test-attempts/a1/pause");
+    expect(url).toBe(
+      "http://localhost:3000/api/v1/mock-test-attempts/a1/pause",
+    );
     expect(init.method).toBe("POST");
 
     vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ data: null }));
@@ -161,13 +172,19 @@ describe("attempts API", () => {
 
   it("resumes an attempt", async () => {
     const resume = { ...start, timeElapsed: 10, timeRemaining: 590 };
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({ message: "ok", data: resume }));
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ message: "ok", data: resume }),
+    );
     expect(await resumeAttempt("a1")).toEqual({ ok: true, data: resume });
     const { url, init } = lastRequest();
-    expect(url).toBe("http://localhost:3000/api/v1/mock-test-attempts/a1/resume");
+    expect(url).toBe(
+      "http://localhost:3000/api/v1/mock-test-attempts/a1/resume",
+    );
     expect(init.method).toBe("GET");
 
-    vi.mocked(fetch).mockResolvedValueOnce(jsonResponse({ message: "gone" }, 404));
+    vi.mocked(fetch).mockResolvedValueOnce(
+      jsonResponse({ message: "gone" }, 404),
+    );
     expect(await resumeAttempt("a1")).toEqual({
       ok: false,
       status: 404,
@@ -177,7 +194,7 @@ describe("attempts API", () => {
 
   it("submits answers", async () => {
     vi.mocked(fetch).mockResolvedValue(
-      jsonResponse({ message: "ok", data: submitResult })
+      jsonResponse({ message: "ok", data: submitResult }),
     );
     const answers = [{ questionId: "q1", selectedOptionId: "a" }];
     expect(await submitAttempt("a1", answers)).toEqual({
@@ -185,7 +202,9 @@ describe("attempts API", () => {
       data: submitResult,
     });
     const { url, init } = lastRequest();
-    expect(url).toBe("http://localhost:3000/api/v1/mock-test-attempts/a1/submit");
+    expect(url).toBe(
+      "http://localhost:3000/api/v1/mock-test-attempts/a1/submit",
+    );
     expect(init.method).toBe("POST");
     expect(init.body).toBe(JSON.stringify({ answers }));
 
@@ -201,17 +220,17 @@ describe("attempts API", () => {
       results: submitResult,
     };
     vi.mocked(fetch).mockResolvedValue(
-      jsonResponse({ message: "ok", data: complete })
+      jsonResponse({ message: "ok", data: complete }),
     );
     expect(await completeSession("a1")).toEqual({ ok: true, data: complete });
     const { url, init } = lastRequest();
     expect(url).toBe(
-      "http://localhost:3000/api/v1/mock-test-attempts/a1/sessions/complete"
+      "http://localhost:3000/api/v1/mock-test-attempts/a1/sessions/complete",
     );
     expect(init.method).toBe("POST");
 
     vi.mocked(fetch).mockResolvedValueOnce(
-      jsonResponse({ message: "Not session-wise" }, 400)
+      jsonResponse({ message: "Not session-wise" }, 400),
     );
     expect((await completeSession("a1")).ok).toBe(false);
   });
@@ -223,7 +242,9 @@ describe("attempts API", () => {
       test: mockTestData,
       questions: [question],
     };
-    vi.mocked(fetch).mockResolvedValue(jsonResponse({ message: "ok", data: details }));
+    vi.mocked(fetch).mockResolvedValue(
+      jsonResponse({ message: "ok", data: details }),
+    );
     expect(await getAttempt("a1")).toEqual({ ok: true, data: details });
     const { url, init } = lastRequest();
     expect(url).toBe("http://localhost:3000/api/v1/mock-test-attempts/a1");
@@ -239,12 +260,37 @@ describe("attempts API", () => {
     vi.mocked(fetch).mockResolvedValue(jsonResponse({ message: "ok" }));
     pauseAttemptKeepalive("a1");
     const { url, init } = lastRequest();
-    expect(url).toBe("http://localhost:3000/api/v1/mock-test-attempts/a1/pause");
+    expect(url).toBe(
+      "http://localhost:3000/api/v1/mock-test-attempts/a1/pause",
+    );
     expect(init.method).toBe("POST");
     expect(init.keepalive).toBe(true);
 
     vi.mocked(fetch).mockRejectedValueOnce(new Error("offline"));
     expect(() => pauseAttemptKeepalive("a1")).not.toThrow();
     await Promise.resolve();
+  });
+});
+
+describe("attemptDetailsToRunnerData", () => {
+  it("keeps each question's subject name so the palette can label subjects", () => {
+    const data = attemptDetailsToRunnerData(
+      makeDetails({
+        questions: [
+          makeDetailsQuestion("q1", { subject: "phy", subjectName: "Physics" }),
+          makeDetailsQuestion("q2", {
+            subject: "chem",
+            subjectName: "Chemistry",
+          }),
+          makeDetailsQuestion("q3", { subject: "bot" }),
+        ],
+      }),
+    );
+    expect(data.questions.map((q) => q.subjectName)).toEqual([
+      "Physics",
+      "Chemistry",
+      undefined,
+    ]);
+    expect("subjectName" in (data.questions[2] as object)).toBe(false);
   });
 });

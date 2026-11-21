@@ -200,7 +200,7 @@ export function MistakeBookView({
                 <MistakeSourceLink mistake={active} />
               </div>
 
-              <aside className="flex flex-col gap-5 lg:sticky lg:top-6 lg:self-start lg:rounded-[20px] lg:bg-white lg:p-6 lg:shadow-soft lg:gap-6">
+              <aside className="flex flex-col gap-5 lg:sticky lg:top-28 lg:self-start lg:rounded-[20px] lg:bg-white lg:p-6 lg:shadow-soft lg:gap-6">
                 <MistakeTripTags
                   prompt={data.tripPrompt}
                   options={data.tripReasons}
