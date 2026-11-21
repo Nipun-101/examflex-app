@@ -93,4 +93,144 @@ describe("EquationFlipCard", () => {
       )
     ).toBe(true);
   });
+
+  it("keeps the narrow-screen width guards on the card, flip scene and equation body", async () => {
+    const { container } = render(
+      <MathpixBoundary>
+        <EquationFlipCard
+          card={TEST_EQUATIONS[0]!}
+          revealed
+          onReveal={vi.fn()}
+        />
+      </MathpixBoundary>
+    );
+    await screen.findAllByTestId("mathpix-markdown");
+
+    // card and title wrap instead of widening the page
+    expect(container.querySelector("article")).toHaveClass("min-w-0");
+    expect(screen.getByRole("heading", { level: 2 })).toHaveClass(
+      "break-words",
+      "[overflow-wrap:anywhere]"
+    );
+    // the flip scene is clipped to the card width
+    expect(container.querySelector(".equation-flip-scene")).toHaveClass("min-w-0");
+    // wide equations / memory tricks scroll inside the card, not the page
+    const scrollers = Array.from(
+      container.querySelectorAll(".equation-flip-face--back .overflow-x-auto")
+    );
+    expect(scrollers.length).toBeGreaterThanOrEqual(2);
+    for (const node of scrollers) {
+      expect(node).toHaveClass("min-w-0");
+    }
+  });
+
+  describe("container height follows the visible face", () => {
+    type Callback = () => void;
+    const observers: Array<{
+      callback: Callback;
+      observed: Element[];
+      disconnect: ReturnType<typeof vi.fn>;
+    }> = [];
+    let faceHeight = 0;
+    const originalScrollHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollHeight"
+    );
+
+    beforeEach(() => {
+      observers.length = 0;
+      faceHeight = 120;
+      class FakeResizeObserver {
+        entry = {
+          callback: undefined as unknown as Callback,
+          observed: [] as Element[],
+          disconnect: vi.fn(),
+        };
+        constructor(callback: Callback) {
+          this.entry.callback = callback;
+          observers.push(this.entry);
+        }
+        observe(element: Element) {
+          this.entry.observed.push(element);
+        }
+        disconnect() {
+          this.entry.disconnect();
+        }
+        unobserve() {}
+      }
+      vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+      Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+        configurable: true,
+        get() {
+          return faceHeight;
+        },
+      });
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      if (originalScrollHeight) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "scrollHeight",
+          originalScrollHeight
+        );
+      } else {
+        delete (HTMLElement.prototype as { scrollHeight?: number }).scrollHeight;
+      }
+    });
+
+    function renderRevealed() {
+      return render(
+        <MathpixBoundary>
+          <EquationFlipCard
+            card={TEST_EQUATIONS[0]!}
+            revealed
+            onReveal={vi.fn()}
+          />
+        </MathpixBoundary>
+      );
+    }
+
+    it("sizes the container to the face, then grows it when the equation renders taller", async () => {
+      const { container } = renderRevealed();
+      const inner = container.querySelector(".equation-flip-inner") as HTMLElement;
+      expect(inner.style.height).toBe("120px");
+
+      // late math rendering / tablet re-wrap makes the face taller
+      faceHeight = 305.4;
+      await act(async () => {
+        observers.at(-1)!.callback();
+      });
+      expect(inner.style.height).toBe("306px"); // rounded up, never clipped
+
+      faceHeight = 180;
+      await act(async () => {
+        observers.at(-1)!.callback();
+      });
+      expect(inner.style.height).toBe("180px");
+    });
+
+    it("observes the face that is showing and stops observing on unmount", () => {
+      const { container, unmount } = renderRevealed();
+      const back = container.querySelector(".equation-flip-face--back");
+      expect(observers.at(-1)!.observed).toEqual([back]);
+      unmount();
+      expect(observers.at(-1)!.disconnect).toHaveBeenCalled();
+    });
+
+    it("observes the front face before the card is flipped", () => {
+      const { container } = render(
+        <MathpixBoundary>
+          <EquationFlipCard
+            card={TEST_EQUATIONS[0]!}
+            revealed={false}
+            onReveal={vi.fn()}
+          />
+        </MathpixBoundary>
+      );
+      const front = container.querySelector(".equation-flip-face--front");
+      expect(observers.at(-1)!.observed).toEqual([front]);
+    });
+  });
 });

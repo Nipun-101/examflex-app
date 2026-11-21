@@ -38,10 +38,20 @@ export function EquationFlipCard({
     setFlipped(revealed);
   }
 
+  // The flip container needs an explicit height (the two faces overlap), but
+  // that height must follow the visible face: equations render asynchronously
+  // and re-wrap when the viewport changes, so a one-time measurement clips them.
   useLayoutEffect(() => {
     const node = flipped ? backRef.current : frontRef.current;
     if (!node) return;
-    setHeight(node.scrollHeight);
+
+    const measure = () => setHeight(Math.ceil(node.scrollHeight));
+    measure();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [flipped, card, hasLong, hasMnemonic, bullets.length]);
 
   function handleFlip() {
