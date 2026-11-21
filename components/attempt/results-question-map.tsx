@@ -33,12 +33,14 @@ export type ResultsMapStatusCounts = {
 
 const CELL: Record<ResultOutcome, string> = {
   correct:
-    "border-study-green bg-study-green text-white hover:brightness-110 hover:shadow-md",
+    "border-study-green bg-study-green text-white hover:brightness-110",
   wrong:
-    "border-[#f4d6cb] bg-[#f4d6cb] text-[#8a3f2a] hover:brightness-95 hover:shadow-md",
+    "border-[#f4d6cb] bg-[#f4d6cb] text-[#8a3f2a] hover:brightness-95",
   skipped:
-    "border-dashed border-[#afaa9a] bg-white text-study-muted-soft hover:bg-study-canvas hover:shadow-md",
+    "border-dashed border-[#afaa9a] bg-white text-study-muted-soft hover:bg-study-canvas",
 };
+
+const HOVER_LIFT = "hover:shadow-md";
 
 const CURRENT_RING = "shadow-[0_0_0_2px_#fff,0_0_0_4.5px_#173b2f]";
 
@@ -182,18 +184,18 @@ export function QuestionMapGrid({
             </div>
           ) : null}
           <ol
-            className={`grid grid-cols-8 justify-items-center ${compact ? "gap-[5px]" : "gap-1.5"}`}
+            className={`flex flex-wrap ${compact ? "gap-2.5" : "gap-2"}`}
           >
             {group.items.map((item) => {
               const current = item.paperNumber === currentPaperNumber;
               return (
-                <li key={item.questionId}>
+                <li key={item.questionId} className="shrink-0">
                   <button
                     type="button"
                     onClick={() => onJump(item.paperNumber)}
                     aria-label={`Question ${item.paperNumber}, ${item.outcome}`}
                     aria-current={current ? "true" : undefined}
-                    className={`grid size-10 place-items-center rounded-full border-2 text-[13px] font-semibold tabular-nums transition-[transform,box-shadow,filter,background-color] duration-150 hover:scale-[1.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green ${CELL[item.outcome]} ${current ? CURRENT_RING : ""}`}
+                    className={`grid ${compact ? "size-11" : "size-10"} place-items-center rounded-full border-2 text-[13px] font-semibold tabular-nums cursor-pointer transition-[transform,box-shadow,filter,background-color] duration-150 hover:scale-[1.06] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green ${CELL[item.outcome]} ${current ? CURRENT_RING : HOVER_LIFT}`}
                   >
                     {item.paperNumber}
                   </button>

@@ -26,7 +26,7 @@ export function StudyNav() {
   };
 
   return (
-    <header className="border-b border-study-divider bg-study-canvas">
+    <header className="z-40 border-b border-study-divider bg-study-canvas lg:sticky lg:top-0">
       <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto] items-center gap-3 px-4 py-4 sm:px-6 lg:grid-cols-[1fr_auto_1fr] lg:gap-6 lg:px-12 lg:py-5">
         <div className="min-w-0 justify-self-start">
           <StudyWordmark />
@@ -45,7 +45,7 @@ export function StudyNav() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 variant={active ? "ink" : "rail"}
-                className={`inline-flex h-[42px] items-center justify-center rounded-[10px] px-4 text-sm font-medium ${
+                className={`inline-flex h-[42px] items-center justify-center rounded-[10px] px-4 text-sm font-semibold ${
                   active ? "" : "text-study-muted"
                 }`.trim()}
               >
@@ -59,7 +59,7 @@ export function StudyNav() {
           <StudyControlLink
             href={PROFILE_HREF}
             variant="surface"
-            className="inline-flex h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium"
+            className="inline-flex h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-semibold"
           >
             <UserRound className="h-4 w-4 shrink-0" aria-hidden />
             <span>Profile</span>
@@ -67,7 +67,7 @@ export function StudyNav() {
 
           <StudyButton
             variant="surface"
-            className="hidden h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-medium lg:inline-flex"
+            className="hidden h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-semibold lg:inline-flex"
             onClick={handleLogout}
             disabled={loggingOut}
             aria-label="Log out"
@@ -108,7 +108,7 @@ export function StudyNav() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   variant={active ? "ink" : "rail"}
-                  className={`rounded-[10px] px-3 py-3 text-sm font-medium ${
+                  className={`rounded-[10px] px-3 py-3 text-sm font-semibold ${
                     active ? "" : "text-study-muted"
                   }`.trim()}
                   onClick={() => setOpen(false)}
@@ -119,7 +119,7 @@ export function StudyNav() {
             })}
             <StudyButton
               variant="rail"
-              className="mt-1 rounded-[10px] px-3 py-3 text-left text-sm font-medium text-study-muted"
+              className="mt-1 rounded-[10px] px-3 py-3 text-left text-sm font-semibold text-study-muted"
               onClick={handleLogout}
               disabled={loggingOut}
               aria-label="Log out"
