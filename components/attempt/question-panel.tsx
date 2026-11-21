@@ -4,6 +4,7 @@ import { AttemptImage } from "@/components/attempt/attempt-image";
 import { MathText } from "@/components/attempt/math-text";
 import { questionZoomStyle } from "@/lib/mocks/question-zoom";
 import {
+  optionHasImage,
   optionLabel,
   questionImageUrl,
   questionStem,
@@ -52,7 +53,12 @@ export function QuestionPanel({
         <div className="question-zoom-copy leading-relaxed text-study-ink">
           <MathText text={questionStem(question, language)} />
           {imageUrl ? (
-            <AttemptImage src={imageUrl} alt="Question" className="mt-3" />
+            <AttemptImage
+              src={imageUrl}
+              alt="Question"
+              loading="eager"
+              className="mt-3"
+            />
           ) : null}
         </div>
 
@@ -84,19 +90,21 @@ export function QuestionPanel({
                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                   ) : null}
                 </span>
-                {option.type === "image" && option.imageUrl ? (
-                  <AttemptImage
-                    src={option.imageUrl}
-                    alt={`Option ${option.id}`}
-                    className="min-w-0 rounded"
-                  />
-                ) : (
+                <span className="flex min-w-0 flex-1 flex-col gap-2">
+                  {optionHasImage(option) ? (
+                    <AttemptImage
+                      src={option.imageUrl as string}
+                      alt={`Option ${option.id}`}
+                      loading="eager"
+                      className="min-w-0 rounded"
+                    />
+                  ) : null}
                   <MathText
                     text={optionLabel(option, language)}
                     inline
-                    className="question-zoom-copy min-w-0 flex-1 leading-relaxed text-study-ink [&_#preview]:!block [&_#preview]:!p-0"
+                    className="question-zoom-copy min-w-0 leading-relaxed text-study-ink [&_#preview]:!block [&_#preview]:!p-0"
                   />
-                )}
+                </span>
               </button>
             );
           })}

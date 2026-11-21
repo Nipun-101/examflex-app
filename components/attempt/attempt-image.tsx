@@ -1,20 +1,50 @@
+"use client";
+
+import { useState } from "react";
+
 type AttemptImageProps = {
   src: string;
   alt: string;
   className?: string;
+  /**
+   * Lazy by default (long lists such as the answer key). The attempt runner
+   * shows one question at a time and passes "eager" so its art is ready at once.
+   */
+  loading?: "eager" | "lazy";
 };
 
 /**
  * Question/option/explanation art. Hosts are arbitrary CDN URLs, so this stays
- * a plain img instead of next/image.
+ * a plain img instead of next/image. If the URL cannot be loaded (for example
+ * an expired pre-signed link) a visible notice replaces the blank gap.
  */
-export function AttemptImage({ src, alt, className = "" }: AttemptImageProps) {
+export function AttemptImage({
+  src,
+  alt,
+  className = "",
+  loading = "lazy",
+}: AttemptImageProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+
+  if (failedSrc === src) {
+    return (
+      <span
+        role="status"
+        className={`inline-flex rounded-lg border border-dashed border-study-divider px-3 py-2 text-xs text-study-muted-soft ${className}`.trim()}
+      >
+        Image couldn&apos;t be loaded
+      </span>
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
-      loading="lazy"
+      loading={loading}
+      decoding="async"
+      onError={() => setFailedSrc(src)}
       className={`h-auto max-w-full rounded-lg ${className}`.trim()}
     />
   );

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  isImageOnlyOption,
+  optionHasImage,
   optionLabel,
   questionImageUrl,
   questionStem,
@@ -90,3 +92,42 @@ describe("optionLabel", () => {
     ).toBe("Both incorrect");
   });
 });
+
+describe("option images", () => {
+  const option = (
+    overrides: Partial<AttemptQuestion["options"][number]>
+  ): AttemptQuestion["options"][number] => ({
+    id: "o",
+    type: "text",
+    en: "",
+    ml: "",
+    imageUrl: null,
+    ...overrides,
+  });
+
+  it("detects a picture whenever a URL exists, whatever the type", () => {
+    expect(optionHasImage(option({ imageUrl: "https://cdn/o.png" }))).toBe(true);
+    expect(optionHasImage(option({ type: "image", imageUrl: "https://cdn/o.png" }))).toBe(true);
+    expect(optionHasImage(option({ type: "image" }))).toBe(false);
+    expect(optionHasImage(option({ en: "text only" }))).toBe(false);
+  });
+
+  it("treats picture-only and image-typed options without text as 'letter only'", () => {
+    expect(isImageOnlyOption(option({ imageUrl: "https://cdn/o.png" }), "en")).toBe(true);
+    expect(isImageOnlyOption(option({ type: "image" }), "en")).toBe(true);
+    expect(
+      isImageOnlyOption(option({ type: "image", imageUrl: "https://cdn/o.png" }), "ml")
+    ).toBe(true);
+  });
+
+  it("keeps showing text when an option has any", () => {
+    expect(
+      isImageOnlyOption(option({ type: "image", en: "Fallback" }), "en")
+    ).toBe(false);
+    expect(
+      isImageOnlyOption(option({ imageUrl: "https://cdn/o.png", ml: "അ" }), "ml")
+    ).toBe(false);
+    expect(isImageOnlyOption(option({ en: "plain" }), "en")).toBe(false);
+  });
+});
+
