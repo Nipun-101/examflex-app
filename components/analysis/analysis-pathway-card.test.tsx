@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { AnalysisPathwayCard } from "@/components/analysis/analysis-pathway-card";
+import { pathwayProgressColor } from "@/lib/analysis/pathway-bands";
 import type { AnalysisPathway } from "@/types/analysis";
 
 const WAITING: AnalysisPathway = {
@@ -119,10 +120,10 @@ describe("AnalysisPathwayCard", () => {
     });
 
     it.each([
-      ["below", "Below cut-off", "bg-rose-400"],
-      ["borderline", "Within reach", "bg-amber-400"],
-      ["comfortable", "Looking solid", "bg-study-green"],
-    ] as const)("styles the %s band", (band, label, fillClass) => {
+      ["below", "Below cut-off"],
+      ["borderline", "Within reach"],
+      ["comfortable", "Looking solid"],
+    ] as const)("styles the %s band chip and message", (band, label) => {
       render(
         <AnalysisPathwayCard
           pathway={{
@@ -135,7 +136,27 @@ describe("AnalysisPathwayCard", () => {
       );
       expect(screen.getByText(label)).toBeInTheDocument();
       expect(screen.getByText(`message for ${band}`)).toBeInTheDocument();
-      expect(screen.getByTestId("pathway-fill")).toHaveClass(fillClass);
+    });
+
+    it("colours the fill by how close the marks are to the cut-off", () => {
+      const colorFor = (yourMarks: number, cutoffMarks: number) => {
+        const { unmount } = render(
+          <AnalysisPathwayCard
+            pathway={{ ...EVALUATED, yourMarks, cutoffMarks }}
+          />
+        );
+        const color = (screen.getByTestId("pathway-fill") as HTMLElement).style
+          .backgroundColor;
+        unmount();
+        return color;
+      };
+      const far = colorFor(10, 100);
+      const some = colorFor(25, 100);
+      const near = colorFor(90, 100);
+      const reached = colorFor(100, 100);
+      expect(new Set([far, some, near, reached]).size).toBe(4);
+      expect(far).toBe(pathwayProgressColor(10, 100));
+      expect(reached).toBe(pathwayProgressColor(100, 100));
     });
 
     it("draws the bar on the exam's own scale with a cut-off tick and comfort zone", () => {

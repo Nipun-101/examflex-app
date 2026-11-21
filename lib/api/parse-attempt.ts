@@ -85,6 +85,7 @@ export function parseAttemptQuestion(value: unknown): AttemptQuestion | null {
     questionText: parseQuestionText(value.questionText),
     options: parseList(value.options, parseOption) ?? [],
     subject: readString(value.subject) ?? "",
+    ...optionalField("subjectName", readString(value.subjectName)),
     ...optionalField("optionType", parseOptionType(value.optionType)),
     ...optionalField("topic", readString(value.topic)),
     ...optionalField("difficultyLevel", parseDifficulty(value.difficultyLevel)),

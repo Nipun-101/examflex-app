@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
+  BarChart3,
   Clock,
 } from "lucide-react";
 import { AnswerKeyList } from "@/components/attempt/answer-key-list";
@@ -11,14 +13,26 @@ import { LanguageToggle } from "@/components/attempt/language-toggle";
 import { MistakeBookCta } from "@/components/attempt/mistake-book-cta";
 import { PerformanceBadge } from "@/components/attempt/performance-badge";
 import {
+  ResultsMiniSummary,
+  ResultsSummaryBar,
+} from "@/components/attempt/results-compact-summary";
+import {
+  QuestionMapPill,
+  ResultsMapSheet,
+} from "@/components/attempt/results-map-sheet";
+import {
   ResultsQuestionMap,
-  answerKeyQuestionDomId,
+  type ResultsMapGroup,
   type ResultsQuestionMapItem,
+  type ResultsStatusFilter,
 } from "@/components/attempt/results-question-map";
 import { ScoreRing } from "@/components/attempt/score-ring";
 import { StudyNavLink } from "@/components/study/study-nav-link";
 import { StudyControlLink } from "@/components/study/study-button";
-import { buildSectionBreakdown } from "@/lib/mocks/adapt-results";
+import {
+  buildSectionBreakdown,
+  buildSubjectBreakdown,
+} from "@/lib/mocks/adapt-results";
 import { formatTimeTaken } from "@/lib/mocks/attempt-format";
 import {
   attemptTitle,
@@ -28,11 +42,9 @@ import {
 import {
   examHubPath,
   examTestListPath,
+  mistakeBookPath,
 } from "@/lib/mocks/exam-test-routes";
-import {
-  resultOutcome,
-  type ResultOutcome,
-} from "@/lib/mocks/result-outcome";
+import { resultOutcome } from "@/lib/mocks/result-outcome";
 import type {
   AttemptLanguage,
   AttemptMockTestData,
@@ -52,21 +64,8 @@ type MockTestResultsProps = {
 const LINK_CLASS =
   "inline-flex h-11 items-center justify-center gap-1.5 rounded-[10px] px-5 text-sm font-semibold";
 
-type SectionFilter = "all" | number;
-type StatusFilter = "all" | ResultOutcome;
-
-const STATUS_FILTERS: { id: StatusFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "wrong", label: "Wrong" },
-  { id: "skipped", label: "Skipped" },
-  { id: "correct", label: "Correct" },
-];
-
-function chipClass(active: boolean): string {
-  return active
-    ? "border-study-ink bg-study-ink text-white shadow-sm"
-    : "border-study-divider bg-white text-study-muted-soft hover:border-study-green/55 hover:bg-study-mint/70 hover:text-study-ink hover:shadow-sm";
-}
+/** A question counts as "current" once its top edge passes this line (px). */
+const CURRENT_QUESTION_OFFSET = 140;
 
 export function MockTestResults({
   result,
@@ -76,19 +75,40 @@ export function MockTestResults({
   initialLanguage = "en",
 }: MockTestResultsProps) {
   const [language, setLanguage] = useState<AttemptLanguage>(initialLanguage);
-  const [sectionFilter, setSectionFilter] = useState<SectionFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sectionFilter, setSectionFilter] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ResultsStatusFilter>("all");
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [summaryOutOfView, setSummaryOutOfView] = useState(false);
+  const [scrolledToNumber, setScrolledToNumber] = useState<number | null>(null);
+  const [jumpRequest, setJumpRequest] = useState<{
+    paperNumber: number;
+    seq: number;
+  } | null>(null);
+  const summaryRef = useRef<HTMLElement>(null);
   const isMalayalam = language === "ml";
 
   const resultsByQuestion = useMemo(
     () => new Map(result.questionResults.map((r) => [r.questionId, r])),
     [result.questionResults]
   );
-  const sections = useMemo(
-    () => buildSectionBreakdown(mockTestData, questions, resultsByQuestion),
-    [mockTestData, questions, resultsByQuestion]
-  );
+  // Sessions win; papers without them fall back to each question's subject.
+  const sections = useMemo(() => {
+    const bySession = buildSectionBreakdown(
+      mockTestData,
+      questions,
+      resultsByQuestion
+    );
+    return bySession.length > 1
+      ? bySession
+      : buildSubjectBreakdown(questions, resultsByQuestion);
+  }, [mockTestData, questions, resultsByQuestion]);
   const showSections = sections.length > 1;
+  // A stale selection (section vanished) behaves as "nothing selected".
+  const activeSection =
+    sectionFilter === null
+      ? undefined
+      : sections.find((section) => section.order === sectionFilter);
+  const activeSectionOrder = activeSection?.order ?? null;
 
   const paperIndexById = useMemo(
     () => new Map(questions.map((question, index) => [question._id, index])),
@@ -102,15 +122,17 @@ export function MockTestResults({
     return map;
   }, [sections]);
 
-  const mapItems = useMemo<ResultsQuestionMapItem[]>(
-    () =>
-      questions.map((question, index) => ({
+  const mapItemById = useMemo(() => {
+    const map = new Map<string, ResultsQuestionMapItem>();
+    questions.forEach((question, index) => {
+      map.set(question._id, {
         paperNumber: index + 1,
         questionId: question._id,
         outcome: resultOutcome(resultsByQuestion.get(question._id)),
-      })),
-    [questions, resultsByQuestion]
-  );
+      });
+    });
+    return map;
+  }, [questions, resultsByQuestion]);
 
   const statusCounts = useMemo(() => {
     let correct = 0;
@@ -126,12 +148,10 @@ export function MockTestResults({
   }, [questions, resultsByQuestion]);
 
   const sectionQuestions = useMemo(() => {
-    if (!showSections || sectionFilter === "all") return questions;
-    const section = sections.find((item) => item.order === sectionFilter);
-    if (!section) return questions;
-    const ids = new Set(section.questionIds);
+    if (!activeSection) return questions;
+    const ids = new Set(activeSection.questionIds);
     return questions.filter((question) => ids.has(question._id));
-  }, [showSections, sectionFilter, questions, sections]);
+  }, [activeSection, questions]);
 
   const visibleQuestions = useMemo(() => {
     if (statusFilter === "all") return sectionQuestions;
@@ -140,6 +160,100 @@ export function MockTestResults({
         resultOutcome(resultsByQuestion.get(question._id)) === statusFilter
     );
   }, [sectionQuestions, statusFilter, resultsByQuestion]);
+
+  const mapGroups = useMemo<ResultsMapGroup[]>(() => {
+    const matches = (item: ResultsQuestionMapItem) =>
+      statusFilter === "all" || item.outcome === statusFilter;
+
+    if (!showSections) {
+      const items = [...mapItemById.values()].filter(matches);
+      return items.length > 0 ? [{ id: "all", items }] : [];
+    }
+
+    return sections
+      .filter((section) => !activeSection || section.order === activeSection.order)
+      .map((section) => {
+        const all = section.questionIds.flatMap((id) => {
+          const item = mapItemById.get(id);
+          return item ? [item] : [];
+        });
+        const numbers = all.map((item) => item.paperNumber);
+        return {
+          id: String(section.order),
+          name: section.name,
+          ...(numbers.length > 0
+            ? { rangeLabel: `${Math.min(...numbers)}–${Math.max(...numbers)}` }
+            : {}),
+          summary: `${section.correct} correct · ${section.wrong} wrong · ${section.skipped} skipped`,
+          items: all.filter(matches),
+        };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [showSections, sections, activeSection, statusFilter, mapItemById]);
+
+  const sectionChips = useMemo(
+    () =>
+      showSections
+        ? sections.map((section) => ({ id: section.order, name: section.name }))
+        : [],
+    [showSections, sections]
+  );
+
+  // The "you are here" question: last one whose top edge has passed the line,
+  // else the first one in the (filtered) list.
+  const firstVisibleNumber = visibleQuestions[0]
+    ? (paperIndexById.get(visibleQuestions[0]._id) ?? 0) + 1
+    : null;
+  const visibleNumbers = useMemo(
+    () =>
+      new Set(
+        visibleQuestions.map((question) => (paperIndexById.get(question._id) ?? 0) + 1)
+      ),
+    [visibleQuestions, paperIndexById]
+  );
+  const currentNumber =
+    scrolledToNumber !== null && visibleNumbers.has(scrolledToNumber)
+      ? scrolledToNumber
+      : firstVisibleNumber;
+
+  useEffect(() => {
+    if (!answerKeyAvailable) return;
+    let frame = 0;
+    function update() {
+      frame = 0;
+      const articles = document.querySelectorAll<HTMLElement>(
+        "[data-answer-key-q]"
+      );
+      let found: number | null = null;
+      for (const article of articles) {
+        if (article.getBoundingClientRect().top > CURRENT_QUESTION_OFFSET) break;
+        found = Number(article.dataset.answerKeyQ);
+      }
+      setScrolledToNumber(found);
+    }
+    function onScroll() {
+      if (frame === 0) frame = window.requestAnimationFrame(update);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+    };
+  }, [answerKeyAvailable]);
+
+  // Swap the full result card for compact summaries once it scrolls away.
+  useEffect(() => {
+    const element = summaryRef.current;
+    if (!element || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry) return;
+      setSummaryOutOfView(
+        !entry.isIntersecting && entry.boundingClientRect.bottom < 0
+      );
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const totalAttempted = result.correctAnswers + result.incorrectAnswers;
   const accuracy =
@@ -162,233 +276,184 @@ export function MockTestResults({
   const questionTotal =
     questions.length ||
     result.correctAnswers + result.incorrectAnswers + result.unansweredQuestions;
+  const mistakeCount = result.incorrectAnswers + result.unansweredQuestions;
+  const timeLabel = formatTimeTaken(result.timeTaken);
+  const paperTitle = attemptTitle(mockTestData);
+  const filtersActive = statusFilter !== "all" || activeSection !== undefined;
+
+  const closeSheet = useCallback(() => setSheetOpen(false), []);
+
+  function clearFilters() {
+    setStatusFilter("all");
+    setSectionFilter(null);
+  }
 
   function jumpToQuestion(paperNumber: number) {
-    setStatusFilter("all");
-    setSectionFilter("all");
-    window.requestAnimationFrame(() => {
-      document
-        .getElementById(answerKeyQuestionDomId(paperNumber))
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+    setSheetOpen(false);
+    setScrolledToNumber(paperNumber);
+    setJumpRequest((prev) => ({ paperNumber, seq: (prev?.seq ?? 0) + 1 }));
   }
 
   const summaryCard = (
     <section
+      ref={summaryRef}
       aria-label="Score summary"
-      className="rounded-[24px] bg-study-ink p-5 text-white shadow-soft sm:p-6"
+      className="rounded-[28px] bg-[#1b3d35] p-5 text-white shadow-soft"
     >
-      <div className="flex items-center gap-4 sm:gap-5">
+      <div className="flex items-center gap-[18px]">
         <ScoreRing
           earned={result.correctAnswers}
           max={questionTotal}
           tone="onDark"
           ofClassName="text-xs font-medium text-[#a8bdb4]"
-          svgClassName="h-[5.5rem] w-[5.5rem] sm:h-28 sm:w-28"
+          svgClassName="size-[5.75rem]"
         />
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-[1.35rem] leading-tight font-bold tracking-tight text-white sm:text-2xl">
             {completedLabel}
           </h1>
-          <div className="mt-2.5">
+          <div className="mt-2 mb-1.5">
             <PerformanceBadge
               score={result.score}
               totalScore={result.totalScore}
               bands={mockTestData.exam.performanceBands}
               language={language}
               showEmoji={false}
-              className="bg-[#efe4c4] px-3 py-1 text-[11px] text-[#5c4528]"
+              className="rounded-[12px] bg-[#f6e7b4] px-3 py-[5px] text-xs text-[#6b4e00]"
             />
           </div>
-          <p className="mt-2.5 truncate text-sm text-[#b7c9c0]">
-            {attemptTitle(mockTestData)}
+          <p className="truncate text-[13px] font-medium text-[#c5d6cc]">
+            {paperTitle}
           </p>
         </div>
       </div>
 
-      <dl className="mt-5 grid grid-cols-3 gap-2.5">
-        <div className="rounded-[14px] bg-[#d5e8c9] px-2 py-3 text-center sm:px-3">
-          <dd className="font-display text-2xl font-bold text-study-green">
+      <dl className="mt-3.5 grid grid-cols-3 gap-2.5">
+        <div className="rounded-[14px] bg-[#d5e8cf] px-1.5 py-2.5 text-center">
+          <dd className="font-display text-2xl font-extrabold text-study-green">
             {result.correctAnswers}
           </dd>
-          <dt className="mt-0.5 text-[11px] font-semibold tracking-wide text-study-green uppercase">
+          <dt className="text-[11px] font-semibold tracking-[0.06em] text-study-green uppercase">
             Correct
           </dt>
         </div>
-        <div className="rounded-[14px] bg-[#f3d4c6] px-2 py-3 text-center sm:px-3">
-          <dd className="font-display text-2xl font-bold text-study-peach-ink">
+        <div className="rounded-[14px] bg-[#f4d6cb] px-1.5 py-2.5 text-center">
+          <dd className="font-display text-2xl font-extrabold text-[#8a3f2a]">
             {result.incorrectAnswers}
           </dd>
-          <dt className="mt-0.5 text-[11px] font-semibold tracking-wide text-study-peach-ink uppercase">
+          <dt className="text-[11px] font-semibold tracking-[0.06em] text-[#8a3f2a] uppercase">
             Wrong
           </dt>
         </div>
-        <div className="rounded-[14px] bg-[#ebe4d6] px-2 py-3 text-center sm:px-3">
-          <dd className="font-display text-2xl font-bold text-study-ink">
+        <div className="rounded-[14px] bg-[#e9e3d6] px-1.5 py-2.5 text-center">
+          <dd className="font-display text-2xl font-extrabold text-study-muted-soft">
             {result.unansweredQuestions}
           </dd>
-          <dt className="mt-0.5 text-[11px] font-semibold tracking-wide text-[#6a6358] uppercase">
+          <dt className="text-[11px] font-semibold tracking-[0.06em] text-study-muted-soft uppercase">
             Skipped
           </dt>
         </div>
       </dl>
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-medium text-study-lime">
+      <div className="mt-3.5 flex flex-wrap items-center gap-x-[18px] gap-y-2 text-[13px] font-medium text-[#ddeba0]">
         <span className="inline-flex items-center gap-1.5">
           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
           {accuracy}% accuracy
         </span>
         <span className="inline-flex items-center gap-1.5">
           <Clock className="h-3.5 w-3.5" aria-hidden />
-          {formatTimeTaken(result.timeTaken)}
+          {timeLabel}
         </span>
       </div>
+
+      <StudyNavLink
+        href="/analysis"
+        className="group mt-4 flex items-center gap-3 rounded-[18px] border border-white/10 bg-white/[0.07] p-3.5 transition-colors hover:border-[#ddeba0]/40 hover:bg-white/[0.12] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ddeba0]"
+      >
+        <span
+          aria-hidden
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-[#ddeba0] text-[#1b3d35]"
+        >
+          <BarChart3 className="size-[18px]" strokeWidth={2.4} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[15px] font-bold text-white">
+            See your full analysis
+          </span>
+          <span className="mt-0.5 block text-xs leading-snug text-[#c5d6cc]">
+            Find weak chapters and track your progress over time
+          </span>
+        </span>
+        <ArrowRight
+          className="size-5 shrink-0 text-[#ddeba0] transition-transform group-hover:translate-x-0.5"
+          aria-hidden
+        />
+      </StudyNavLink>
     </section>
   );
 
-  const sectionBreakdown =
-    showSections ? (
-      <section
-        aria-label="Section-wise score"
-        className="rounded-[20px] border border-study-divider bg-white p-4 shadow-soft sm:p-5"
-      >
-        <h2 className="mb-3 font-display text-sm font-bold text-study-ink">
-          Section-wise score
-        </h2>
-
-        <ul className="space-y-2 lg:space-y-2">
-          {sections.map((section) => (
-            <li key={section.order}>
-              <button
-                type="button"
-                onClick={() => {
-                  setSectionFilter(section.order);
-                  setStatusFilter("all");
-                }}
-                aria-pressed={sectionFilter === section.order}
-                className={`w-full cursor-pointer rounded-[14px] border p-3 text-left transition-colors ${
-                  sectionFilter === section.order
-                    ? "border-study-green bg-study-mint/60"
-                    : "border-study-divider bg-study-canvas/70 hover:border-study-green/40"
-                }`}
-              >
-                <span className="flex items-start justify-between gap-3">
-                  <span className="text-sm leading-snug font-semibold break-words text-study-ink">
-                    {section.name}
-                  </span>
-                  {section.timeConsumed > 0 ? (
-                    <span className="shrink-0 pt-0.5 text-[11px] text-study-muted-soft tabular-nums">
-                      {formatTimeTaken(section.timeConsumed)}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="mt-2 grid grid-cols-3 gap-1.5 text-center">
-                  <span className="rounded-lg bg-study-mint px-2 py-1.5">
-                    <span className="block text-sm font-bold text-study-green">
-                      {section.correct}
-                    </span>
-                    <span className="block text-[10px] text-study-green">
-                      Correct
-                    </span>
-                  </span>
-                  <span className="rounded-lg bg-study-peach px-2 py-1.5">
-                    <span className="block text-sm font-bold text-study-peach-ink">
-                      {section.wrong}
-                    </span>
-                    <span className="block text-[10px] text-study-peach-ink">
-                      Wrong
-                    </span>
-                  </span>
-                  <span className="rounded-lg border border-study-divider bg-white px-2 py-1.5">
-                    <span className="block text-sm font-bold text-study-ink">
-                      {section.skipped}
-                    </span>
-                    <span className="block text-[10px] text-study-muted-soft">
-                      Skipped
-                    </span>
-                  </span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ) : null;
+  const compactSummary = {
+    correct: result.correctAnswers,
+    wrong: result.incorrectAnswers,
+    skipped: result.unansweredQuestions,
+    total: questionTotal,
+    accuracy,
+    title: completedLabel,
+    subtitle: paperTitle,
+  };
 
   const answerKey = (
     <section aria-labelledby="answer-key-heading" className="min-w-0">
-      <div className="mb-4 flex flex-col gap-3 sm:mb-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2
           id="answer-key-heading"
-          className="font-display text-lg font-bold text-study-ink sm:text-xl"
+          className="font-display text-2xl font-bold text-study-ink"
         >
           {isMalayalam ? "ഉത്തരക്കുറിപ്പ്" : "Answer Key"}
         </h2>
-
-        {answerKeyAvailable ? (
-          <div
-            role="group"
-            aria-label="Filter answer key by result"
-            className="flex gap-1.5 overflow-x-auto pb-1"
-          >
-            {STATUS_FILTERS.map((filter) => {
-              const count = statusCounts[filter.id];
-              const active = statusFilter === filter.id;
-              return (
-                <button
-                  key={filter.id}
-                  type="button"
-                  onClick={() => setStatusFilter(filter.id)}
-                  aria-pressed={active}
-                  className={`h-10 shrink-0 cursor-pointer rounded-full border px-3.5 text-xs font-semibold whitespace-nowrap transition-colors ${chipClass(active)}`}
-                >
-                  {filter.label} {count}
-                </button>
-              );
-            })}
-          </div>
+        {answerKeyAvailable && filtersActive ? (
+          <p className="flex items-center gap-2 text-sm text-study-muted-soft">
+            <span>
+              Showing {visibleQuestions.length} of {questions.length}
+            </span>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="cursor-pointer font-semibold text-study-green underline-offset-2 hover:underline"
+            >
+              Clear filters
+            </button>
+          </p>
         ) : null}
       </div>
 
-      {answerKeyAvailable && showSections ? (
-        <div
-          role="group"
-          aria-label="Filter answer key by section"
-          className="mb-4 flex gap-1.5 overflow-x-auto pb-1"
-        >
-          <button
-            type="button"
-            onClick={() => setSectionFilter("all")}
-            aria-pressed={sectionFilter === "all"}
-            className={`h-10 shrink-0 cursor-pointer rounded-full border px-3.5 text-xs font-semibold whitespace-nowrap transition-colors ${chipClass(sectionFilter === "all")}`}
-          >
-            All sections ({questions.length})
-          </button>
-          {sections.map((section) => (
-            <button
-              key={section.order}
-              type="button"
-              onClick={() => setSectionFilter(section.order)}
-              aria-pressed={sectionFilter === section.order}
-              className={`h-10 shrink-0 cursor-pointer rounded-full border px-3.5 text-xs font-semibold whitespace-nowrap transition-colors ${chipClass(sectionFilter === section.order)}`}
-            >
-              {section.name} ({section.questionIds.length})
-            </button>
-          ))}
-        </div>
-      ) : null}
-
       {answerKeyAvailable ? (
-        <AnswerKeyList
-          questions={visibleQuestions}
-          resultsByQuestion={resultsByQuestion}
-          paperIndexById={paperIndexById}
-          sectionByQuestionId={sectionByQuestionId}
-          showSectionHeadings={showSections && sectionFilter === "all"}
-          language={language}
-        />
+        visibleQuestions.length > 0 ? (
+          <AnswerKeyList
+            questions={visibleQuestions}
+            resultsByQuestion={resultsByQuestion}
+            paperIndexById={paperIndexById}
+            sectionByQuestionId={sectionByQuestionId}
+            showSectionHeadings={showSections && activeSection === undefined}
+            language={language}
+            jumpRequest={jumpRequest}
+          />
+        ) : (
+          <div className="rounded-[24px] border border-study-divider bg-white px-4 py-8 text-center shadow-soft">
+            <p className="text-sm text-study-muted-soft">
+              No questions match these filters.
+            </p>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-2 cursor-pointer text-sm font-semibold text-study-green hover:underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )
       ) : (
-        <div className="rounded-[20px] border border-study-divider bg-white px-4 py-8 text-center shadow-soft">
+        <div className="rounded-[24px] border border-study-divider bg-white px-4 py-8 text-center shadow-soft">
           <p className="text-sm text-study-muted-soft">
             The answer key for this paper isn&apos;t available yet.
           </p>
@@ -397,13 +462,26 @@ export function MockTestResults({
     </section>
   );
 
+  const mapFilterProps = {
+    statusFilter,
+    onStatusChange: setStatusFilter,
+    statusCounts,
+    sections: sectionChips,
+    sectionFilter: activeSectionOrder,
+    onSectionChange: setSectionFilter,
+  };
+
   return (
-    <div className="min-h-dvh bg-study-canvas py-4 sm:py-6 lg:py-8">
-      <div className="mx-auto w-full max-w-6xl px-3 sm:px-4 lg:px-6">
+    <div className="min-h-dvh bg-study-canvas py-4 pb-28 sm:py-6 lg:py-8 lg:pb-8">
+      {answerKeyAvailable && summaryOutOfView ? (
+        <ResultsSummaryBar {...compactSummary} />
+      ) : null}
+
+      <div className="mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
         <div className="mb-4 flex items-center justify-between gap-3">
           <StudyNavLink
             href={examHref}
-            className="inline-flex h-11 items-center gap-1.5 rounded-[10px] px-1.5 text-sm font-semibold text-study-green transition-colors hover:bg-study-mint/70"
+            className="inline-flex min-h-11 items-center gap-2 rounded-[14px] border border-study-divider bg-white px-[18px] text-sm font-semibold text-study-green transition-colors hover:bg-study-mint/70"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {isMalayalam ? "പരീക്ഷയിലേക്ക്" : "Back to Exam"}
@@ -413,17 +491,31 @@ export function MockTestResults({
           ) : null}
         </div>
 
-        <div className="lg:grid lg:grid-cols-[minmax(18rem,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:gap-8">
-          <aside className="mb-5 space-y-4 lg:sticky lg:top-4 lg:mb-0 lg:self-start">
+        <div className="lg:grid lg:grid-cols-[25rem_minmax(0,1fr)] lg:gap-6">
+          <aside className="mb-5 space-y-4 lg:mb-0">
             {summaryCard}
             <MistakeBookCta
               mockTestId={mockTestData.mockTestId}
-              mistakeCount={result.incorrectAnswers + result.unansweredQuestions}
+              mistakeCount={mistakeCount}
             />
             {answerKeyAvailable ? (
-              <ResultsQuestionMap items={mapItems} onJump={jumpToQuestion} />
+              <div className="sticky top-4 hidden lg:block">
+                <ResultsQuestionMap
+                  {...mapFilterProps}
+                  groups={mapGroups}
+                  currentPaperNumber={currentNumber}
+                  onJump={jumpToQuestion}
+                  miniSummary={
+                    summaryOutOfView ? (
+                      <ResultsMiniSummary
+                        {...compactSummary}
+                        timeLabel={timeLabel}
+                      />
+                    ) : null
+                  }
+                />
+              </div>
             ) : null}
-            {sectionBreakdown}
           </aside>
 
           <div className="min-w-0">{answerKey}</div>
@@ -446,6 +538,35 @@ export function MockTestResults({
           </StudyControlLink>
         </div>
       </div>
+
+      {answerKeyAvailable ? (
+        <>
+          {!sheetOpen ? (
+            <QuestionMapPill
+              currentPaperNumber={currentNumber}
+              total={questionTotal}
+              onOpen={() => setSheetOpen(true)}
+            />
+          ) : null}
+          <ResultsMapSheet
+            open={sheetOpen}
+            onClose={closeSheet}
+            correct={result.correctAnswers}
+            total={questionTotal}
+            accuracy={accuracy}
+            timeLabel={timeLabel}
+            {...mapFilterProps}
+            sections={sectionChips}
+            groups={mapGroups}
+            currentPaperNumber={currentNumber}
+            onJump={jumpToQuestion}
+            {...(mockTestData.mockTestId
+              ? { mistakeHref: mistakeBookPath(mockTestData.mockTestId) }
+              : {})}
+            mistakeCount={mistakeCount}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

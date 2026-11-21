@@ -275,6 +275,26 @@ h4 {
   }
 }
 
+/* Results page: phone question-map bottom sheet */
+@keyframes study-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.study-sheet-up {
+  animation: study-sheet-up 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-sheet-up {
+    animation: none;
+  }
+}
+
 /* Equation Book recall card — true 3D flip (front → back) */
 .equation-flip-scene {
   perspective: 1400px;

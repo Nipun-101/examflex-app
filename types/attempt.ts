@@ -27,7 +27,10 @@ export interface AttemptQuestion {
   questionText: AttemptQuestionText;
   optionType?: "text" | "image";
   options: AttemptQuestionOption[];
+  /** Subject id. */
   subject: string;
+  /** Display name of the subject, when the API resolved it. */
+  subjectName?: string;
   topic?: string;
   difficultyLevel?: AttemptDifficulty;
   /** Session-wise papers: matches `sessions[].order`. Omitted otherwise. */
