@@ -10,6 +10,7 @@ import { ExitDialog } from "@/components/attempt/exit-dialog";
 import { MathpixBoundary } from "@/components/attempt/mathpix-boundary";
 import { PauseOverlay } from "@/components/attempt/pause-overlay";
 import { QuestionPalette } from "@/components/attempt/question-palette";
+import { buildPaletteGroups } from "@/lib/mocks/palette-groups";
 import { QuestionPanel } from "@/components/attempt/question-panel";
 import { SubmitDialog } from "@/components/attempt/submit-dialog";
 import { StudyButton, StudyControlLink } from "@/components/study/study-button";
@@ -406,6 +407,7 @@ export function MockTestRunner({
 
   const currentAnswerId = answers.get(currentQuestion._id);
   const isLastQuestion = currentIndex === totalQuestions - 1;
+  const paletteGroups = buildPaletteGroups(mockTestData, visibleQuestions);
   const paletteProps = {
     statuses,
     currentIndex,
@@ -413,6 +415,7 @@ export function MockTestRunner({
     onTogglePause: () => void (isPaused ? handleResume() : handlePause()),
     testTitle: title,
     ...(isSessionWise ? { sectionTitle: sectionLabel } : {}),
+    ...(paletteGroups ? { groups: paletteGroups } : {}),
     submitLabel,
   };
 

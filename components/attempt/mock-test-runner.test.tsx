@@ -726,4 +726,45 @@ describe("MockTestRunner session-wise", () => {
     );
     expect(await screen.findByText("Submitting your test...")).toBeInTheDocument();
   });
+
+  describe("palette grouping by subject", () => {
+    const subjectQuestions = [
+      makeQuestion("q1", { subject: "phy", subjectName: "Physics" }),
+      makeQuestion("q2", { subject: "phy", subjectName: "Physics" }),
+      makeQuestion("q3", { subject: "chem", subjectName: "Chemistry" }),
+    ];
+
+    it("groups the palette by subject on a full mock", () => {
+      setup({
+        mockTestData: makeMockTestData({ paperType: "FULL_EXAM", subject: undefined }),
+        questions: subjectQuestions,
+      });
+      expect(screen.getAllByRole("group", { name: "Physics" }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("group", { name: "Chemistry" }).length).toBeGreaterThan(0);
+    });
+
+    it.each(["TOPIC_WISE", "SPRINT"] as const)(
+      "keeps the flat palette for %s papers",
+      (paperType) => {
+        setup({
+          mockTestData: makeMockTestData({ paperType, subject: undefined }),
+          questions: subjectQuestions,
+        });
+        expect(screen.queryByRole("group", { name: "Physics" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("group", { name: "Chemistry" })).not.toBeInTheDocument();
+      }
+    );
+
+    it("lets a student jump to a subject's question from its group", async () => {
+      const { user } = setup({
+        mockTestData: makeMockTestData({ paperType: "FULL_EXAM", subject: undefined }),
+        questions: subjectQuestions,
+      });
+      const chemistry = screen.getAllByRole("group", { name: "Chemistry" })[0] as HTMLElement;
+      await user.click(within(chemistry).getByRole("button", { name: /Question 3/ }));
+      expect(
+        screen.getAllByRole("button", { name: /Question 3,/, current: true }).length
+      ).toBeGreaterThan(0);
+    });
+  });
 });

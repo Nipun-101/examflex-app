@@ -3,6 +3,7 @@
 import { Check, Pause, Play } from "lucide-react";
 import { StudyButton } from "@/components/study/study-button";
 import { countStatus } from "@/lib/mocks/question-status";
+import type { PaletteGroup } from "@/lib/mocks/palette-groups";
 import type { QuestionStatus } from "@/types/attempt-runner";
 
 type QuestionPaletteProps = {
@@ -14,6 +15,8 @@ type QuestionPaletteProps = {
   testTitle: string;
   /** Session-wise papers show the section name instead of "Question Palette". */
   sectionTitle?: string;
+  /** Full mocks: palette buttons grouped under each subject's name. */
+  groups?: readonly PaletteGroup[];
   onSubmit: () => void;
   submitLabel: string;
 };
@@ -43,7 +46,7 @@ const STATUS_CLASS: Record<QuestionStatus, string> = {
 };
 
 function statusStyle(
-  status: QuestionStatus
+  status: QuestionStatus,
 ): { backgroundColor: string } | undefined {
   if (status === "marked" || status === "marked-answered") {
     return { backgroundColor: MARKED_FILL };
@@ -80,9 +83,34 @@ export function QuestionPalette({
   onTogglePause,
   testTitle,
   sectionTitle,
+  groups,
   onSubmit,
   submitLabel,
 }: QuestionPaletteProps) {
+  const renderQuestionButton = (index: number) => {
+    const status = statuses[index];
+    if (!status) return null;
+    const isCurrent = index === currentIndex;
+    return (
+      <button
+        key={index}
+        type="button"
+        onClick={() => onSelect(index)}
+        aria-label={`Question ${index + 1}, ${STATUS_LABEL[status]}`}
+        {...(isCurrent ? { "aria-current": "true" as const } : {})}
+        className={`relative h-11 cursor-pointer rounded-md text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${
+          isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]
+        }`}
+        style={isCurrent ? undefined : statusStyle(status)}
+      >
+        {index + 1}
+        {status === "marked-answered" && !isCurrent ? (
+          <MarkedAnsweredBadge />
+        ) : null}
+      </button>
+    );
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 space-y-5 overflow-x-hidden overflow-y-auto px-1">
@@ -118,7 +146,9 @@ export function QuestionPalette({
                   style={statusStyle(status)}
                 >
                   {countStatus(statuses, status)}
-                  {status === "marked-answered" ? <MarkedAnsweredBadge /> : null}
+                  {status === "marked-answered" ? (
+                    <MarkedAnsweredBadge />
+                  ) : null}
                 </span>
                 <span className="leading-snug font-medium text-study-ink">
                   {label}
@@ -132,29 +162,32 @@ export function QuestionPalette({
           <h3 className="text-xs font-semibold text-study-muted-soft">
             {sectionTitle ? `${sectionTitle} :` : "Question Palette:"}
           </h3>
-          <div className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5">
-            {statuses.map((status, index) => {
-              const isCurrent = index === currentIndex;
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => onSelect(index)}
-                  aria-label={`Question ${index + 1}, ${STATUS_LABEL[status]}`}
-                  {...(isCurrent ? { "aria-current": "true" as const } : {})}
-                  className={`relative h-11 cursor-pointer rounded-md text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${
-                    isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]
-                  }`}
-                  style={isCurrent ? undefined : statusStyle(status)}
+          {groups ? (
+            <div className="max-h-[18.75rem] space-y-4 overflow-y-auto p-1.5">
+              {groups.map((group) => (
+                <div
+                  key={group.id}
+                  role="group"
+                  aria-label={group.name}
+                  className="space-y-2"
                 >
-                  {index + 1}
-                  {status === "marked-answered" && !isCurrent ? (
-                    <MarkedAnsweredBadge />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
+                  <h4 className="truncate text-xs font-bold text-study-ink">
+                    {group.name}
+                    <span className="ml-1.5 font-medium text-study-muted-soft">
+                      · {group.indices.length}
+                    </span>
+                  </h4>
+                  <div className="grid grid-cols-5 gap-2.5">
+                    {group.indices.map(renderQuestionButton)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5">
+              {statuses.map((_, index) => renderQuestionButton(index))}
+            </div>
+          )}
         </section>
       </div>
 

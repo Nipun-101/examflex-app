@@ -95,4 +95,48 @@ describe("QuestionPalette", () => {
     expect(screen.getByRole("button", { name: /Resume Test/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Submit Test" })).toBeDisabled();
   });
+
+  describe("grouped by subject (full mocks)", () => {
+    const groups = [
+      { id: "phy", name: "Physics", indices: [0, 1] },
+      { id: "chem", name: "Chemistry", indices: [2, 3, 4] },
+    ];
+
+    it("shows each subject's name above its questions", () => {
+      setup({ groups });
+      const physics = screen.getByRole("group", { name: "Physics" });
+      const chemistry = screen.getByRole("group", { name: "Chemistry" });
+      expect(within(physics).getAllByRole("button")).toHaveLength(2);
+      expect(within(chemistry).getAllByRole("button")).toHaveLength(3);
+      expect(
+        within(physics).getByRole("heading", { name: /Physics/ })
+      ).toBeInTheDocument();
+      expect(
+        within(chemistry).getByRole("button", { name: "Question 3, marked for review" })
+      ).toBeInTheDocument();
+    });
+
+    it("keeps paper numbering and selects by paper index", async () => {
+      const props = setup({ groups });
+      await userEvent.click(
+        within(screen.getByRole("group", { name: "Chemistry" })).getByRole("button", {
+          name: /Question 5/,
+        })
+      );
+      expect(props.onSelect).toHaveBeenCalledWith(4);
+    });
+
+    it("marks the current question inside its group", () => {
+      setup({ groups, currentIndex: 3 });
+      const current = screen.getByRole("button", { name: /Question 4,/ });
+      expect(current).toHaveAttribute("aria-current", "true");
+      expect(screen.getAllByRole("button", { current: true })).toHaveLength(1);
+    });
+
+    it("renders the flat list with no group headings when groups are absent", () => {
+      setup();
+      expect(screen.queryByRole("group")).not.toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: /^Question \d/ })).toHaveLength(5);
+    });
+  });
 });
