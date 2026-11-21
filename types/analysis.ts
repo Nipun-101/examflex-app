@@ -37,14 +37,41 @@ export type AnalysisFullMocksSection = {
   recent: readonly AnalysisFullMockAttempt[];
 };
 
+/**
+ * NO_ATTEMPTS: no completed full mock yet.
+ * NO_CUTOFF: attempts exist, but no recent mock has a cut-off for this course.
+ * EVALUATED: marks vs cut-off are meaningful; band and bar apply.
+ */
+export type AnalysisPathwayStatus = "NO_ATTEMPTS" | "NO_CUTOFF" | "EVALUATED";
+
 export type AnalysisPathway = {
   id: string;
   title: string;
   subtitle?: string;
+  status: AnalysisPathwayStatus;
+  /** Recency-weighted marks over the last <=10 full mocks. */
+  yourMarks: number | null;
+  /** Same-weighted cut-off marks of those mocks. EVALUATED only. */
+  cutoffMarks: number | null;
+  /** Cut-off plus the comfort margin. EVALUATED only. */
+  comfortMarks: number | null;
+  /** yourMarks - cutoffMarks (negative = short). EVALUATED only. */
+  gapMarks: number | null;
+  /** Scale of the paper(s), e.g. 720 for NEET, 300 for JEE. */
+  maxMarks: number | null;
+  /** Mocks behind yourMarks / cutoffMarks. */
+  attemptsConsidered: number;
+  /** Latest full mocks looked at (<= 10). */
+  attemptsInWindow: number;
+  /** @deprecated Derived by the API for older clients; marks are the source of truth. */
   minPercent: number;
+  /** @deprecated See minPercent. */
   comfortPercent: number;
+  /** @deprecated See minPercent. */
   userPercent: number | null;
+  /** 0-1: yourMarks / cutoffMarks, capped at 1. */
   progress01: number;
+  /** Only meaningful when status is EVALUATED. */
   band: AnalysisPathwayBand;
   message: string;
 };

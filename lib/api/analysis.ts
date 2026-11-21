@@ -15,6 +15,7 @@ import type {
   AnalysisOverview,
   AnalysisPathway,
   AnalysisPathwayBand,
+  AnalysisPathwayStatus,
   AnalysisPathwaysSection,
   AnalysisSubjectInsight,
   AnalysisSubjectsSection,
@@ -23,6 +24,17 @@ import type {
 
 function parseBand(value: unknown): AnalysisPathwayBand | null {
   if (value === "below" || value === "borderline" || value === "comfortable") {
+    return value;
+  }
+  return null;
+}
+
+function parseStatus(value: unknown): AnalysisPathwayStatus | null {
+  if (
+    value === "NO_ATTEMPTS" ||
+    value === "NO_CUTOFF" ||
+    value === "EVALUATED"
+  ) {
     return value;
   }
   return null;
@@ -113,12 +125,26 @@ function parsePathway(value: unknown): AnalysisPathway | null {
   ) {
     return null;
   }
+  const userPercent = readNumberOrNull(value.userPercent);
+  // Older API payloads have no status: no percent means no attempts yet.
+  const status =
+    parseStatus(value.status) ??
+    (userPercent === null ? "NO_ATTEMPTS" : "EVALUATED");
+  const attemptsConsidered = readNumber(value.attemptsConsidered) ?? 0;
   return {
     id,
     title,
+    status,
+    yourMarks: readNumberOrNull(value.yourMarks),
+    cutoffMarks: readNumberOrNull(value.cutoffMarks),
+    comfortMarks: readNumberOrNull(value.comfortMarks),
+    gapMarks: readNumberOrNull(value.gapMarks),
+    maxMarks: readNumberOrNull(value.maxMarks),
+    attemptsConsidered,
+    attemptsInWindow: readNumber(value.attemptsInWindow) ?? attemptsConsidered,
     minPercent,
     comfortPercent,
-    userPercent: readNumberOrNull(value.userPercent),
+    userPercent,
     progress01,
     band,
     message,
