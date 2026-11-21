@@ -516,6 +516,22 @@ describe("parseAttemptDetails", () => {
     expect(parseAttemptDetails(details)).toEqual(details);
   });
 
+  it("keeps the paper id so results can link to the Mistake Book", () => {
+    const parsed = parseAttemptDetails({
+      ...details,
+      test: { ...mockTestData, mockTestId: "mock-9" },
+    });
+    expect(parsed?.test.mockTestId).toBe("mock-9");
+  });
+
+  it("omits the paper id when the API does not send a string", () => {
+    expect(parseAttemptDetails(details)?.test).not.toHaveProperty("mockTestId");
+    expect(
+      parseAttemptDetails({ ...details, test: { ...mockTestData, mockTestId: 7 } })
+        ?.test
+    ).not.toHaveProperty("mockTestId");
+  });
+
   it("parses an in-progress attempt without scoring fields", () => {
     const parsed = parseAttemptDetails({
       attemptId: "a1",

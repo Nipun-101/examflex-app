@@ -10,6 +10,11 @@ export function examHubPath(examId: string): string {
   return `/mocks/exam/${encodeURIComponent(examId)}`;
 }
 
+/** Mistake Book review for one paper: `/mistake-book/:mockTestId`. */
+export function mistakeBookPath(mockTestId: string): string {
+  return `/mistake-book/${encodeURIComponent(mockTestId)}`;
+}
+
 /** Attempt runner / results: `/mocks/attempt/:attemptId`. */
 export function attemptPath(attemptId: string): string {
   return `/mocks/attempt/${encodeURIComponent(attemptId)}`;

@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { AnswerKeyList } from "@/components/attempt/answer-key-list";
 import { LanguageToggle } from "@/components/attempt/language-toggle";
+import { MistakeBookCta } from "@/components/attempt/mistake-book-cta";
 import { PerformanceBadge } from "@/components/attempt/performance-badge";
 import {
   ResultsQuestionMap,
@@ -415,6 +416,10 @@ export function MockTestResults({
         <div className="lg:grid lg:grid-cols-[minmax(18rem,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 xl:gap-8">
           <aside className="mb-5 space-y-4 lg:sticky lg:top-4 lg:mb-0 lg:self-start">
             {summaryCard}
+            <MistakeBookCta
+              mockTestId={mockTestData.mockTestId}
+              mistakeCount={result.incorrectAnswers + result.unansweredQuestions}
+            />
             {answerKeyAvailable ? (
               <ResultsQuestionMap items={mapItems} onJump={jumpToQuestion} />
             ) : null}

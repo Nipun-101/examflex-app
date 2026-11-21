@@ -79,6 +79,8 @@ export interface AttemptTopicRef {
 }
 
 export interface AttemptMockTestData {
+  /** Paper this attempt belongs to; present on attempt details (results page). */
+  mockTestId?: string;
   title: string | null;
   durationInMinutes: number;
   totalQuestions: number;

@@ -34,6 +34,7 @@ export function adaptAttemptDetailsToResults(
   const { test } = details;
 
   const mockTestData: AttemptMockTestData = {
+    ...optionalField("mockTestId", test.mockTestId),
     title: test.title,
     durationInMinutes: test.durationInMinutes,
     totalQuestions: test.totalQuestions,
