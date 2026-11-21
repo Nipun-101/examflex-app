@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import { Check, Pause, Play } from "lucide-react";
 import { StudyButton } from "@/components/study/study-button";
 import { countStatus } from "@/lib/mocks/question-status";
@@ -54,6 +55,34 @@ function statusStyle(
   return undefined;
 }
 
+/**
+ * Shapes follow the exam-interface convention: not visited = rounded square,
+ * not answered / answered = trapezoid (wide top, narrow bottom), marked and
+ * marked-answered = circle. Shape only; colours live in STATUS_CLASS.
+ * clip-path would cut off box-shadow, so the current question (which draws a
+ * ring) keeps a ring-friendly shape: a circle if it is marked, else a rounded
+ * square.
+ */
+const SQUARE_SHAPE = "rounded-lg";
+const CIRCLE_SHAPE = "rounded-full";
+const TRAPEZOID_SHAPE =
+  "rounded-sm [clip-path:polygon(0_0,100%_0,86%_100%,14%_100%)]";
+
+const SHAPE_CLASS: Record<QuestionStatus, string> = {
+  "not-visited": SQUARE_SHAPE,
+  "not-answered": TRAPEZOID_SHAPE,
+  answered: TRAPEZOID_SHAPE,
+  marked: CIRCLE_SHAPE,
+  "marked-answered": CIRCLE_SHAPE,
+};
+
+function shapeClass(status: QuestionStatus, isCurrent: boolean): string {
+  if (!isCurrent) return SHAPE_CLASS[status];
+  return status === "marked" || status === "marked-answered"
+    ? CIRCLE_SHAPE
+    : SQUARE_SHAPE;
+}
+
 const CURRENT_CLASS =
   "bg-study-lime text-study-ink ring-2 ring-study-ink ring-offset-2 hover:brightness-95";
 
@@ -87,6 +116,23 @@ export function QuestionPalette({
   onSubmit,
   submitLabel,
 }: QuestionPaletteProps) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const currentRef = useRef<HTMLButtonElement>(null);
+
+  // When the palette opens, bring the row holding the active question to the
+  // top of the question list. Only the list scrolls (not the page or the
+  // surrounding panel), and only on open, so later manual scrolling is kept.
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current;
+    const current = currentRef.current;
+    if (!scroller || !current) return;
+    const offset =
+      current.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top -
+      parseFloat(getComputedStyle(scroller).paddingTop || "0");
+    scroller.scrollTop += offset;
+  }, []);
+
   const renderQuestionButton = (index: number) => {
     const status = statuses[index];
     if (!status) return null;
@@ -94,13 +140,15 @@ export function QuestionPalette({
     return (
       <button
         key={index}
+        ref={isCurrent ? currentRef : undefined}
         type="button"
         onClick={() => onSelect(index)}
         aria-label={`Question ${index + 1}, ${STATUS_LABEL[status]}`}
         {...(isCurrent ? { "aria-current": "true" as const } : {})}
-        className={`relative h-11 cursor-pointer rounded-md text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${
-          isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]
-        }`}
+        className={`relative h-11 cursor-pointer text-sm font-bold shadow-sm transition-colors lg:h-10 lg:text-[13px] ${shapeClass(
+          status,
+          isCurrent,
+        )} ${isCurrent ? CURRENT_CLASS : STATUS_CLASS[status]}`}
         style={isCurrent ? undefined : statusStyle(status)}
       >
         {index + 1}
@@ -142,7 +190,7 @@ export function QuestionPalette({
             {LEGEND.map(({ status, label }) => (
               <li key={status} className="flex min-w-0 items-center gap-2.5">
                 <span
-                  className={`relative grid h-7 w-7 shrink-0 place-items-center rounded-md text-xs font-bold shadow-sm ${STATUS_CLASS[status]}`}
+                  className={`relative grid h-7 w-7 shrink-0 place-items-center text-xs font-bold shadow-sm ${SHAPE_CLASS[status]} ${STATUS_CLASS[status]}`}
                   style={statusStyle(status)}
                 >
                   {countStatus(statuses, status)}
@@ -163,7 +211,10 @@ export function QuestionPalette({
             {sectionTitle ? `${sectionTitle} :` : "Question Palette:"}
           </h3>
           {groups ? (
-            <div className="max-h-[18.75rem] space-y-4 overflow-y-auto p-1.5">
+            <div
+              ref={scrollerRef}
+              className="max-h-[18.75rem] space-y-4 overflow-y-auto p-1.5"
+            >
               {groups.map((group) => (
                 <div
                   key={group.id}
@@ -184,7 +235,10 @@ export function QuestionPalette({
               ))}
             </div>
           ) : (
-            <div className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5">
+            <div
+              ref={scrollerRef}
+              className="grid max-h-[18.75rem] grid-cols-5 gap-2.5 overflow-y-auto p-1.5"
+            >
               {statuses.map((_, index) => renderQuestionButton(index))}
             </div>
           )}

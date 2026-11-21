@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Flag, LayoutGrid, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flag, X } from "lucide-react";
 import { useStudyRouter } from "@/hooks/use-study-router";
 import { AttemptErrorState } from "@/components/attempt/attempt-error-state";
 import { AttemptHeader } from "@/components/attempt/attempt-header";
@@ -9,6 +9,7 @@ import { AttemptModal } from "@/components/attempt/attempt-modal";
 import { ExitDialog } from "@/components/attempt/exit-dialog";
 import { MathpixBoundary } from "@/components/attempt/mathpix-boundary";
 import { PauseOverlay } from "@/components/attempt/pause-overlay";
+import { PaletteToggleButton } from "@/components/attempt/palette-toggle-button";
 import { QuestionPalette } from "@/components/attempt/question-palette";
 import { buildPaletteGroups } from "@/lib/mocks/palette-groups";
 import { QuestionPanel } from "@/components/attempt/question-panel";
@@ -572,14 +573,10 @@ export function MockTestRunner({
               <ChevronLeft className="h-4 w-4" aria-hidden />
               Prev
             </StudyButton>
-            <StudyButton
-              variant="outline"
+            <PaletteToggleButton
               onClick={() => setMobilePaletteOpen(true)}
-              aria-label="Open question palette"
-              className="inline-flex h-12 w-12 items-center justify-center rounded-[10px]"
-            >
-              <LayoutGrid className="h-5 w-5" aria-hidden />
-            </StudyButton>
+              notVisitedCount={summary.notVisited}
+            />
             {forwardButton}
           </div>
         </nav>
