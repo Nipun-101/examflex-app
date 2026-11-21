@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import { describe, expect, it } from "vitest";
 import { AttemptImage } from "@/components/attempt/attempt-image";
 
@@ -42,4 +43,20 @@ describe("AttemptImage", () => {
       "https://cdn/new.png"
     );
   });
+
+  it("tells a wrapper when the picture fails to load", () => {
+    const onLoadError = vi.fn();
+    render(<AttemptImage src="https://cdn/bad.png" alt="Diagram" onLoadError={onLoadError} />);
+    fireEvent.error(screen.getByRole("img", { name: "Diagram" }));
+    expect(onLoadError).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+  });
+
+  it("works without a callback", () => {
+    render(<AttemptImage src="https://cdn/bad.png" alt="Diagram" />);
+    expect(() =>
+      fireEvent.error(screen.getByRole("img", { name: "Diagram" }))
+    ).not.toThrow();
+  });
 });
+

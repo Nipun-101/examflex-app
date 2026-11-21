@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MathpixBoundary } from "@/components/attempt/mathpix-boundary";
@@ -278,7 +278,10 @@ describe("EquationFlipCard", () => {
         name: "Net force on a free body? illustration",
       });
       expect(picture).toHaveClass("max-w-full", "max-h-80", "w-auto", "h-auto");
-      expect(picture.parentElement).toHaveClass("min-w-0", "justify-center");
+      // thumbnail button shrinks with the card; its row centres it
+      const button = picture.closest("button") as HTMLElement;
+      expect(button).toHaveClass("max-w-full", "min-w-0");
+      expect(button.parentElement).toHaveClass("min-w-0", "justify-center");
     });
 
     it("loads the picture right away (it is already on screen when revealed)", () => {
@@ -296,6 +299,24 @@ describe("EquationFlipCard", () => {
       );
       // the rest of the card is unaffected
       expect(screen.getByText(/Memory trick/i)).toBeInTheDocument();
+    });
+
+    it("lets the student open the picture full size, outside the 3D card", async () => {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const { container } = renderCard();
+      await user.click(
+        screen.getByRole("button", {
+          name: "View Net force on a free body? illustration full size",
+        })
+      );
+      const dialog = screen.getByRole("dialog", { name: "Net force on a free body?" });
+      expect(dialog).toBeInTheDocument();
+      expect(container.querySelector(".equation-flip-scene")).not.toContainElement(dialog);
+      expect(
+        within(dialog).getByRole("img", { name: /full size/ })
+      ).toHaveAttribute("src", "https://cdn/force-diagram.png");
+      await user.keyboard("{Escape}");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
     it("renders no picture block for an equation without one", () => {

@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mathpixModuleStub } from "@/test-utils/mock-mathpix";
 
@@ -161,6 +162,25 @@ describe("EquationBrowseView", () => {
     // fits its card instead of widening it
     expect(picture).toHaveClass("max-w-full", "max-h-60", "w-auto");
     expect(within(without).queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      within(without).queryByRole("button", { name: /full size/ })
+    ).not.toBeInTheDocument();
+
+    // opens full size on request
+    const user = userEvent.setup();
+    await user.click(
+      within(withImage).getByRole("button", {
+        name: "View Net force on a free body? illustration full size",
+      })
+    );
+    const dialog = screen.getByRole("dialog", { name: "Net force on a free body?" });
+    expect(within(dialog).getByRole("img", { name: /full size/ })).toHaveAttribute(
+      "src",
+      "https://cdn/force-diagram.png"
+    );
+    expect(withImage).not.toContainElement(dialog);
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("shows the equation book empty state when there is no data", async () => {

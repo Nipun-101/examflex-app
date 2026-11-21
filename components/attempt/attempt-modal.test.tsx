@@ -146,4 +146,47 @@ describe("AttemptModal", () => {
     expect(() => unmount()).not.toThrow();
     spy.mockRestore();
   });
+
+  describe("variants", () => {
+    it("sizes the lightbox to its content and caps it to the viewport", () => {
+      setup({ variant: "lightbox" });
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveClass(
+        "w-auto",
+        "max-h-[94dvh]",
+        "max-w-[min(96vw,64rem)]",
+        "overflow-auto"
+      );
+      expect(dialog).not.toHaveClass("max-w-lg", "w-full");
+      // centred with a small gutter like the default dialog
+      expect(dialog.parentElement).toHaveClass("items-center", "justify-center");
+    });
+
+    it("keeps the default dialog and the sheet exactly as before", () => {
+      const { unmount } = render(
+        <AttemptModal open onClose={vi.fn()} labelledBy="t">
+          <h2 id="t">T</h2>
+        </AttemptModal>
+      );
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toHaveClass("max-w-lg", "w-full", "max-h-[90dvh]", "overflow-y-auto", "p-5");
+      expect(dialog).not.toHaveClass("max-w-[min(96vw,64rem)]");
+      unmount();
+
+      render(
+        <AttemptModal open onClose={vi.fn()} labelledBy="t" variant="sheet">
+          <h2 id="t">T</h2>
+        </AttemptModal>
+      );
+      const sheet = screen.getByRole("dialog");
+      expect(sheet).toHaveClass("h-full", "w-[88%]", "max-w-sm");
+      expect(sheet.parentElement).toHaveClass("justify-end");
+    });
+
+    it("appends custom panel classes for every variant", () => {
+      setup({ variant: "lightbox", panelClassName: "extra-panel" });
+      expect(screen.getByRole("dialog")).toHaveClass("extra-panel");
+    });
+  });
 });
+

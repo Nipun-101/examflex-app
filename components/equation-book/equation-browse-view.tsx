@@ -7,7 +7,7 @@ import {
   MathpixBoundary,
   preloadMathpix,
 } from "@/components/attempt/mathpix-boundary";
-import { AttemptImage } from "@/components/attempt/attempt-image";
+import { EquationImage } from "@/components/equation-book/equation-image";
 import { MathText } from "@/components/attempt/math-text";
 import { EquationEmptyState } from "@/components/equation-book/equation-empty-state";
 import { SubjectTabs } from "@/components/equation-book/subject-tabs";
@@ -226,9 +226,9 @@ export function EquationBrowseView() {
                   </div>
                   {item.imageUrl ? (
                     <div className="mt-4 flex min-w-0 justify-center">
-                      <AttemptImage
+                      <EquationImage
                         src={item.imageUrl}
-                        alt={`${item.title} illustration`}
+                        title={item.title}
                         className="max-h-60 w-auto"
                       />
                     </div>

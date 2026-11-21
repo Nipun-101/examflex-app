@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { FlipHorizontal2 } from "lucide-react";
-import { AttemptImage } from "@/components/attempt/attempt-image";
+import { EquationImage } from "@/components/equation-book/equation-image";
 import { MathText } from "@/components/attempt/math-text";
 import { EQUATION_BOOK_COPY } from "@/types/equation-book";
 import type { EquationItem } from "@/types/equation-book";
@@ -136,9 +136,9 @@ export function EquationFlipCard({
 
               {card.imageUrl ? (
                 <div className="mt-4 flex min-w-0 justify-center">
-                  <AttemptImage
+                  <EquationImage
                     src={card.imageUrl}
-                    alt={`${card.title} illustration`}
+                    title={card.title}
                     loading="eager"
                     className="max-h-80 w-auto"
                   />

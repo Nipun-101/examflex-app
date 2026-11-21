@@ -8,8 +8,11 @@ type AttemptModalProps = {
   onClose: () => void;
   labelledBy: string;
   describedBy?: string;
-  /** `sheet` slides in from the right (mobile palette). */
-  variant?: "dialog" | "sheet";
+  /**
+   * `sheet` slides in from the right (mobile palette). `lightbox` shrink-wraps
+   * its content (a picture) and never exceeds the viewport.
+   */
+  variant?: "dialog" | "sheet" | "lightbox";
   dismissible?: boolean;
   /** Extra classes for the dialog panel (e.g. wider booking forms). */
   panelClassName?: string;
@@ -74,6 +77,11 @@ export function AttemptModal({
   }
 
   const isSheet = variant === "sheet";
+  const panelClass = isSheet
+    ? `h-full w-[88%] max-w-sm overflow-y-auto bg-white p-4 shadow-lift outline-none sm:p-5 ${panelClassName}`
+    : variant === "lightbox"
+      ? `max-h-[94dvh] w-auto max-w-[min(96vw,64rem)] overflow-auto rounded-[20px] border border-study-divider bg-white p-3 shadow-lift outline-none sm:p-4 ${panelClassName}`
+      : `max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-study-divider bg-white p-5 shadow-lift outline-none sm:p-6 ${panelClassName}`;
 
   return (
     <div
@@ -92,11 +100,7 @@ export function AttemptModal({
         {...(describedBy ? { "aria-describedby": describedBy } : {})}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
-        className={
-          isSheet
-            ? `h-full w-[88%] max-w-sm overflow-y-auto bg-white p-4 shadow-lift outline-none sm:p-5 ${panelClassName}`.trim()
-            : `max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-[20px] border border-study-divider bg-white p-5 shadow-lift outline-none sm:p-6 ${panelClassName}`.trim()
-        }
+        className={panelClass.trim()}
       >
         {children}
       </div>
