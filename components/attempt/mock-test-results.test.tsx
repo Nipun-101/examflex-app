@@ -1,10 +1,11 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { MockTestResults } from "@/components/attempt/mock-test-results";
 import { adaptAttemptDetailsToResults } from "@/lib/mocks/adapt-results";
 import {
   makeDetails,
+  makeDetailsQuestion,
   makeMockTestData,
   makeQuestion,
   makeSession,
@@ -47,6 +48,14 @@ describe("MockTestResults", () => {
     expect(within(summary).getByText("Correct")).toBeInTheDocument();
     expect(within(summary).getByText("Wrong")).toBeInTheDocument();
     expect(within(summary).getByText("Skipped")).toBeInTheDocument();
+  });
+
+  it("links the summary card to the analysis page", () => {
+    renderAdapted();
+    const summary = screen.getByRole("region", { name: "Score summary" });
+    expect(
+      within(summary).getByRole("link", { name: /See your full analysis/ })
+    ).toHaveAttribute("href", "/analysis");
   });
 
   describe("Mistake Book shortcut", () => {
@@ -279,43 +288,88 @@ describe("MockTestResults", () => {
       ],
     } satisfies Parameters<typeof makeDetails>[0];
 
-    it("shows section-wise scores and filters the answer key", async () => {
+    function filterRows() {
+      return {
+        status: screen.getByRole("group", {
+          name: "Filter answer key by result",
+        }),
+        subjects: screen.getByRole("group", {
+          name: "Filter answer key by subject",
+        }),
+      };
+    }
+
+    it("groups the map by subject with per-subject counts", () => {
       renderAdapted(sessionDetails);
       expect(
-        screen.getByRole("heading", { name: "Section-wise score" })
+        screen.getByRole("heading", { name: "Physics · 1–2" })
       ).toBeInTheDocument();
-      expect(screen.getByText("10m 0s")).toBeInTheDocument();
-
-      const filter = screen.getByRole("group", {
-        name: "Filter answer key by section",
-      });
       expect(
-        within(filter).getByRole("button", { name: "All sections (3)" })
-      ).toHaveAttribute("aria-pressed", "true");
+        screen.getByText("1 correct · 1 wrong · 0 skipped")
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("heading", { name: "Section-wise score" })
+      ).not.toBeInTheDocument();
+    });
+
+    it("selects one subject at a time and clears it on a second tap", async () => {
+      renderAdapted(sessionDetails);
+      const { subjects } = filterRows();
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
 
       await userEvent.click(
-        within(filter).getByRole("button", { name: "Chemistry (1)" })
+        within(subjects).getByRole("button", { name: "Chemistry" })
       );
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
       expect(screen.getByText("Question 3")).toBeInTheDocument();
 
       await userEvent.click(
-        within(filter).getByRole("button", { name: "All sections (3)" })
+        within(subjects).getByRole("button", { name: "Physics" })
+      );
+      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(2);
+      expect(
+        within(subjects).getByRole("button", { name: "Chemistry" })
+      ).toHaveAttribute("aria-pressed", "false");
+
+      await userEvent.click(
+        within(subjects).getByRole("button", { name: "Physics" })
       );
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
     });
 
-    it("lets section cards drive the filter", async () => {
+    it("combines the result row with the subject row", async () => {
       renderAdapted(sessionDetails);
-      const cards = screen.getAllByRole("button", { name: /Physics/ });
-      const card = cards.find((button) => button.textContent?.includes("Correct"));
-      expect(card).toBeDefined();
-      await userEvent.click(card as HTMLElement);
-      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(2);
+      const { status, subjects } = filterRows();
+
+      await userEvent.click(
+        within(subjects).getByRole("button", { name: "Physics" })
+      );
+      await userEvent.click(
+        within(status).getByRole("button", { name: "Wrong 1" })
+      );
+      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
+      expect(screen.getByText("Question 2")).toBeInTheDocument();
+      expect(screen.getByText("Showing 1 of 3")).toBeInTheDocument();
+
+      // Skipped lives in Chemistry only: Physics + Skipped is empty.
+      await userEvent.click(
+        within(status).getByRole("button", { name: "Skipped 1" })
+      );
+      expect(
+        screen.getAllByText("No questions match these filters.").length
+      ).toBeGreaterThan(0);
+
+      await userEvent.click(
+        screen.getAllByRole("button", { name: "Clear filters" })[0] as HTMLElement
+      );
+      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
+      expect(within(status).getByRole("button", { name: "All 3" })).toHaveAttribute(
+        "aria-pressed",
+        "true"
+      );
     });
 
-    it("shows the whole key if the selected section disappears", async () => {
+    it("shows the whole key if the selected subject disappears", async () => {
       const first = adaptAttemptDetailsToResults(makeDetails(sessionDetails));
       const { rerender } = render(
         <MockTestResults
@@ -325,9 +379,7 @@ describe("MockTestResults", () => {
           answerKeyAvailable
         />
       );
-      await userEvent.click(
-        screen.getByRole("button", { name: "Chemistry (1)" })
-      );
+      await userEvent.click(screen.getByRole("button", { name: "Chemistry" }));
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
 
       const next = adaptAttemptDetailsToResults(
@@ -360,7 +412,7 @@ describe("MockTestResults", () => {
       expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
     });
 
-    it("does not show sections for a single session", () => {
+    it("does not show subjects for a single session", () => {
       renderAdapted({
         isSessionWise: true,
         sessions: [
@@ -370,7 +422,167 @@ describe("MockTestResults", () => {
           }),
         ],
       });
-      expect(screen.queryByText("Section-wise score")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("group", { name: "Filter answer key by subject" })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("papers without sessions", () => {
+    it("builds the subject chips from each question's subject", async () => {
+      renderAdapted({
+        questions: [
+          makeDetailsQuestion("q1", { subject: "id-Physics", subjectName: "Physics", correctAnswer: "q1-a" }),
+          makeDetailsQuestion("q2", { subject: "id-Physics", subjectName: "Physics", correctAnswer: "q2-a" }),
+          makeDetailsQuestion("q3", { subject: "id-Chemistry", subjectName: "Chemistry", correctAnswer: "q3-a" }),
+        ],
+      });
+      const subjects = screen.getByRole("group", {
+        name: "Filter answer key by subject",
+      });
+      expect(
+        within(subjects)
+          .getAllByRole("button")
+          .map((button) => button.textContent)
+      ).toEqual(["Physics", "Chemistry"]);
+
+      await userEvent.click(
+        within(subjects).getByRole("button", { name: "Chemistry" })
+      );
+      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
+      await userEvent.click(
+        within(subjects).getByRole("button", { name: "Chemistry" })
+      );
+      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(3);
+    });
+
+    it("never shows raw subject ids when names are missing", () => {
+      renderAdapted({
+        questions: [
+          makeDetailsQuestion("q1", { subject: "id-1", correctAnswer: "q1-a" }),
+          makeDetailsQuestion("q2", { subject: "id-2", correctAnswer: "q2-a" }),
+        ],
+      });
+      expect(
+        screen.queryByRole("group", { name: "Filter answer key by subject" })
+      ).not.toBeInTheDocument();
+    });
+
+    it("shows no subject strip for a single-subject chapter test", () => {
+      renderAdapted({
+        questions: [
+          makeDetailsQuestion("q1", { subject: "id-Physics", subjectName: "Physics", correctAnswer: "q1-a" }),
+          makeDetailsQuestion("q2", { subject: "id-Physics", subjectName: "Physics", correctAnswer: "q2-a" }),
+          makeDetailsQuestion("q3", { subject: "id-Physics", subjectName: "Physics", correctAnswer: "q3-a" }),
+        ],
+      });
+      expect(
+        screen.queryByRole("group", { name: "Filter answer key by subject" })
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe("phone question map", () => {
+    it("opens a sheet with the map, filters and Mistake Book button, and closes on Escape", async () => {
+      renderAdapted({
+        test: { ...makeDetails().test, mockTestId: "mock-77" },
+      });
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      const pill = screen.getByRole("button", { name: /Question map/ });
+      expect(pill).toHaveTextContent("Q1 / 3");
+      await userEvent.click(pill);
+
+      const sheet = screen.getByRole("dialog", { name: "Question map" });
+      expect(
+        within(sheet).getByRole("button", { name: "Wrong 1" })
+      ).toBeInTheDocument();
+      expect(
+        within(sheet).getByRole("link", { name: /Review mistakes · 2/ })
+      ).toHaveAttribute("href", "/mistake-book/mock-77");
+      expect(within(sheet).getByText("You are here")).toBeInTheDocument();
+
+      await userEvent.keyboard("{Escape}");
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("filters from the sheet and closes after jumping to a question", async () => {
+      const scrollIntoView = vi.fn();
+      window.HTMLElement.prototype.scrollIntoView = scrollIntoView;
+      renderAdapted();
+      await userEvent.click(screen.getByRole("button", { name: /Question map/ }));
+      const sheet = screen.getByRole("dialog", { name: "Question map" });
+
+      await userEvent.click(
+        within(sheet).getByRole("button", { name: "Wrong 1" })
+      );
+      expect(screen.getAllByText(/^Question \d$/)).toHaveLength(1);
+
+      await userEvent.click(
+        within(sheet).getByRole("button", { name: "Question 2, wrong" })
+      );
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(scrollIntoView).toHaveBeenCalled();
+    });
+
+    it("pins a compact summary once the result card scrolls away", () => {
+      let notify: IntersectionObserverCallback = () => {};
+      class FakeObserver {
+        constructor(callback: IntersectionObserverCallback) {
+          notify = callback;
+        }
+        observe() {}
+        disconnect() {}
+        unobserve() {}
+        takeRecords() {
+          return [];
+        }
+      }
+      vi.stubGlobal("IntersectionObserver", FakeObserver);
+      try {
+        renderAdapted();
+        expect(
+          screen.queryByRole("region", { name: "Score summary bar" })
+        ).not.toBeInTheDocument();
+
+        act(() => {
+          notify(
+            [
+              {
+                isIntersecting: false,
+                boundingClientRect: { bottom: -40 },
+              } as IntersectionObserverEntry,
+            ],
+            {} as IntersectionObserver
+          );
+        });
+        const bar = screen.getByRole("region", { name: "Score summary bar" });
+        expect(within(bar).getByText("Test Completed")).toBeInTheDocument();
+
+        act(() => {
+          notify(
+            [
+              {
+                isIntersecting: true,
+                boundingClientRect: { bottom: 120 },
+              } as IntersectionObserverEntry,
+            ],
+            {} as IntersectionObserver
+          );
+        });
+        expect(
+          screen.queryByRole("region", { name: "Score summary bar" })
+        ).not.toBeInTheDocument();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+    it("has no map pill when the answer key is hidden", () => {
+      renderAdapted({ questions: [makeQuestion("q1")] });
+      expect(
+        screen.queryByRole("button", { name: /Question map/ })
+      ).not.toBeInTheDocument();
     });
   });
 });

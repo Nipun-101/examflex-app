@@ -35,28 +35,28 @@ export function SubjectInsightsCard({
       ) : null}
 
       <div className="mt-5 flex min-h-0 flex-1 gap-6 lg:items-stretch">
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="@container flex min-w-0 flex-1 flex-col">
           <ul className="divide-y divide-study-divider border-t border-study-divider">
             {section.items.map((insight) => (
               <li
                 key={insight.subject}
-                className="grid grid-cols-[minmax(0,1fr)_auto_minmax(4.5rem,7rem)] items-center gap-3 py-3.5 sm:grid-cols-[7.5rem_minmax(5rem,auto)_minmax(0,1fr)_minmax(5rem,8rem)] sm:gap-4"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 py-3.5 @2xl:grid-cols-[7.5rem_minmax(5rem,auto)_minmax(0,1fr)_minmax(5rem,8rem)] @2xl:gap-4"
               >
                 <span className="text-[0.9375rem] font-semibold text-study-ink">
                   {insight.subject}
                 </span>
-                <span className="text-[0.9375rem] tabular-nums text-study-muted-soft sm:text-study-ink">
+                <span className="text-[0.9375rem] tabular-nums text-study-muted-soft @2xl:text-study-ink">
                   {insight.scoreLabel}
                 </span>
                 {insight.tip && !isEmpty ? (
-                  <span className="col-span-3 text-sm leading-[1.4] text-study-muted-soft sm:col-span-1 sm:col-start-3">
+                  <span className="col-span-2 text-sm leading-[1.4] text-study-muted-soft @2xl:col-span-1 @2xl:col-start-3">
                     {insight.tip}
                   </span>
                 ) : (
-                  <span className="hidden sm:col-start-3 sm:block" />
+                  <span className="hidden @2xl:col-start-3 @2xl:block" />
                 )}
                 <div
-                  className="col-start-3 h-2 overflow-hidden rounded-full bg-[#efe8df] sm:col-start-4"
+                  className="col-span-2 h-2 overflow-hidden rounded-full bg-[#efe8df] @2xl:col-span-1 @2xl:col-start-4"
                   aria-hidden
                 >
                   <div

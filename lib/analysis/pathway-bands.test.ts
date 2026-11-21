@@ -4,6 +4,7 @@ import {
   describePathwayBasis,
   formatMarks,
   pathwayBarGeometry,
+  pathwayProgressColor,
 } from "@/lib/analysis/pathway-bands";
 
 describe("pathwayBarGeometry", () => {
@@ -131,5 +132,58 @@ describe("PATHWAY_BAND_LABEL", () => {
       borderline: "Within reach",
       comfortable: "Looking solid",
     });
+  });
+});
+
+describe("pathwayProgressColor", () => {
+  it("is red at zero and the app green once the cut-off is reached or passed", () => {
+    expect(pathwayProgressColor(0, 100)).toBe("rgb(200, 40, 45)");
+    expect(pathwayProgressColor(100, 100)).toBe("rgb(23, 107, 86)");
+    expect(pathwayProgressColor(150, 100)).toBe("rgb(23, 107, 86)");
+  });
+
+  it("gives different colours for 10, 25 and 90 out of 100", () => {
+    const colors = [10, 25, 90].map((marks) => pathwayProgressColor(marks, 100));
+    expect(new Set(colors).size).toBe(3);
+  });
+
+  it("depends on the ratio, not the absolute marks", () => {
+    expect(pathwayProgressColor(25, 100)).toBe(pathwayProgressColor(250, 1000));
+  });
+
+  it("changes shade every 5% and holds it within a step", () => {
+    const at = (percent: number) => pathwayProgressColor(percent, 100);
+    expect(at(10)).toBe(at(14.9));
+    expect(at(15)).not.toBe(at(14.9));
+    expect(at(0)).toBe(at(4.9));
+    const shades = Array.from({ length: 21 }, (_, step) => at(step * 5));
+    expect(new Set(shades).size).toBe(21);
+    expect(at(99)).toBe(at(95));
+    expect(at(100)).toBe("rgb(23, 107, 86)");
+  });
+
+  it("separates students with the same marks but different cut-offs", () => {
+    // Same 64.7 marks: MBBS cut-off 586.7 vs Ayush cut-off 430.
+    const mbbs = pathwayProgressColor(64.7, 586.7);
+    const ayush = pathwayProgressColor(64.7, 430);
+    expect(mbbs).not.toBe(ayush);
+    const green = (value: string) => Number((value.match(/\d+/g) ?? [])[1]);
+    expect(green(ayush) - green(mbbs)).toBeGreaterThanOrEqual(40);
+  });
+
+  it("shifts from red toward green as the ratio grows", () => {
+    const channels = (value: string) =>
+      (value.match(/\d+/g) ?? []).map(Number) as [number, number, number];
+    const [r10, g10] = channels(pathwayProgressColor(10, 100));
+    const [r90, g90] = channels(pathwayProgressColor(90, 100));
+    expect(g90).toBeGreaterThan(g10);
+    expect(r90).toBeLessThan(r10);
+    expect(g10).toBeLessThan(110); // still reads as red at 10%
+  });
+
+  it("is safe for a missing cut-off and for negative or non-finite marks", () => {
+    expect(pathwayProgressColor(50, 0)).toBe("rgb(23, 107, 86)");
+    expect(pathwayProgressColor(-5, 100)).toBe("rgb(200, 40, 45)");
+    expect(pathwayProgressColor(Number.NaN, 100)).toBe("rgb(200, 40, 45)");
   });
 });

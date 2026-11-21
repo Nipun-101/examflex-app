@@ -136,7 +136,7 @@ function PaperScoreRing({
     <div
       role="img"
       aria-label={`Best score ${correct} out of ${total}`}
-      className="relative size-[4.5rem] shrink-0"
+      className="relative size-[6.5rem] shrink-0"
     >
       <svg className="size-full" viewBox="0 0 100 100" aria-hidden>
         <circle
@@ -163,7 +163,7 @@ function PaperScoreRing({
         ) : null}
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-display text-base font-bold tabular-nums text-study-ink">
+        <span className="font-display text-sm font-bold tabular-nums text-study-ink">
           {correct}/{total}
         </span>
       </div>

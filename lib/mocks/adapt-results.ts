@@ -60,6 +60,7 @@ export function adaptAttemptDetailsToResults(
     ...optionalField("optionType", q.optionType),
     options: q.options,
     subject: q.subject,
+    ...optionalField("subjectName", q.subjectName),
     ...optionalField("topic", q.topic),
     ...optionalField("difficultyLevel", q.difficultyLevel),
     ...optionalField("sessionOrder", q.sessionOrder),
@@ -149,4 +150,44 @@ export function buildSectionBreakdown(
       };
     })
     .filter((section) => section.questionIds.length > 0);
+}
+
+/**
+ * Per-subject tallies from each question's own subject, in order of first
+ * appearance. Used when a paper has no sessions (e.g. a full mock served as one
+ * sitting). Questions are grouped by subject id but labelled with the subject
+ * name. Returns [] unless at least two subjects exist, and when any question
+ * lacks a name (we never show raw ids), so a single-subject chapter test gets
+ * no subject strip.
+ */
+export function buildSubjectBreakdown(
+  questions: readonly AttemptQuestion[],
+  resultsByQuestion: ReadonlyMap<string, SubmittedQuestionResult>
+): SectionBreakdown[] {
+  const bySubject = new Map<string, SectionBreakdown>();
+  for (const question of questions) {
+    const id = question.subject?.trim();
+    const name = question.subjectName?.trim();
+    if (!id) continue;
+    if (!name) return [];
+    let group = bySubject.get(id);
+    if (!group) {
+      group = {
+        order: bySubject.size,
+        name,
+        questionIds: [],
+        correct: 0,
+        wrong: 0,
+        skipped: 0,
+        timeConsumed: 0,
+      };
+      bySubject.set(id, group);
+    }
+    group.questionIds.push(question._id);
+    const qResult = resultsByQuestion.get(question._id);
+    if (!qResult?.selectedOption) group.skipped += 1;
+    else if (qResult.isCorrect) group.correct += 1;
+    else group.wrong += 1;
+  }
+  return bySubject.size > 1 ? [...bySubject.values()] : [];
 }

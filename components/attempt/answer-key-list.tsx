@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, CheckCircle2, ChevronDown, Minus, X, XCircle } from "lucide-react";
 import { AttemptImage } from "@/components/attempt/attempt-image";
 import { MathText } from "@/components/attempt/math-text";
@@ -36,6 +36,12 @@ type AnswerKeyListProps = {
   sectionByQuestionId: ReadonlyMap<string, string>;
   showSectionHeadings: boolean;
   language: AttemptLanguage;
+  /**
+   * Scroll to a question (1-based paper number). The list renders in slices,
+   * so it first makes sure the target has been rendered. `seq` lets the same
+   * question be requested twice.
+   */
+  jumpRequest?: { paperNumber: number; seq: number } | null;
 };
 
 const DIFFICULTY_CLASS: Record<AttemptDifficulty, string> = {
@@ -94,19 +100,20 @@ function AnswerKeyItem({
   return (
     <article
       id={answerKeyQuestionDomId(paperNumber)}
-      className="scroll-mt-24 rounded-[20px] border border-study-divider bg-white p-4 shadow-soft sm:p-5"
+      data-answer-key-q={paperNumber}
+      className="scroll-mt-24 rounded-[24px] border border-study-divider bg-white p-4 shadow-soft sm:p-[22px]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             role="img"
             aria-label={STATUS_LABEL[outcome]}
-            className={`grid size-8 shrink-0 place-items-center rounded-full ${
+            className={`grid size-9 shrink-0 place-items-center rounded-full ${
               outcome === "skipped"
-                ? "bg-study-canvas text-study-muted-soft"
+                ? "border-[1.5px] border-dashed border-[#afaa9a] bg-white text-study-muted-soft"
                 : outcome === "correct"
-                  ? "bg-study-mint text-study-green"
-                  : "bg-study-peach text-study-peach-ink"
+                  ? "bg-[#d5e8cf] text-study-green"
+                  : "bg-[#f4d6cb] text-[#8a3f2a]"
             }`}
           >
             {outcome === "skipped" ? (
@@ -123,14 +130,14 @@ function AnswerKeyItem({
         </div>
         {question.difficultyLevel ? (
           <span
-            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap capitalize ${DIFFICULTY_CLASS[question.difficultyLevel]}`}
+            className={`rounded-[12px] px-3 py-[5px] text-[11px] font-semibold whitespace-nowrap capitalize ${DIFFICULTY_CLASS[question.difficultyLevel]}`}
           >
             {question.difficultyLevel}
           </span>
         ) : null}
       </div>
 
-      <div className="mt-3 min-w-0 text-sm font-medium text-study-ink sm:text-[0.9375rem]">
+      <div className="mt-3.5 min-w-0 text-[15px] leading-normal font-medium text-study-ink sm:text-base">
         <MathText text={questionStem(question, language)} />
         {questionImage ? (
           <AttemptImage src={questionImage} alt="Question" className="mt-3" />
@@ -138,7 +145,7 @@ function AnswerKeyItem({
       </div>
 
       {!expanded ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-[12px] border border-study-divider bg-study-canvas/80 px-3 py-2.5">
+        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 rounded-[16px] border border-study-divider bg-[#f3f0e8] px-4 py-3">
           <div className="min-w-0 text-sm text-study-ink">
             {outcome === "skipped" ? (
               <>
@@ -198,7 +205,7 @@ function AnswerKeyItem({
           </button>
         </div>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div className="mt-3.5 space-y-3">
           {outcome !== "wrong" ? (
             <div className="flex justify-end">
               <button
@@ -221,28 +228,28 @@ function AnswerKeyItem({
               return (
                 <li
                   key={option.id}
-                  className={`relative rounded-[14px] border px-3 py-3 ${
+                  className={`relative min-h-[62px] rounded-[18px] border px-3.5 py-2.5 sm:min-h-[76px] sm:px-[18px] sm:py-3 ${
                     isCorrectAnswer
-                      ? "border-study-green/40 bg-study-mint"
+                      ? "border-study-green bg-[#e3eedc]"
                       : isUserAnswer
-                        ? "border-study-peach-ink/35 bg-study-peach"
+                        ? "border-[#d9a18f] bg-[#f4ddd2]"
                         : "border-study-divider bg-white"
                   }`}
                 >
-                  <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <span
                       aria-hidden
-                      className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold ${
+                      className={`grid size-[30px] shrink-0 place-items-center rounded-full text-sm font-bold sm:size-[34px] ${
                         isCorrectAnswer
                           ? "bg-study-green text-white"
                           : isUserAnswer
-                            ? "bg-study-peach-ink text-white"
-                            : "border border-study-divider bg-white text-study-muted-soft"
+                            ? "bg-[#8a3f2a] text-white"
+                            : "border-[1.5px] border-[#cfcabb] bg-white text-study-ink"
                       }`}
                     >
                       {letter}
                     </span>
-                    <div className="min-w-0 flex-1 pt-1">
+                    <div className="min-w-0 flex-1">
                       {isCorrectAnswer ? (
                         <span className="sr-only">Correct answer: </span>
                       ) : null}
@@ -263,14 +270,14 @@ function AnswerKeyItem({
                       />
                     </div>
                     {isCorrectAnswer ? (
-                      <span className="inline-flex shrink-0 items-center gap-1 pt-1 text-xs font-semibold text-study-green">
+                      <span className="inline-flex shrink-0 items-center gap-1.5 self-start text-xs font-semibold text-study-green">
                         <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                         Correct answer
                       </span>
                     ) : null}
                   </div>
                   {isUserAnswer && !isCorrectAnswer ? (
-                    <p className="mt-2 flex items-center justify-end gap-1 text-xs font-semibold text-study-peach-ink">
+                    <p className="mt-2 flex items-center justify-end gap-1.5 text-xs font-semibold text-[#8a3f2a]">
                       <XCircle className="h-3.5 w-3.5" aria-hidden />
                       Your answer
                     </p>
@@ -283,8 +290,8 @@ function AnswerKeyItem({
       )}
 
       {hasExplanation ? (
-        <div className="mt-4 rounded-[14px] border border-study-divider bg-study-canvas p-4">
-          <h4 className="mb-2 font-display text-sm font-bold text-study-ink">
+        <div className="mt-3.5 rounded-[18px] border border-study-divider bg-[#f3f0e8] p-[18px]">
+          <h4 className="mb-2 font-display text-[15px] font-bold text-study-ink">
             Explanation
           </h4>
           {explanationText ? (
@@ -313,22 +320,52 @@ export function AnswerKeyList({
   sectionByQuestionId,
   showSectionHeadings,
   language,
+  jumpRequest = null,
 }: AnswerKeyListProps) {
   // Reset the slice when the filtered list changes by remembering which list
-  // the count belongs to (state-during-render, not an effect).
+  // the count belongs to (state-during-render, not an effect). A jump request
+  // is handled the same way: widen the slice so the target gets rendered, then
+  // scroll to it in an effect once it is in the DOM.
   const [renderState, setRenderState] = useState(() => ({
     list: questions,
     count: Math.min(BATCH_SIZE, questions.length),
+    jumpSeq: 0,
+    pending: null as { paperNumber: number; seq: number } | null,
   }));
+  const scrolledSeq = useRef(0);
   let renderCount = renderState.count;
   if (renderState.list !== questions) {
     renderCount = Math.min(BATCH_SIZE, questions.length);
-    setRenderState({ list: questions, count: renderCount });
+    setRenderState({ ...renderState, list: questions, count: renderCount });
+  } else if (jumpRequest && jumpRequest.seq !== renderState.jumpSeq) {
+    const index = questions.findIndex(
+      (question) =>
+        (paperIndexById.get(question._id) ?? -1) + 1 ===
+        jumpRequest.paperNumber
+    );
+    renderCount = Math.max(renderCount, index + 1);
+    setRenderState({
+      ...renderState,
+      count: renderCount,
+      jumpSeq: jumpRequest.seq,
+      pending: index >= 0 ? jumpRequest : null,
+    });
   }
 
   useEffect(() => {
     preloadMathpix();
   }, []);
+
+  const pending = renderState.pending;
+  useEffect(() => {
+    if (!pending || scrolledSeq.current === pending.seq) return;
+    const element = document.getElementById(
+      answerKeyQuestionDomId(pending.paperNumber)
+    );
+    if (!element) return;
+    scrolledSeq.current = pending.seq;
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [pending, renderCount]);
 
   useEffect(() => {
     if (renderCount >= questions.length) return;

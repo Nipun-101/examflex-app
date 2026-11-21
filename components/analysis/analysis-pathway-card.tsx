@@ -3,6 +3,7 @@ import {
   describePathwayBasis,
   formatMarks,
   pathwayBarGeometry,
+  pathwayProgressColor,
 } from "@/lib/analysis/pathway-bands";
 import type { AnalysisPathway } from "@/types/analysis";
 
@@ -15,12 +16,6 @@ function bandBadgeClass(band: AnalysisPathway["band"]): string {
   if (band === "comfortable") return "bg-study-mint text-study-green";
   if (band === "borderline") return "bg-study-lilac text-study-lilac-ink";
   return "bg-study-peach text-study-peach-ink";
-}
-
-function bandFillClass(band: AnalysisPathway["band"]): string {
-  if (band === "comfortable") return "bg-study-green";
-  if (band === "borderline") return "bg-amber-400";
-  return "bg-rose-400";
 }
 
 function CardHeader({
@@ -151,8 +146,11 @@ export function AnalysisPathwayCard({
             aria-label={`Progress ${widthPercent}% toward ${pathway.title} minimum`}
           >
             <div
-              className={`h-full rounded-full transition-[width] ${bandFillClass(pathway.band)}`}
-              style={{ width: `${widthPercent}%` }}
+              className="h-full rounded-full transition-[width]"
+              style={{
+                width: `${widthPercent}%`,
+                backgroundColor: pathwayProgressColor(pathway.progress01, 1),
+              }}
             />
           </div>
         </div>
@@ -205,8 +203,11 @@ export function AnalysisPathwayCard({
           />
           <div
             data-testid="pathway-fill"
-            className={`absolute top-0 left-0 h-full rounded-full transition-[width] ${bandFillClass(pathway.band)}`}
-            style={{ width: `${geometry.fillPct}%` }}
+            className="absolute top-0 left-0 h-full rounded-full transition-[width,background-color]"
+            style={{
+              width: `${geometry.fillPct}%`,
+              backgroundColor: pathwayProgressColor(yourMarks, cutoffMarks),
+            }}
           />
           <div
             data-testid="pathway-cutoff-tick"
