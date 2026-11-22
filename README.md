@@ -152,6 +152,11 @@ Signed-in routes redirect to `/login` without a session. `/login` redirects to
   request.
 - New learners must finish onboarding (name, verified mobile number, target
   exam) before reaching the study area.
+- **Email verification** (not a sign-in method): learners without a real email
+  add one on `/profile` by proving it with an emailed code from the same MSG91
+  widget (email channel). The API reads the address from MSG91 and is the only
+  way to set it; `PATCH /users/me` rejects a new email. Design:
+  `examflex-api/docs/EMAIL_VERIFICATION.md`.
 
 ## Security headers
 

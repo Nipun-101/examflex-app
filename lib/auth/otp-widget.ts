@@ -90,7 +90,7 @@ export function loadOtpScript(): Promise<void> {
 export function initOtpWidget(captchaElementId: string): void {
   const init = window.initSendOTP;
   if (typeof init !== "function") {
-    throw new Error("Phone verification is not available.");
+    throw new Error("Verification is not available.");
   }
   const container = document.getElementById(captchaElementId);
   if (container) container.innerHTML = "";
@@ -124,7 +124,7 @@ export function waitForOtpMethods(
         return;
       }
       if (Date.now() - started > timeoutMs) {
-        reject(new Error("Phone verification did not start."));
+        reject(new Error("Verification did not start."));
         return;
       }
       window.setTimeout(check, 50);
@@ -219,7 +219,7 @@ function callWidget<T>(
 export function sendOtp(identifier: string): Promise<void> {
   const send = window.sendOtp;
   if (typeof send !== "function") {
-    return Promise.reject({ message: "Phone verification is not ready." });
+    return Promise.reject({ message: "Verification is not ready." });
   }
   return callWidget(
     (ok, fail) => send(identifier, ok, fail),
@@ -227,14 +227,20 @@ export function sendOtp(identifier: string): Promise<void> {
   );
 }
 
-/** Re-send the code over the widget's default channel (SMS). */
-export function resendOtp(): Promise<void> {
+/** MSG91 retry channel code for email (custom widget configuration). */
+export const EMAIL_RETRY_CHANNEL = "3";
+
+/**
+ * Re-send the code. `null` uses the widget's default channel; pass a channel
+ * code (for example EMAIL_RETRY_CHANNEL) for a custom configuration.
+ */
+export function resendOtp(channel: string | null = null): Promise<void> {
   const retry = window.retryOtp;
   if (typeof retry !== "function") {
-    return Promise.reject({ message: "Phone verification is not ready." });
+    return Promise.reject({ message: "Verification is not ready." });
   }
   return callWidget(
-    (ok, fail) => retry(null, ok, fail),
+    (ok, fail) => retry(channel, ok, fail),
     () => undefined
   );
 }
@@ -251,7 +257,7 @@ export function extractMsg91AccessToken(data: unknown): string | null {
 export function verifyOtpCode(code: string): Promise<string> {
   const verify = window.verifyOtp;
   if (typeof verify !== "function") {
-    return Promise.reject({ message: "Phone verification is not ready." });
+    return Promise.reject({ message: "Verification is not ready." });
   }
   return callWidget(
     (ok, fail) => verify(code, ok, fail),

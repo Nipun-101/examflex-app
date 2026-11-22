@@ -14,17 +14,18 @@ export function normalizePhoneDigits(phone: string): string {
 export type ValidateProfileContactOptions = {
   /** When true, phone is identity and not validated for edits. */
   phoneLocked?: boolean;
-  /** When true, the account already has an email and it cannot be edited. */
-  emailLocked?: boolean;
 };
 
+/**
+ * Errors for the fields Save sends. The email is not one of them: it is added
+ * by verifying it with a code (see `emailVerifyError`).
+ */
 export function validateProfileContact(
   contact: ProfileContact,
   options: ValidateProfileContactOptions = {}
 ): ProfileFieldErrors {
-  const { phoneLocked = false, emailLocked = false } = options;
+  const { phoneLocked = false } = options;
   const errors: ProfileFieldErrors = {};
-  const email = contact.email.trim();
   const phoneDigits = normalizePhoneDigits(contact.phone);
 
   // Same rules as the API: a name the browser lets through must also pass there.
@@ -39,30 +40,32 @@ export function validateProfileContact(
     }
   }
 
-  // A locked email is the account's existing one and is never edited here.
-  if (!emailLocked) {
-    if (email.length === 0) {
-      errors.email = "Add an email address.";
-    } else if (!EMAIL_PATTERN.test(email)) {
-      errors.email = "That email does not look right.";
-    }
-  }
-
   return errors;
+}
+
+/** Why this email cannot be sent a code yet, or null when it can. */
+export function emailVerifyError(email: string): string | null {
+  const trimmed = email.trim();
+  if (trimmed.length === 0) return "Add an email address.";
+  if (!EMAIL_PATTERN.test(trimmed)) return "That email does not look right.";
+  return null;
 }
 
 export function hasProfileFieldErrors(errors: ProfileFieldErrors): boolean {
   return Object.keys(errors).length > 0;
 }
 
+/**
+ * Unsaved changes to the fields Save sends. A typed, unverified email is not
+ * one of them: it is added through verification instead.
+ */
 export function isProfileContactDirty(
   current: ProfileContact,
   saved: ProfileContact
 ): boolean {
   return (
     current.name.trim() !== saved.name.trim() ||
-    normalizePhoneDigits(current.phone) !== normalizePhoneDigits(saved.phone) ||
-    current.email.trim().toLowerCase() !== saved.email.trim().toLowerCase()
+    normalizePhoneDigits(current.phone) !== normalizePhoneDigits(saved.phone)
   );
 }
 

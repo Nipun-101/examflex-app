@@ -1,34 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { OtpCaptchaBox } from "@/components/auth/otp-captcha-box";
 import { OtpCodeInput } from "@/components/auth/otp-code-input";
 import {
-  DEFAULT_OTP_SETTINGS,
-  initOtpWidget,
-  isCaptchaVerified,
-  loadOtpScript,
-  otpErrorMessage,
-  readWidgetSettings,
-  resendOtp,
-  sendOtp,
-  toWidgetIdentifier,
-  verifyOtpCode,
-  waitForOtpMethods,
-  type OtpWidgetSettings,
-} from "@/lib/auth/otp-widget";
+  formatCountdown,
+  useOtpVerification,
+  type OtpVerifiedOutcome,
+} from "@/hooks/use-otp-verification";
+import { OTP_THEMES } from "@/lib/auth/otp-theme";
+import { toWidgetIdentifier } from "@/lib/auth/otp-widget";
 
-export type OtpVerifiedOutcome =
-  | { ok: true }
-  | {
-      ok: false;
-      message: string;
-      /**
-       * True when trying the same verified code again can help (for example a
-       * network error on our side). False sends the learner back to the number
-       * step, because the code is spent or the number cannot be used.
-       */
-      retryable: boolean;
-    };
+export type { OtpVerifiedOutcome } from "@/hooks/use-otp-verification";
 
 type MobileOtpFormProps = {
   /** Called once with the MSG91 access token and the 10-digit number. */
@@ -43,69 +26,7 @@ type MobileOtpFormProps = {
 };
 
 const CAPTCHA_ELEMENT_ID = "msg91-captcha";
-/** hCaptcha's "normal" checkbox is a fixed 303 x 78 widget, wider than a phone-width card. */
-const CAPTCHA_WIDTH = 304;
-const CAPTCHA_HEIGHT = 78;
-const CAPTCHA_MIN_SCALE = 0.5;
 const INDIAN_MOBILE = /^[6-9]\d{9}$/;
-
-type Theme = {
-  label: string;
-  input: string;
-  prefix: string;
-  primary: string;
-  secondary: string;
-  link: string;
-  muted: string;
-  error: string;
-  notice: string;
-  slot: string;
-  slotActive: string;
-  spinner: string;
-};
-
-const THEMES: Record<MobileOtpFormProps["theme"], Theme> = {
-  landing: {
-    label: "text-xs font-semibold tracking-wide text-muted-foreground uppercase",
-    input:
-      "h-11 min-w-0 flex-1 rounded-r-xl border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
-    prefix:
-      "inline-flex h-11 items-center rounded-l-xl border border-r-0 border-border bg-muted px-3 text-sm font-medium text-foreground",
-    primary:
-      "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition-[filter] hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60",
-    secondary:
-      "inline-flex h-10 items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60",
-    link: "text-sm font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:opacity-60",
-    muted: "text-sm text-muted-foreground",
-    error: "text-sm text-destructive",
-    notice: "text-sm text-primary",
-    slot: "border-border bg-card text-foreground",
-    slotActive: "border-primary bg-card text-foreground ring-2 ring-primary/30",
-    spinner: "border-current/30 border-t-current",
-  },
-  study: {
-    label:
-      "text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase",
-    input:
-      "h-12 min-w-0 flex-1 rounded-r-[10px] border border-study-divider bg-study-canvas px-3 text-sm text-study-ink placeholder:text-study-muted-soft/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green",
-    prefix:
-      "inline-flex h-12 items-center rounded-l-[10px] border border-r-0 border-study-divider bg-study-mint px-3 text-sm font-semibold text-study-ink",
-    primary:
-      "inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] bg-study-ink px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40",
-    secondary:
-      "inline-flex h-11 cursor-pointer items-center justify-center rounded-[10px] border border-study-divider bg-white px-4 text-sm font-medium text-study-green hover:bg-study-mint disabled:cursor-not-allowed disabled:opacity-40",
-    link: "cursor-pointer text-sm font-medium text-study-green hover:underline disabled:cursor-not-allowed disabled:opacity-40",
-    muted: "text-sm text-study-muted-soft",
-    error: "text-sm text-study-peach-ink",
-    notice: "text-sm text-study-green",
-    slot: "border-study-divider bg-white text-study-ink",
-    slotActive:
-      "border-study-green bg-white text-study-ink ring-2 ring-study-green/25",
-    spinner: "border-white/40 border-t-white",
-  },
-};
-
-type Busy = "sending" | "verifying" | "finishing" | "resending" | null;
 
 /** 9977898899 → "99778 98899" */
 function groupMobile(mobile: string): string {
@@ -120,12 +41,6 @@ export function normalizeMobile(raw: string): string {
   return digits;
 }
 
-function formatCountdown(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${String(s).padStart(2, "0")}`;
-}
-
 export function MobileOtpForm({
   onVerified,
   theme,
@@ -133,231 +48,42 @@ export function MobileOtpForm({
   sendLabel = "Send code",
   finishingLabel = "Finishing up…",
 }: MobileOtpFormProps) {
-  const t = THEMES[theme];
-
-  const [widget, setWidget] = useState<"loading" | "ready" | "failed">(
-    "loading"
-  );
-  const [loadAttempt, setLoadAttempt] = useState(0);
-  const [step, setStep] = useState<"phone" | "code">("phone");
+  const t = OTP_THEMES[theme];
   const [mobileInput, setMobileInput] = useState(initialMobile);
-  const [mobile, setMobile] = useState("");
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState<Busy>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [settings, setSettings] = useState<OtpWidgetSettings>(
-    DEFAULT_OTP_SETTINGS
-  );
-  const [resendsUsed, setResendsUsed] = useState(0);
-  const [nextResendAt, setNextResendAt] = useState(0);
-  const [now, setNow] = useState(() => Date.now());
-  const [pendingToken, setPendingToken] = useState<string | null>(null);
-  const mounted = useRef(true);
-  const captchaBoxRef = useRef<HTMLDivElement>(null);
-  const captchaInnerRef = useRef<HTMLDivElement>(null);
-  const [captchaFit, setCaptchaFit] = useState({
-    scale: 1,
-    height: CAPTCHA_HEIGHT,
+  const otp = useOtpVerification({
+    captchaElementId: CAPTCHA_ELEMENT_ID,
+    onVerified,
   });
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-    };
-  }, []);
-
-  // The human check cannot be resized, so shrink it to fit the space it is given
-  // (a phone-width card is narrower than the widget). Centred, never wider than
-  // the card, never larger than its natural size.
-  useEffect(() => {
-    const box = captchaBoxRef.current;
-    const inner = captchaInnerRef.current;
-    if (!box || !inner || typeof ResizeObserver === "undefined") return;
-
-    const fit = () => {
-      const available = box.clientWidth;
-      if (available <= 0) return; // hidden: nothing to fit yet
-      const scale = Math.max(
-        CAPTCHA_MIN_SCALE,
-        Math.min(1, available / CAPTCHA_WIDTH)
-      );
-      const height = (inner.offsetHeight || CAPTCHA_HEIGHT) * scale;
-      setCaptchaFit((previous) =>
-        previous.scale === scale && previous.height === height
-          ? previous
-          : { scale, height }
-      );
-    };
-
-    const observer = new ResizeObserver(fit);
-    observer.observe(box);
-    observer.observe(inner);
-    return () => observer.disconnect();
-  }, []);
-
-  // Start the widget (and restart it on "Try again").
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        await loadOtpScript();
-        if (cancelled) return;
-        initOtpWidget(CAPTCHA_ELEMENT_ID);
-        await waitForOtpMethods();
-        if (cancelled) return;
-        setSettings(readWidgetSettings());
-        setWidget("ready");
-      } catch {
-        if (!cancelled) setWidget("failed");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [loadAttempt]);
-
-  // Tick once a second while a resend countdown is running.
-  useEffect(() => {
-    if (step !== "code" || nextResendAt <= Date.now()) return;
-    const timer = window.setInterval(() => {
-      const current = Date.now();
-      setNow(current);
-      if (current >= nextResendAt) window.clearInterval(timer);
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [step, nextResendAt]);
-
-  /** Re-render the captcha, which is spent after one use. */
-  const resetWidget = useCallback(() => {
-    try {
-      initOtpWidget(CAPTCHA_ELEMENT_ID);
-    } catch {
-      setWidget("failed");
-    }
-  }, []);
-
-  const backToNumber = useCallback(
-    (message: string | null) => {
-      setStep("phone");
-      setCode("");
-      setPendingToken(null);
-      setNotice(null);
-      setError(message);
-      resetWidget();
-    },
-    [resetWidget]
-  );
+  const {
+    widget,
+    step,
+    target: mobile,
+    code,
+    busy,
+    working,
+    error,
+    notice,
+    settings,
+    pendingToken,
+    secondsLeft,
+    resendsLeft,
+  } = otp;
 
   async function handleSend() {
     if (busy || widget !== "ready") return;
 
     const digits = normalizeMobile(mobileInput);
     if (!INDIAN_MOBILE.test(digits)) {
-      setError("Enter a valid 10-digit mobile number.");
+      otp.setError("Enter a valid 10-digit mobile number.");
       return;
     }
 
-    setError(null);
-    setNotice(null);
-    setBusy("sending");
-    try {
-      await sendOtp(toWidgetIdentifier(digits));
-    } catch (failure) {
-      if (!mounted.current) return;
-      setBusy(null);
-      setError(
-        isCaptchaVerified() === false
-          ? "Please tick “I am human”, then send the code again."
-          : otpErrorMessage(
-              failure,
-              "We couldn’t send the code. Please try again."
-            )
-      );
-      return;
+    if (await otp.send(toWidgetIdentifier(digits), digits)) {
+      setMobileInput(digits);
     }
-    if (!mounted.current) return;
-
-    const latest = readWidgetSettings();
-    setSettings(latest);
-    setMobile(digits);
-    setMobileInput(digits);
-    setCode("");
-    setResendsUsed(0);
-    const current = Date.now();
-    setNow(current);
-    setNextResendAt(current + latest.retryTimeSec * 1000);
-    setBusy(null);
-    setStep("code");
   }
 
-  async function finish(token: string, digits: string) {
-    setPendingToken(token);
-    setBusy("finishing");
-    setError(null);
-    const outcome = await onVerified(token, digits);
-    if (!mounted.current) return;
-    // On success stay in the "finishing" state: the parent is about to
-    // navigate or replace this form, and it must not look clickable again.
-    if (outcome.ok) return;
-    setBusy(null);
-    if (outcome.retryable) {
-      setError(outcome.message);
-      return;
-    }
-    backToNumber(outcome.message);
-  }
-
-  async function handleVerify(value: string) {
-    if (busy || value.length !== settings.otpLength) return;
-    setError(null);
-    setNotice(null);
-    setBusy("verifying");
-    let token: string;
-    try {
-      token = await verifyOtpCode(value);
-    } catch (failure) {
-      if (!mounted.current) return;
-      setBusy(null);
-      setCode("");
-      setError(
-        otpErrorMessage(failure, "That code didn’t match. Please try again.")
-      );
-      return;
-    }
-    if (!mounted.current) return;
-    await finish(token, mobile);
-  }
-
-  async function handleResend() {
-    if (busy) return;
-    setError(null);
-    setNotice(null);
-    setBusy("resending");
-    try {
-      await resendOtp();
-    } catch (failure) {
-      if (!mounted.current) return;
-      setBusy(null);
-      setError(
-        otpErrorMessage(failure, "We couldn’t resend the code. Please try again.")
-      );
-      return;
-    }
-    if (!mounted.current) return;
-    const current = Date.now();
-    setNow(current);
-    setNextResendAt(current + settings.retryTimeSec * 1000);
-    setResendsUsed((used) => used + 1);
-    setCode("");
-    setBusy(null);
-    setNotice("A new code is on its way.");
-  }
-
-  const secondsLeft = Math.max(0, Math.ceil((nextResendAt - now) / 1000));
-  const resendsLeft = settings.retryCount - resendsUsed;
-  const working = busy !== null;
+  const backToNumber = otp.backToStart;
 
   const spinner = (
     <span
@@ -366,7 +92,7 @@ export function MobileOtpForm({
     />
   );
 
-  const showPhone = widget !== "failed" && step === "phone";
+  const showPhone = widget !== "failed" && step === "start";
   const showCode = widget !== "failed" && step === "code";
 
   return (
@@ -380,10 +106,7 @@ export function MobileOtpForm({
           <button
             type="button"
             className={t.secondary}
-            onClick={() => {
-              setWidget("loading");
-              setLoadAttempt((attempt) => attempt + 1);
-            }}
+            onClick={otp.retryLoad}
           >
             Try again
           </button>
@@ -407,14 +130,14 @@ export function MobileOtpForm({
               type="tel"
               inputMode="tel"
               autoComplete="tel-national"
-              placeholder="98765 43210"
+              placeholder="10-digit mobile number"
               value={mobileInput}
               disabled={working}
               aria-invalid={error ? true : undefined}
               aria-describedby={error ? "otp-error" : undefined}
               onChange={(event) => {
                 setMobileInput(event.target.value);
-                if (error) setError(null);
+                if (error) otp.setError(null);
               }}
               onKeyDown={(event) => {
                 if (event.key !== "Enter") return;
@@ -431,26 +154,14 @@ export function MobileOtpForm({
       {/*
         The widget draws its human check here: between the number and the
         button, like MSG91's own widget, and scaled down to fit a narrow card.
-        Always mounted (only hidden) because MSG91 keeps a reference to it.
       */}
-      <div
-        ref={captchaBoxRef}
-        className={showPhone ? "relative w-full overflow-hidden" : "hidden"}
-        style={{ height: captchaFit.height }}
-      >
-        <div
-          ref={captchaInnerRef}
-          id={CAPTCHA_ELEMENT_ID}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: "50%",
-            width: CAPTCHA_WIDTH,
-            transform: `translateX(-50%) scale(${captchaFit.scale})`,
-            transformOrigin: "top center",
-          }}
-        />
-      </div>
+      <OtpCaptchaBox
+        boxRef={otp.captchaBoxRef}
+        innerRef={otp.captchaInnerRef}
+        fit={otp.captchaFit}
+        elementId={CAPTCHA_ELEMENT_ID}
+        visible={showPhone}
+      />
 
       {showPhone ? (
         <>
@@ -505,11 +216,8 @@ export function MobileOtpForm({
           <OtpCodeInput
             value={code}
             length={settings.otpLength}
-            onChange={(next) => {
-              setCode(next);
-              if (error) setError(null);
-            }}
-            onComplete={(full) => void handleVerify(full)}
+            onChange={otp.setCode}
+            onComplete={(full) => void otp.verify(full)}
             disabled={working}
             invalid={Boolean(error) && !pendingToken}
             autoFocus
@@ -541,7 +249,7 @@ export function MobileOtpForm({
               <button
                 type="button"
                 className={t.primary}
-                onClick={() => void finish(pendingToken, mobile)}
+                onClick={() => void otp.retryFinish()}
               >
                 Try again
               </button>
@@ -559,7 +267,7 @@ export function MobileOtpForm({
                 type="button"
                 className={t.primary}
                 disabled={working || code.length !== settings.otpLength}
-                onClick={() => void handleVerify(code)}
+                onClick={() => void otp.verify(code)}
               >
                 Verify
               </button>
@@ -575,7 +283,7 @@ export function MobileOtpForm({
                     <button
                       type="button"
                       className={t.link}
-                      onClick={() => void handleResend()}
+                      onClick={() => void otp.resend()}
                       disabled={working}
                     >
                       Resend code

@@ -23,6 +23,8 @@ export type ProfileUser = ProfileContact & {
   phoneLocked: boolean;
   /** True when the account already has a real email: only a missing email can be added. */
   emailLocked: boolean;
+  /** True once the email was proven with an OTP (or comes from Google). */
+  emailVerified: boolean;
 };
 
 export type ProfileSnapshotStat = {

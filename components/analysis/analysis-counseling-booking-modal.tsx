@@ -427,7 +427,7 @@ export function AnalysisCounselingBookingModal({
                   onChange={(event) =>
                     patchContact({ phone: event.target.value })
                   }
-                  placeholder="98765 43210"
+                  placeholder="10-digit mobile number"
                   disabled={!form.contact.phoneEnabled}
                   autoComplete="tel"
                 />

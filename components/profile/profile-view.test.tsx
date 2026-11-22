@@ -31,6 +31,30 @@ vi.mock("@/lib/api/users", () => ({
   updateMyProfile: (...args: unknown[]) => updateMyProfile(...args),
 }));
 
+// The dialog drives MSG91 and has its own tests; here it only reports back.
+const verifiedProfile = vi.fn<() => ApiUserProfile>();
+vi.mock("@/components/profile/email-verify-dialog", () => ({
+  EmailVerifyDialog: ({
+    email,
+    onVerified,
+    onClose,
+  }: {
+    email: string;
+    onVerified: (profile: ApiUserProfile) => void;
+    onClose: () => void;
+  }) => (
+    <div role="dialog" aria-label="Verify your email">
+      <p>Verifying {email}</p>
+      <button type="button" onClick={() => onVerified(verifiedProfile())}>
+        Finish verification
+      </button>
+      <button type="button" onClick={onClose}>
+        Close dialog
+      </button>
+    </div>
+  ),
+}));
+
 vi.mock("@/lib/api/analytics", () => ({
   getBadges: (...args: unknown[]) => getBadges(...args),
 }));
@@ -304,46 +328,134 @@ describe("ProfileView", () => {
       expect(screen.getByLabelText("Mobile")).toBeDisabled();
     });
 
-    it("clears a field error on edit", async () => {
-      const user = userEvent.setup();
+    const renderOtpProfile = async () => {
       getMyProfile.mockResolvedValue({ ok: true, data: otpProfile });
       renderProfile(<ProfileView chrome={chrome} />);
       await waitFor(() => {
         expect(screen.getByLabelText("Email")).toBeEnabled();
       });
+    };
 
-      await user.type(screen.getByLabelText("Full name"), " X"); // make the form dirty
-      await user.click(screen.getByRole("button", { name: "Save details" }));
-      expect(screen.getByRole("alert")).toHaveTextContent("Add an email address.");
+    it("offers Verify (not Save) for a typed email", async () => {
+      const user = userEvent.setup();
+      await renderOtpProfile();
+
+      const verify = screen.getByRole("button", { name: "Verify" });
+      expect(verify).toBeDisabled();
+      expect(
+        screen.getByText("We’ll email you a code to confirm it’s yours.")
+      ).toBeInTheDocument();
 
       await user.type(screen.getByLabelText("Email"), "riya@example.com");
+      expect(verify).toBeEnabled();
+      // A typed email is not something Save can send.
+      expect(screen.getByRole("button", { name: "Save details" })).toBeDisabled();
+    });
+
+    it("asks for a plausible email before verifying, and clears the error on edit", async () => {
+      const user = userEvent.setup();
+      await renderOtpProfile();
+
+      await user.type(screen.getByLabelText("Email"), "nope");
+      await user.click(screen.getByRole("button", { name: "Verify" }));
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "That email does not look right."
+      );
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+      await user.type(screen.getByLabelText("Email"), "@example.com");
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
 
-    it("saves the new email once, then locks it", async () => {
+    it("rejects a blank email sent with Enter", async () => {
       const user = userEvent.setup();
-      getMyProfile.mockResolvedValue({ ok: true, data: otpProfile });
-      updateMyProfile.mockResolvedValue({
-        ok: true,
-        data: { ...otpProfile, email: "riya@example.com" },
+      await renderOtpProfile();
+
+      await user.type(screen.getByLabelText("Email"), "   {Enter}");
+      expect(screen.getByRole("alert")).toHaveTextContent("Add an email address.");
+      expect(updateMyProfile).not.toHaveBeenCalled();
+    });
+
+    it("verifies with Enter, locks the email with a badge and keeps an unsaved name", async () => {
+      const user = userEvent.setup();
+      verifiedProfile.mockReturnValue({
+        ...otpProfile,
+        email: "riya@example.com",
+        emailVerified: true,
       });
-      renderProfile(<ProfileView chrome={chrome} />);
-      await waitFor(() => {
-        expect(screen.getByLabelText("Email")).toBeEnabled();
-      });
+      await renderOtpProfile();
+
+      await user.type(screen.getByLabelText("Full name"), " Jr");
+      await user.type(screen.getByLabelText("Email"), " Riya@Example.com {Enter}");
+
+      expect(screen.getByRole("dialog")).toHaveTextContent(
+        "Verifying riya@example.com"
+      );
+      expect(updateMyProfile).not.toHaveBeenCalled();
+
+      await user.click(screen.getByRole("button", { name: "Finish verification" }));
+
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent("Email verified.");
+      expect(screen.getByRole("status").className).toContain("bg-study-lilac");
+      const email = screen.getByLabelText("Email");
+      expect(email).toBeDisabled();
+      expect(email).toHaveValue("riya@example.com");
+      expect(screen.getByText("Verified")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Verify" })).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Full name")).toHaveValue("Aarav Mehta Jr");
+    });
+
+    it("keeps the typed email when the dialog is closed", async () => {
+      const user = userEvent.setup();
+      await renderOtpProfile();
 
       await user.type(screen.getByLabelText("Email"), "riya@example.com");
+      await user.click(screen.getByRole("button", { name: "Verify" }));
+      await user.click(screen.getByRole("button", { name: "Close dialog" }));
+
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(screen.getByLabelText("Email")).toHaveValue("riya@example.com");
+    });
+
+    it("saving the name keeps a typed email that is still to verify", async () => {
+      const user = userEvent.setup();
+      updateMyProfile.mockResolvedValue({
+        ok: true,
+        data: { ...otpProfile, name: "Aarav Mehta Jr" },
+      });
+      await renderOtpProfile();
+
+      await user.type(screen.getByLabelText("Email"), "riya@example.com");
+      await user.type(screen.getByLabelText("Full name"), " Jr");
       await user.click(screen.getByRole("button", { name: "Save details" }));
 
       await waitFor(() => {
-        expect(updateMyProfile).toHaveBeenCalledWith({ email: "riya@example.com" });
         expect(screen.getByRole("status")).toHaveTextContent("Saved.");
       });
-      // Now that an email exists it can no longer be edited here.
-      await waitFor(() => {
-        expect(screen.getByLabelText("Email")).toBeDisabled();
-      });
+      expect(updateMyProfile).toHaveBeenCalledWith({ name: "Aarav Mehta Jr" });
       expect(screen.getByLabelText("Email")).toHaveValue("riya@example.com");
+      expect(screen.getByLabelText("Email")).toBeEnabled();
+    });
+
+    it("a no-change save leaves a typed email out of the saved values", async () => {
+      const user = userEvent.setup();
+      await renderOtpProfile();
+
+      await user.type(screen.getByLabelText("Email"), "riya@example.com");
+      const name = screen.getByLabelText("Full name");
+      await user.clear(name);
+      await user.type(name, "Aarav  Mehta");
+      await user.click(screen.getByRole("button", { name: "Save details" }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toHaveTextContent("Saved.");
+      });
+      expect(updateMyProfile).not.toHaveBeenCalled();
+      // Reset goes back to the saved values, which never include the typed email.
+      await user.type(name, "x");
+      await user.click(screen.getByRole("button", { name: "Reset" }));
+      expect(screen.getByLabelText("Email")).toHaveValue("");
     });
   });
 

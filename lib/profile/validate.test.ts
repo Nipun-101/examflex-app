@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  emailVerifyError,
   hasProfileFieldErrors,
   isProfileContactDirty,
   normalizePhoneDigits,
@@ -73,25 +74,12 @@ describe("validateProfileContact", () => {
     ).toBe("Use a 10-digit Indian mobile number.");
   });
 
-  it("only requires an email when none exists yet", () => {
-    const contact = { name: "Aarav Mehta", phone: "9876543210", email: "" };
-    expect(validateProfileContact(contact).email).toBe("Add an email address.");
-    expect(validateProfileContact(contact, { emailLocked: false }).email).toBe(
-      "Add an email address."
-    );
-    expect(
-      validateProfileContact({ ...contact, email: "nope" }, { emailLocked: false })
-        .email
-    ).toBe("That email does not look right.");
-  });
-
-  it("does not validate a locked email: it is the account's existing one", () => {
-    expect(
-      validateProfileContact(
-        { name: "Aarav Mehta", phone: "9876543210", email: "legacy-odd@address" },
-        { emailLocked: true }
-      )
-    ).toEqual({});
+  it("never validates the email: Save does not send it", () => {
+    for (const email of ["", " ", "nope", "legacy-odd@address"]) {
+      expect(
+        validateProfileContact({ name: "Aarav Mehta", phone: "9876543210", email })
+      ).toEqual({});
+    }
   });
 
   it("skips phone validation when locked", () => {
@@ -103,18 +91,14 @@ describe("validateProfileContact", () => {
     ).toEqual({});
   });
 
-  it("flags email problems", () => {
-    expect(
-      validateProfileContact({ name: "Aa", phone: "9876543210", email: " " })
-        .email
-    ).toBe("Add an email address.");
-    expect(
-      validateProfileContact({
-        name: "Aa",
-        phone: "9876543210",
-        email: "nope",
-      }).email
-    ).toBe("That email does not look right.");
+});
+
+describe("emailVerifyError", () => {
+  it("asks for an address, then a plausible one", () => {
+    expect(emailVerifyError("")).toBe("Add an email address.");
+    expect(emailVerifyError("   ")).toBe("Add an email address.");
+    expect(emailVerifyError("nope")).toBe("That email does not look right.");
+    expect(emailVerifyError(" riya@example.com ")).toBeNull();
   });
 });
 
@@ -138,8 +122,9 @@ describe("isProfileContactDirty", () => {
     expect(
       isProfileContactDirty({ ...saved, phone: "98765-43210" }, saved)
     ).toBe(false);
+    // A typed, unverified email is not something Save can send.
     expect(
-      isProfileContactDirty({ ...saved, email: "AARAV@example.com" }, saved)
+      isProfileContactDirty({ ...saved, email: "someone.else@example.com" }, saved)
     ).toBe(false);
     expect(isProfileContactDirty({ ...saved, name: "Riya" }, saved)).toBe(true);
   });
