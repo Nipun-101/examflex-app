@@ -14,13 +14,15 @@ export function normalizePhoneDigits(phone: string): string {
 export type ValidateProfileContactOptions = {
   /** When true, phone is identity and not validated for edits. */
   phoneLocked?: boolean;
+  /** When true, the account already has an email and it cannot be edited. */
+  emailLocked?: boolean;
 };
 
 export function validateProfileContact(
   contact: ProfileContact,
   options: ValidateProfileContactOptions = {}
 ): ProfileFieldErrors {
-  const { phoneLocked = false } = options;
+  const { phoneLocked = false, emailLocked = false } = options;
   const errors: ProfileFieldErrors = {};
   const email = contact.email.trim();
   const phoneDigits = normalizePhoneDigits(contact.phone);
@@ -37,10 +39,13 @@ export function validateProfileContact(
     }
   }
 
-  if (email.length === 0) {
-    errors.email = "Add an email address.";
-  } else if (!EMAIL_PATTERN.test(email)) {
-    errors.email = "That email does not look right.";
+  // A locked email is the account's existing one and is never edited here.
+  if (!emailLocked) {
+    if (email.length === 0) {
+      errors.email = "Add an email address.";
+    } else if (!EMAIL_PATTERN.test(email)) {
+      errors.email = "That email does not look right.";
+    }
   }
 
   return errors;

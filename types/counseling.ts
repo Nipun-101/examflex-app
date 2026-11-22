@@ -1,9 +1,3 @@
-export type CounselingRequestStatus =
-  | "booked"
-  | "acknowledged"
-  | "responded"
-  | "completed";
-
 export type CounselingWhoWillJoin = "student" | "student_and_parent";
 
 export type CounselingActiveRequest = {

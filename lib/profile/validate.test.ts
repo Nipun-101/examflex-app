@@ -73,6 +73,27 @@ describe("validateProfileContact", () => {
     ).toBe("Use a 10-digit Indian mobile number.");
   });
 
+  it("only requires an email when none exists yet", () => {
+    const contact = { name: "Aarav Mehta", phone: "9876543210", email: "" };
+    expect(validateProfileContact(contact).email).toBe("Add an email address.");
+    expect(validateProfileContact(contact, { emailLocked: false }).email).toBe(
+      "Add an email address."
+    );
+    expect(
+      validateProfileContact({ ...contact, email: "nope" }, { emailLocked: false })
+        .email
+    ).toBe("That email does not look right.");
+  });
+
+  it("does not validate a locked email: it is the account's existing one", () => {
+    expect(
+      validateProfileContact(
+        { name: "Aarav Mehta", phone: "9876543210", email: "legacy-odd@address" },
+        { emailLocked: true }
+      )
+    ).toEqual({});
+  });
+
   it("skips phone validation when locked", () => {
     expect(
       validateProfileContact(

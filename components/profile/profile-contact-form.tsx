@@ -12,6 +12,7 @@ type ProfileContactFormProps = {
   errors: ProfileFieldErrors;
   dirty: boolean;
   phoneLocked: boolean;
+  emailLocked: boolean;
   saving?: boolean;
   saveLabel: string;
   resetLabel: string;
@@ -60,6 +61,7 @@ export function ProfileContactForm({
   errors,
   dirty,
   phoneLocked,
+  emailLocked,
   saving = false,
   saveLabel,
   resetLabel,
@@ -88,7 +90,15 @@ export function ProfileContactForm({
         {FIELDS.map((field) => {
           const error = errors[field.key];
           const fieldId = `profile-${field.key}`;
-          const readOnly = field.key === "phone" && phoneLocked;
+          // Locked fields are truly disabled: not focusable, not clickable, and
+          // they show the "not allowed" cursor on hover.
+          const locked =
+            (field.key === "phone" && phoneLocked) ||
+            (field.key === "email" && emailLocked);
+          const lockedReason =
+            field.key === "phone"
+              ? "Your mobile number is verified and can’t be changed here."
+              : "Your email address can’t be changed here.";
 
           return (
             <div key={field.key} className="flex flex-col gap-1.5">
@@ -106,17 +116,18 @@ export function ProfileContactForm({
                 inputMode={field.inputMode}
                 placeholder={field.placeholder}
                 value={values[field.key]}
-                readOnly={readOnly}
+                disabled={locked}
+                title={locked ? lockedReason : undefined}
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? `${fieldId}-error` : undefined}
                 onChange={
-                  readOnly
+                  locked
                     ? undefined
                     : (event) => onChange(field.key, event.target.value)
                 }
                 className={`h-12 rounded-[10px] border border-study-divider px-3 text-sm text-study-ink placeholder:text-study-muted-soft/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green ${
-                  readOnly
-                    ? "cursor-default bg-study-canvas/70 text-study-muted-soft"
+                  locked
+                    ? "cursor-not-allowed bg-study-canvas/70 text-study-muted-soft"
                     : "bg-study-canvas"
                 }`}
               />

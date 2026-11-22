@@ -19,8 +19,10 @@ export type ProfileUser = ProfileContact & {
   targetExamId: string | null;
   memberSinceLabel: string;
   membershipTier: MembershipTier;
-  /** True when phone came from the API and must stay read-only. */
+  /** The mobile number is always captured and verified at sign-up: never editable here. */
   phoneLocked: boolean;
+  /** True when the account already has a real email: only a missing email can be added. */
+  emailLocked: boolean;
 };
 
 export type ProfileSnapshotStat = {

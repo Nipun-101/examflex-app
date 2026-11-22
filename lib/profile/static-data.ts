@@ -26,6 +26,7 @@ export const PROFILE_PAGE_DATA: ProfilePageData = {
     memberSinceLabel: "On ExamFlex since March 2025",
     membershipTier: "none",
     phoneLocked: true,
+    emailLocked: true,
   },
   snapshot: [],
 };

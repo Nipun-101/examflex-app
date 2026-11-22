@@ -9,6 +9,7 @@ describe("PROFILE_PAGE_DATA", () => {
     expect(PROFILE_PAGE_DATA.user.signInMethod).toBe("otp");
     expect(PROFILE_PAGE_DATA.user.examTrack).toBe("ExamFlex");
     expect(PROFILE_PAGE_DATA.user.phoneLocked).toBe(true);
+    expect(PROFILE_PAGE_DATA.user.emailLocked).toBe(true);
     expect(PROFILE_PAGE_DATA.snapshot).toEqual([]);
     expect(PROFILE_PAGE_DATA.user.phone).toHaveLength(10);
   });
