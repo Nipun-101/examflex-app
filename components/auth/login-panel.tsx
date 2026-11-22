@@ -64,11 +64,7 @@ export function LoginPanel() {
             throw new Error(result.message);
           }
 
-          setAuthTokens(
-            result.data.accessToken,
-            result.data.refreshToken ?? null,
-            result.data.expiresIn
-          );
+          setAuthTokens(result.data.accessToken);
           router.replace(resolvePostLoginPath());
         } catch {
           setWidgetNotice(

@@ -39,17 +39,6 @@ describe("auth session", () => {
     await expect(getSession()).resolves.toEqual({ user: MARKER_SESSION_USER });
   });
 
-  it("accepts legacy authToken cookie as a session marker", async () => {
-    cookiesMock.mockResolvedValue({
-      get: (name: string) =>
-        name === "authToken" ? { value: "legacy" } : undefined,
-    });
-    const { getSession, MARKER_SESSION_USER } = await import(
-      "@/lib/auth/session"
-    );
-    await expect(getSession()).resolves.toEqual({ user: MARKER_SESSION_USER });
-  });
-
   it("resolves an existing session without redirecting", async () => {
     const { resolveRequiredSession, MARKER_SESSION_USER } = await import(
       "@/lib/auth/session"

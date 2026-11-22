@@ -29,13 +29,12 @@ describe("GoogleOAuthReturn", () => {
     completeGoogleSession.mockResolvedValue({
       ok: true,
       accessToken: "tok",
-      expiresIn: 900,
       nextPath: "/today",
     });
     render(<GoogleOAuthReturn />);
     expect(screen.getByRole("status")).toHaveTextContent(/Signing you in/i);
     await waitFor(() => {
-      expect(setAuthTokens).toHaveBeenCalledWith("tok", null, 900);
+      expect(setAuthTokens).toHaveBeenCalledWith("tok");
       expect(replace).toHaveBeenCalledWith("/today");
     });
   });

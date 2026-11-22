@@ -15,16 +15,12 @@ describe("parse-auth", () => {
         message: "ok",
         data: {
           accessToken: "tok",
-          refreshToken: "rt",
-          expiresIn: 900,
           isNewUser: true,
           user: { ...validUser, phoneNumber: "+911234567890" },
         },
       })
     ).toEqual({
       accessToken: "tok",
-      refreshToken: "rt",
-      expiresIn: 900,
       isNewUser: true,
       user: { ...validUser, phoneNumber: "+911234567890" },
     });

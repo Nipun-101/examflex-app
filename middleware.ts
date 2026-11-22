@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
   AUTH_SESSION_COOKIE,
-  AUTH_TOKEN_COOKIE,
   LOGOUT_RESUME_PATH_COOKIE,
 } from "@/lib/auth/cookie-names";
 import {
@@ -24,9 +23,7 @@ const authRoutes = ["/login"];
 const landingPath = "/";
 
 function hasAuthSession(request: NextRequest): boolean {
-  const marker = request.cookies.get(AUTH_SESSION_COOKIE)?.value;
-  if (marker) return true;
-  return Boolean(request.cookies.get(AUTH_TOKEN_COOKIE)?.value);
+  return Boolean(request.cookies.get(AUTH_SESSION_COOKIE)?.value);
 }
 
 function redirectAuthenticatedUser(request: NextRequest): NextResponse {

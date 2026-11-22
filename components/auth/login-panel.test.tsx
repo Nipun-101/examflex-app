@@ -106,7 +106,6 @@ describe("LoginPanel", () => {
       ok: true,
       data: {
         accessToken: "access",
-        expiresIn: 900,
         isNewUser: false,
         user: {
           id: "1",
@@ -263,7 +262,6 @@ describe("LoginPanel", () => {
       ok: true,
       data: {
         accessToken: "access",
-        expiresIn: 900,
         isNewUser: false,
         user: {
           id: "1",

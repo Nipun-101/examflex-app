@@ -43,19 +43,14 @@ describe("auth tokens", () => {
   });
 
   it("stores access tokens in memory and sets the session marker", async () => {
-    const {
-      getAuthToken,
-      setAuthTokens,
-      isAuthenticated,
-      wipeLegacyAuthStorage,
-    } = await import("@/lib/auth/tokens");
-    localStorage.setItem("authToken", "legacy");
-    wipeLegacyAuthStorage();
-    setAuthTokens("access-1", null, 900);
+    const { getAuthToken, setAuthTokens, isAuthenticated } = await import(
+      "@/lib/auth/tokens"
+    );
+    setAuthTokens("access-1");
     expect(getAuthToken()).toBe("access-1");
     expect(isAuthenticated()).toBe(true);
     expect(document.cookie).toContain("authSession=1");
-    expect(localStorage.getItem("authToken")).toBeNull();
+    expect(localStorage.length).toBe(0);
   });
 
   it("removes tokens and notifies listeners", async () => {
@@ -79,7 +74,6 @@ describe("auth tokens", () => {
       setAuthTokens,
       removeAuthToken,
       healAuthSessionCookies,
-      isAuthRefreshInFlight,
     } = await import("@/lib/auth/tokens");
     setAuthTokens("access-1");
     document.cookie = "authSession=; path=/; max-age=0";
@@ -90,7 +84,6 @@ describe("auth tokens", () => {
     document.cookie = "authSession=1; path=/";
     healAuthSessionCookies();
     expect(document.cookie.includes("authSession=1")).toBe(false);
-    expect(isAuthRefreshInFlight()).toBe(false);
   });
 
   it("refreshes access tokens via single-flight", async () => {
@@ -98,8 +91,6 @@ describe("auth tokens", () => {
       ok: true,
       data: {
         accessToken: "fresh",
-        refreshToken: "rt",
-        expiresIn: 900,
         isNewUser: false,
         user: {
           id: "1",
@@ -109,16 +100,15 @@ describe("auth tokens", () => {
         },
       },
     });
-    const { refreshAccessToken, getAuthToken, isAuthRefreshInFlight } =
-      await import("@/lib/auth/tokens");
+    const { refreshAccessToken, getAuthToken } = await import(
+      "@/lib/auth/tokens"
+    );
     const first = refreshAccessToken();
-    expect(isAuthRefreshInFlight()).toBe(true);
     const [a, b] = await Promise.all([first, refreshAccessToken()]);
     expect(a).toBe("fresh");
     expect(b).toBe("fresh");
     expect(getAuthToken()).toBe("fresh");
     expect(refreshSession).toHaveBeenCalledTimes(1);
-    expect(isAuthRefreshInFlight()).toBe(false);
   });
 
   it("clears the marker on failed refresh without a memory token", async () => {
@@ -131,6 +121,100 @@ describe("auth tokens", () => {
     const { refreshAccessToken } = await import("@/lib/auth/tokens");
     await expect(refreshAccessToken()).resolves.toBeNull();
     expect(document.cookie.includes("authSession=1")).toBe(false);
+  });
+
+  it("drops the memory token and marker when refresh is rejected with 401", async () => {
+    const { setAuthTokens, refreshAccessToken, getAuthToken } = await import(
+      "@/lib/auth/tokens"
+    );
+    setAuthTokens("stale");
+    refreshSession.mockResolvedValue({
+      ok: false,
+      status: 401,
+      message: "Session has ended",
+    });
+    await expect(refreshAccessToken()).resolves.toBeNull();
+    expect(getAuthToken()).toBeNull();
+    expect(document.cookie.includes("authSession=1")).toBe(false);
+  });
+
+  it("serialises refresh across tabs with the Web Locks API when available", async () => {
+    const order: string[] = [];
+    const request = vi.fn(
+      async (_name: string, callback: () => Promise<unknown>) => {
+        order.push("lock-acquired");
+        const result = await callback();
+        order.push("lock-released");
+        return result;
+      }
+    );
+    getWindow.mockImplementation(
+      () =>
+        Object.assign(Object.create(window), {
+          navigator: { locks: { request } },
+        }) as unknown as Window
+    );
+    refreshSession.mockImplementation(async () => {
+      order.push("refresh");
+      return { ok: false, status: 503, message: "down" };
+    });
+    const { refreshAccessToken } = await import("@/lib/auth/tokens");
+    await refreshAccessToken();
+
+    expect(request).toHaveBeenCalledWith(
+      "examflex-auth-refresh",
+      expect.any(Function)
+    );
+    expect(order).toEqual(["lock-acquired", "refresh", "lock-released"]);
+  });
+
+  it("does not wipe a token set by a login that finished during the refresh", async () => {
+    let resolveRefresh: (value: unknown) => void = () => undefined;
+    refreshSession.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveRefresh = resolve;
+        })
+    );
+    const { setAuthTokens, refreshAccessToken, getAuthToken } = await import(
+      "@/lib/auth/tokens"
+    );
+    const pending = refreshAccessToken(); // boot refresh, no session yet
+    setAuthTokens("fresh-from-login"); // Google exchange completes first
+    resolveRefresh({ ok: false, status: 401, message: "no cookie" });
+
+    await expect(pending).resolves.toBe("fresh-from-login");
+    expect(getAuthToken()).toBe("fresh-from-login");
+    expect(document.cookie).toContain("authSession=1");
+  });
+
+  it("clears only the marker on a 503 outage with no memory token", async () => {
+    refreshSession.mockResolvedValue({
+      ok: false,
+      status: 503,
+      message: "Sign-in is temporarily unavailable.",
+    });
+    document.cookie = "authSession=1; path=/";
+    const { refreshAccessToken } = await import("@/lib/auth/tokens");
+    await expect(refreshAccessToken()).resolves.toBeNull();
+    expect(document.cookie.includes("authSession=1")).toBe(false);
+  });
+
+  it("clears the marker when the network is down at boot", async () => {
+    refreshSession.mockResolvedValue({ ok: false, message: "offline" });
+    document.cookie = "authSession=1; path=/";
+    const { refreshAccessToken } = await import("@/lib/auth/tokens");
+    await expect(refreshAccessToken()).resolves.toBeNull();
+    expect(document.cookie.includes("authSession=1")).toBe(false);
+  });
+
+  it("renews the marker for the full sliding window", async () => {
+    const { setAuthTokens } = await import("@/lib/auth/tokens");
+    const setter = vi.spyOn(document, "cookie", "set");
+    setAuthTokens("access");
+    const written = setter.mock.calls.map(([value]) => String(value)).join("|");
+    expect(written).toContain(`authSession=1; path=/; max-age=${30 * 86400}`);
+    setter.mockRestore();
   });
 
   it("keeps the memory token when refresh throws", async () => {
@@ -217,7 +301,6 @@ describe("auth tokens", () => {
       getAuthToken,
       setAuthTokens,
       removeAuthToken,
-      wipeLegacyAuthStorage,
       healAuthSessionCookies,
       refreshAccessToken,
       logout,
@@ -227,7 +310,6 @@ describe("auth tokens", () => {
     expect(getAuthToken()).toBeNull();
     setAuthTokens("x");
     removeAuthToken();
-    wipeLegacyAuthStorage();
     healAuthSessionCookies();
     await expect(refreshAccessToken()).resolves.toBeNull();
     await logout();
@@ -237,7 +319,7 @@ describe("auth tokens", () => {
     exerciseCookieGuardsForTests();
   });
 
-  it("uses Secure cookie flags on https and tolerates storage failures", async () => {
+  it("uses Secure cookie flags on https", async () => {
     getWindow.mockImplementation(
       () =>
         ({
@@ -251,29 +333,12 @@ describe("auth tokens", () => {
           sessionStorage,
         }) as unknown as Window
     );
-    const removeItem = vi
-      .spyOn(Storage.prototype, "removeItem")
-      .mockImplementation(() => {
-        throw new Error("quota");
-      });
-    const { wipeLegacyAuthStorage, setAuthTokens, resetAuthTokenStateForTests } =
-      await import("@/lib/auth/tokens");
+    const { setAuthTokens, resetAuthTokenStateForTests } = await import(
+      "@/lib/auth/tokens"
+    );
     resetAuthTokenStateForTests();
-    wipeLegacyAuthStorage();
     setAuthTokens("secure-token");
     expect(document.cookie).toContain("authSession=1");
-    removeItem.mockRestore();
-  });
-
-  it("treats a legacy authToken cookie as a session marker", async () => {
-    document.cookie = "authToken=legacy; path=/";
-    const { healAuthSessionCookies, setAuthTokens, removeAuthToken } =
-      await import("@/lib/auth/tokens");
-    setAuthTokens("access");
-    removeAuthToken();
-    document.cookie = "authToken=legacy; path=/";
-    healAuthSessionCookies();
-    expect(document.cookie.includes("authToken=legacy")).toBe(false);
   });
 
   it("keeps the marker while a refresh is in flight", async () => {

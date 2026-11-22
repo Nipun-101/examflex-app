@@ -23,8 +23,6 @@ export type AuthUser = {
 
 export type AuthResponse = {
   accessToken: string;
-  refreshToken?: string;
-  expiresIn?: number;
   user: AuthUser;
   isNewUser: boolean;
 };

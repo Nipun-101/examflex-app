@@ -5,24 +5,25 @@
 import { logoutSession, refreshSession } from "@/lib/api/auth";
 import {
   AUTH_SESSION_COOKIE,
-  AUTH_TOKEN_COOKIE,
   LOGOUT_RESUME_PATH_COOKIE,
 } from "@/lib/auth/cookie-names";
 import { getWindow } from "@/lib/auth/runtime-env";
 import { isSafeRedirectPath } from "@/lib/auth/safe-redirect";
 
-const ACCESS_TOKEN_KEY = "authToken";
-const REFRESH_TOKEN_KEY = "authRefreshToken";
-/** Absolute web session length — middleware marker must match this, not the 15m access JWT. */
-const SESSION_DAYS = 7;
+/**
+ * Web idle window (mirrors the API's WEB_SESSION_IDLE_TTL_SEC). The marker is
+ * rewritten on every refresh, so it slides with the session. It must follow
+ * the session length, not the 15m access JWT.
+ */
+const SESSION_DAYS = 30;
 const SESSION_MARKER_TTL_SEC = SESSION_DAYS * 24 * 60 * 60;
+const LOGOUT_RESUME_DAYS = 7;
 
 type AuthListener = () => void;
 const listeners = new Set<AuthListener>();
 
 /** In-memory access token (never written to localStorage). */
 let memoryAccessToken: string | null = null;
-let legacyStorageWiped = false;
 
 /**
  * One in-flight cookie refresh for the whole tab.
@@ -55,7 +56,7 @@ function cookieSecureSuffix(protocol: string): string {
 function setCookie(
   name: string,
   value: string,
-  maxAgeSec: number = SESSION_DAYS * 24 * 60 * 60
+  maxAgeSec: number = SESSION_MARKER_TTL_SEC
 ): void {
   const win = getWindow();
   // Callers only invoke cookie helpers in a browser context.
@@ -82,10 +83,7 @@ function hasSessionMarkerCookie(): boolean {
   }
   return win.document.cookie.split(";").some((part) => {
     const trimmed = part.trim();
-    return (
-      trimmed.startsWith(`${AUTH_SESSION_COOKIE}=`) ||
-      trimmed.startsWith(`${AUTH_TOKEN_COOKIE}=`)
-    );
+    return trimmed.startsWith(`${AUTH_SESSION_COOKIE}=`);
   });
 }
 
@@ -93,29 +91,11 @@ function writeSessionMarkerCookie(
   maxAgeSec: number = SESSION_MARKER_TTL_SEC
 ): void {
   setCookie(AUTH_SESSION_COOKIE, "1", maxAgeSec);
-  removeCookie(AUTH_TOKEN_COOKIE);
-}
-
-/**
- * One-time cutover: remove XSS-readable legacy tokens so old sessions cannot linger.
- */
-export function wipeLegacyAuthStorage(): void {
-  const win = getWindow();
-  if (!win || legacyStorageWiped) return;
-  legacyStorageWiped = true;
-  try {
-    win.localStorage.removeItem(ACCESS_TOKEN_KEY);
-    win.localStorage.removeItem(REFRESH_TOKEN_KEY);
-  } catch {
-    // ignore
-  }
-  removeCookie(AUTH_TOKEN_COOKIE);
 }
 
 /** Reset module flags for unit tests. */
 export function resetAuthTokenStateForTests(): void {
   memoryAccessToken = null;
-  legacyStorageWiped = false;
   refreshFlight = null;
   listeners.clear();
 }
@@ -138,19 +118,11 @@ export function getAuthToken(): string | null {
 }
 
 /**
- * Store access token in memory and renew the 7d middleware presence marker.
+ * Store access token in memory and renew the sliding middleware presence marker.
+ * The refresh credential stays in the HttpOnly `examflex_rt` cookie.
  */
-export function setAuthTokens(
-  accessToken: string,
-  refreshToken?: string | null,
-  expiresInSec?: number
-): void {
-  // Refresh stays HttpOnly (`examflex_rt`); expiresIn is reserved for call-site parity.
-  void refreshToken;
-  void expiresInSec;
-
+export function setAuthTokens(accessToken: string): void {
   if (!getWindow()) return;
-  wipeLegacyAuthStorage();
   memoryAccessToken = accessToken;
   writeSessionMarkerCookie(SESSION_MARKER_TTL_SEC);
   notifyAuthListeners();
@@ -159,8 +131,6 @@ export function setAuthTokens(
 export function removeAuthToken(): void {
   if (!getWindow()) return;
   memoryAccessToken = null;
-  wipeLegacyAuthStorage();
-  removeCookie(AUTH_TOKEN_COOKIE);
   removeCookie(AUTH_SESSION_COOKIE);
   notifyAuthListeners();
 }
@@ -170,19 +140,13 @@ export function removeAuthToken(): void {
  */
 export function healAuthSessionCookies(): void {
   if (!getWindow()) return;
-  wipeLegacyAuthStorage();
   if (memoryAccessToken && !hasSessionMarkerCookie()) {
     writeSessionMarkerCookie();
     return;
   }
   if (!memoryAccessToken && hasSessionMarkerCookie() && !refreshFlight) {
-    removeCookie(AUTH_TOKEN_COOKIE);
     removeCookie(AUTH_SESSION_COOKIE);
   }
-}
-
-export function isAuthRefreshInFlight(): boolean {
-  return refreshFlight !== null;
 }
 
 export function isAuthenticated(): boolean {
@@ -214,7 +178,7 @@ export async function logout(): Promise<void> {
   if (win) {
     const path = `${win.location.pathname}${win.location.search}`;
     if (isSafeRedirectPath(path)) {
-      setCookie(LOGOUT_RESUME_PATH_COOKIE, path, SESSION_DAYS * 24 * 60 * 60);
+      setCookie(LOGOUT_RESUME_PATH_COOKIE, path, LOGOUT_RESUME_DAYS * 24 * 60 * 60);
     }
 
     await logoutSession(getAuthToken());
@@ -227,6 +191,23 @@ export async function logout(): Promise<void> {
   }
 }
 
+const REFRESH_LOCK_NAME = "examflex-auth-refresh";
+
+/**
+ * Refresh requests from different tabs must not overlap: each one rotates the
+ * HttpOnly cookie, and an overlap can leave the browser holding an
+ * already-rotated token. The Web Locks API serialises them across tabs, so
+ * each tab sends the cookie the previous tab just received. Browsers without
+ * it fall back to the API's short grace window.
+ */
+function refreshAcrossTabs() {
+  const locks = getWindow()?.navigator?.locks;
+  if (locks && typeof locks.request === "function") {
+    return locks.request(REFRESH_LOCK_NAME, () => refreshSession());
+  }
+  return refreshSession();
+}
+
 /**
  * Silent refresh via HttpOnly cookie. Single-flight across boot + 401 recovery.
  */
@@ -236,22 +217,40 @@ export async function refreshAccessToken(): Promise<string | null> {
     return refreshFlight;
   }
 
+  const tokenAtStart = memoryAccessToken;
+
   refreshFlight = (async () => {
     try {
-      const result = await refreshSession();
+      const result = await refreshAcrossTabs();
       if (!result.ok) {
-        if (result.status === 401 && !memoryAccessToken) {
-          removeCookie(AUTH_TOKEN_COOKIE);
+        if (result.status === 401) {
+          // A login may have completed while this refresh was in flight
+          // (e.g. the Google return page boots a refresh and exchanges the
+          // code at the same time). Never wipe a token newer than the one
+          // this refresh was answering for.
+          if (memoryAccessToken !== tokenAtStart) {
+            return memoryAccessToken;
+          }
+          // Definitive: the session ended (revoked, expired, or reused).
+          // Drop the in-memory token too so callers send the user to login
+          // instead of retrying with a token the API will keep rejecting.
+          memoryAccessToken = null;
+          removeCookie(AUTH_SESSION_COOKIE);
+          notifyAuthListeners();
+          return null;
+        }
+        if (!memoryAccessToken) {
+          // Transient failure (503 outage, 5xx, offline) with nothing in
+          // memory: we cannot prove the user is signed in. Clear only the
+          // Edge marker so middleware and the client login redirect cannot
+          // bounce between /login and /today. The HttpOnly cookie is left
+          // alone, so the next successful refresh restores the session.
           removeCookie(AUTH_SESSION_COOKIE);
           notifyAuthListeners();
         }
         return memoryAccessToken;
       }
-      setAuthTokens(
-        result.data.accessToken,
-        result.data.refreshToken,
-        result.data.expiresIn
-      );
+      setAuthTokens(result.data.accessToken);
       return result.data.accessToken;
     } catch {
       return memoryAccessToken;

@@ -139,7 +139,6 @@ describe("google auth", () => {
       ok: true,
       data: {
         accessToken: "access",
-        expiresIn: 900,
         isNewUser: false,
         user: {
           id: "1",
@@ -156,43 +155,9 @@ describe("google auth", () => {
     await expect(first).resolves.toEqual({
       ok: true,
       accessToken: "access",
-      expiresIn: 900,
       nextPath: "/today",
     });
     await expect(second).resolves.toMatchObject({ ok: true });
-  });
-
-  it("completes a Google session without expiresIn", async () => {
-    sessionStorage.setItem("examflex.google.oauth.state", "state");
-    sessionStorage.setItem("examflex.google.oauth.verifier", "verifier");
-    sessionStorage.setItem(
-      "examflex.google.oauth.redirect",
-      "http://localhost:3002"
-    );
-    sessionStorage.setItem("examflex.google.oauth.next", "/today");
-    setLocationSearch("?code=auth-code&state=state");
-    exchangeGoogleCode.mockResolvedValue({
-      ok: true,
-      data: {
-        accessToken: "access",
-        isNewUser: false,
-        user: {
-          id: "1",
-          name: "Ada",
-          email: "a@examflex.in",
-          role: "student",
-        },
-      },
-    });
-    const { completeGoogleSession, resetGoogleSessionForTests } = await import(
-      "@/lib/auth/google"
-    );
-    resetGoogleSessionForTests();
-    await expect(completeGoogleSession()).resolves.toEqual({
-      ok: true,
-      accessToken: "access",
-      nextPath: "/today",
-    });
   });
 
   it("surfaces API failures from Google exchange", async () => {

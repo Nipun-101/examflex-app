@@ -1,9 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import {
-  AUTH_SESSION_COOKIE,
-  AUTH_TOKEN_COOKIE,
-} from "@/lib/auth/cookie-names";
+import { AUTH_SESSION_COOKIE } from "@/lib/auth/cookie-names";
 import type { Session, SessionUser } from "@/types/auth";
 
 /** Minimal placeholder user when only the Edge marker cookie is present. */
@@ -16,10 +13,7 @@ export const MARKER_SESSION_USER: SessionUser = {
 function hasAuthMarker(
   cookieStore: Awaited<ReturnType<typeof cookies>>
 ): boolean {
-  return Boolean(
-    cookieStore.get(AUTH_SESSION_COOKIE)?.value ||
-      cookieStore.get(AUTH_TOKEN_COOKIE)?.value
-  );
+  return Boolean(cookieStore.get(AUTH_SESSION_COOKIE)?.value);
 }
 
 /**
