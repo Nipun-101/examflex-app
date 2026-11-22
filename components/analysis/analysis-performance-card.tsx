@@ -15,6 +15,7 @@ export function AnalysisPerformanceCard({
   scoreHint,
 }: AnalysisPerformanceCardProps) {
   const empty = score === null;
+  const belowZero = score !== null && score < 0;
 
   return (
     <section className="rounded-[18px] bg-study-ink px-4 py-5 text-white sm:px-5 sm:py-6 lg:px-6 lg:py-7">
@@ -39,6 +40,16 @@ export function AnalysisPerformanceCard({
           className="mx-auto sm:mx-0"
         />
       </div>
+
+      {belowZero ? (
+        <p
+          role="note"
+          className="mt-4 rounded-[10px] bg-white/10 px-3 py-2 text-[0.6875rem] leading-[1.45] text-study-on-dark sm:text-xs"
+        >
+          Your latest mock scored below 0 because of negative marking, so the
+          gauge rests at 0. Your actual score of {score} is shown above.
+        </p>
+      ) : null}
     </section>
   );
 }

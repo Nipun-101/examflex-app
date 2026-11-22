@@ -37,9 +37,9 @@ describe("MockTestResults", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Test Completed" })
     ).toBeInTheDocument();
-    // Ring uses correct / total questions to match the redesign.
+    // Ring shows marks earned / total marks, not question counts.
     expect(
-      screen.getByRole("img", { name: "Score 1 out of 3" })
+      screen.getByRole("img", { name: "Score 3 out of 12" })
     ).toBeInTheDocument();
     expect(screen.getByText("Kinematics practice")).toBeInTheDocument();
     expect(screen.getByText("50.0% accuracy")).toBeInTheDocument();
