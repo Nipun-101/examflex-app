@@ -12,6 +12,10 @@ import {
   EquationCtas,
   EquationPager,
 } from "@/components/equation-book/equation-actions";
+import {
+  EquationListSheet,
+  EquationListTrigger,
+} from "@/components/equation-book/equation-list-sheet";
 import { EquationEmptyState } from "@/components/equation-book/equation-empty-state";
 import { EquationFlipCard } from "@/components/equation-book/equation-flip-card";
 import { EquationProgress } from "@/components/equation-book/equation-progress";
@@ -81,6 +85,7 @@ export function EquationBookView({
   const [cardIndex, setCardIndex] = useState(() =>
     findCardIndex(cards, initialEquationId)
   );
+  const [listSheetOpen, setListSheetOpen] = useState(false);
   const [syncedCardsKey, setSyncedCardsKey] = useState(cardsSyncKey);
   const [revealed, setRevealed] = useState(false);
   const [revealCardKey, setRevealCardKey] = useState<string | null>(null);
@@ -209,11 +214,7 @@ export function EquationBookView({
           </div>
         </header>
 
-        {loadingCards ? (
-          <p className="rounded-[20px] bg-white p-6 text-sm text-study-muted-soft shadow-soft">
-            Loading equations…
-          </p>
-        ) : activeChapter && activeCard ? (
+        {loadingCards && cards.length === 0 ? null : activeChapter && activeCard ? (
           <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(18rem,0.9fr)] lg:items-start lg:gap-8">
             <div className="flex min-w-0 flex-col gap-4 lg:gap-5">
               <EquationProgress
@@ -245,6 +246,12 @@ export function EquationBookView({
                   chapter feels automatic.
                 </p>
               </div>
+
+              <EquationListTrigger
+                current={safeIndex + 1}
+                total={cards.length}
+                onOpen={() => setListSheetOpen(true)}
+              />
 
               <EquationPager
                 canGoPrevious={safeIndex > 0}
@@ -290,6 +297,15 @@ export function EquationBookView({
           </div>
         )}
       </div>
+
+      <EquationListSheet
+        open={listSheetOpen}
+        onClose={() => setListSheetOpen(false)}
+        chapterLabel={activeChapter?.label ?? "Chapter"}
+        cards={cards}
+        activeIndex={safeIndex}
+        onSelect={setCardIndex}
+      />
 
       <ExamChoiceModal
         open={mockExamChoices != null}
