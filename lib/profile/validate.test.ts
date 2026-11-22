@@ -35,6 +35,29 @@ describe("validateProfileContact", () => {
     ).toBe("Name needs at least 2 characters.");
   });
 
+  it("applies the same name rules as the API, including hostile input", () => {
+    const contact = (name: string) => ({
+      name,
+      phone: "9876543210",
+      email: "a@b.co",
+    });
+    expect(validateProfileContact(contact("Rahul K.")).name).toBeUndefined();
+    expect(validateProfileContact(contact("Jos\u00e9 Garc\u00eda")).name).toBeUndefined();
+    expect(validateProfileContact(contact("<script>alert(1)</script>")).name).toMatch(
+      /letters, numbers, spaces/
+    );
+    expect(validateProfileContact(contact("Rahul`id`")).name).toMatch(
+      /letters, numbers, spaces/
+    );
+    expect(validateProfileContact(contact("www.evil.com")).name).toMatch(
+      /web address/
+    );
+    // invisible characters are cleaned, not blamed on the learner
+    expect(
+      validateProfileContact(contact(`Ra${String.fromCodePoint(0x200b)}hul`)).name
+    ).toBeUndefined();
+  });
+
   it("allows empty phone when unlocked and validates partial digits", () => {
     expect(
       validateProfileContact(

@@ -138,6 +138,59 @@ describe("auth tokens", () => {
     expect(document.cookie.includes("authSession=1")).toBe(false);
   });
 
+  describe("profile-complete hint cookie", () => {
+    it("sets a sliding-length hint and clears it", async () => {
+      const { setProfileCompleteHint, clearProfileCompleteHint } = await import(
+        "@/lib/auth/tokens"
+      );
+      setProfileCompleteHint();
+      expect(document.cookie).toContain("profileComplete=1");
+      clearProfileCompleteHint();
+      expect(document.cookie.includes("profileComplete=1")).toBe(false);
+    });
+
+    it("is forgotten on logout / sign-out so the next person is not assumed complete", async () => {
+      const { setAuthTokens, setProfileCompleteHint, removeAuthToken } =
+        await import("@/lib/auth/tokens");
+      setAuthTokens("access");
+      setProfileCompleteHint();
+      removeAuthToken();
+      expect(document.cookie.includes("profileComplete=1")).toBe(false);
+      expect(document.cookie.includes("authSession=1")).toBe(false);
+    });
+
+    it("is forgotten when the session ends (refresh answers 401)", async () => {
+      refreshSession.mockResolvedValue({ ok: false, status: 401, message: "gone" });
+      const { setAuthTokens, setProfileCompleteHint, refreshAccessToken } =
+        await import("@/lib/auth/tokens");
+      setAuthTokens("stale");
+      setProfileCompleteHint();
+      await refreshAccessToken();
+      expect(document.cookie.includes("profileComplete=1")).toBe(false);
+    });
+
+    it("survives a transient refresh failure", async () => {
+      refreshSession.mockResolvedValue({ ok: false, status: 503, message: "down" });
+      const { setAuthTokens, setProfileCompleteHint, refreshAccessToken } =
+        await import("@/lib/auth/tokens");
+      setAuthTokens("kept");
+      setProfileCompleteHint();
+      await refreshAccessToken();
+      expect(document.cookie).toContain("profileComplete=1");
+    });
+
+    it("does nothing without a window", async () => {
+      getWindow.mockReturnValue(undefined);
+      const { setProfileCompleteHint, clearProfileCompleteHint } = await import(
+        "@/lib/auth/tokens"
+      );
+      expect(() => {
+        setProfileCompleteHint();
+        clearProfileCompleteHint();
+      }).not.toThrow();
+    });
+  });
+
   it("serialises refresh across tabs with the Web Locks API when available", async () => {
     const order: string[] = [];
     const request = vi.fn(

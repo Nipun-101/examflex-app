@@ -1,3 +1,4 @@
+import { normalizeName, validateName } from "@/lib/onboarding/validate";
 import type {
   ProfileContact,
   ProfileFieldErrors,
@@ -21,14 +22,13 @@ export function validateProfileContact(
 ): ProfileFieldErrors {
   const { phoneLocked = false } = options;
   const errors: ProfileFieldErrors = {};
-  const name = contact.name.trim();
   const email = contact.email.trim();
   const phoneDigits = normalizePhoneDigits(contact.phone);
 
-  if (name.length === 0) {
-    errors.name = "Add your name.";
-  } else if (name.length < 2) {
-    errors.name = "Name needs at least 2 characters.";
+  // Same rules as the API: a name the browser lets through must also pass there.
+  const nameError = validateName(contact.name);
+  if (nameError) {
+    errors.name = nameError;
   }
 
   if (!phoneLocked) {
@@ -63,7 +63,7 @@ export function isProfileContactDirty(
 
 export function sanitizeProfileContact(contact: ProfileContact): ProfileContact {
   return {
-    name: contact.name.trim().replace(/\s+/g, " "),
+    name: normalizeName(contact.name),
     phone: normalizePhoneDigits(contact.phone),
     email: contact.email.trim().toLowerCase(),
   };

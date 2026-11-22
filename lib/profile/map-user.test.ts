@@ -8,7 +8,6 @@ import {
   inferSignInMethod,
   isTempExamflexEmail,
   mapApiUserToProfileUser,
-  toE164IndianMobile,
 } from "@/lib/profile/map-user";
 import type { ApiUserProfile } from "@/types/user";
 
@@ -31,13 +30,11 @@ describe("temp email helpers", () => {
 });
 
 describe("phone helpers", () => {
-  it("strips +91 for display and rebuilds E.164", () => {
+  it("strips +91 for display", () => {
     expect(displayPhoneFromApi("+919876543210")).toBe("9876543210");
     expect(displayPhoneFromApi("9876543210")).toBe("9876543210");
     expect(displayPhoneFromApi("12345")).toBe("12345");
     expect(displayPhoneFromApi(undefined)).toBe("");
-    expect(toE164IndianMobile("9876543210")).toBe("+919876543210");
-    expect(toE164IndianMobile("919876543210")).toBe("+919876543210");
   });
 });
 
@@ -100,7 +97,7 @@ describe("mapApiUserToProfileUser", () => {
     });
   });
 
-  it("locks phone only when present and blanks temp email", () => {
+  it("always locks the phone and blanks temp email", () => {
     expect(
       mapApiUserToProfileUser({
         ...base,
@@ -109,7 +106,7 @@ describe("mapApiUserToProfileUser", () => {
     ).toMatchObject({
       email: "",
       phone: "",
-      phoneLocked: false,
+      phoneLocked: true,
       membershipTier: "none",
       signInMethod: "otp",
     });
@@ -117,36 +114,27 @@ describe("mapApiUserToProfileUser", () => {
 });
 
 describe("buildUpdatePayload", () => {
-  it("sends only changed fields and skips locked phones", () => {
+  it("sends only changed fields", () => {
     const saved = {
       name: "Ada",
       phone: "9876543210",
       email: "ada@examflex.in",
     };
-    expect(
-      buildUpdatePayload(
-        { ...saved, name: "Ada L." },
-        saved,
-        true
-      )
-    ).toEqual({ name: "Ada L." });
+    expect(buildUpdatePayload({ ...saved, name: "Ada L." }, saved)).toEqual({
+      name: "Ada L.",
+    });
 
     expect(
-      buildUpdatePayload(
-        { name: "Ada", phone: "9123456789", email: "ada@examflex.in" },
-        { name: "Ada", phone: "", email: "ada@examflex.in" },
-        false
-      )
-    ).toEqual({ phoneNumber: "+919123456789" });
-
-    expect(
-      buildUpdatePayload(
-        { ...saved, email: "new@examflex.in" },
-        saved,
-        true
-      )
+      buildUpdatePayload({ ...saved, email: "new@examflex.in" }, saved)
     ).toEqual({ email: "new@examflex.in" });
 
-    expect(buildUpdatePayload(saved, saved, true)).toEqual({});
+    expect(buildUpdatePayload(saved, saved)).toEqual({});
+  });
+
+  it("never sends a phone number, even if the draft differs", () => {
+    const saved = { name: "Ada", phone: "", email: "ada@examflex.in" };
+    expect(
+      buildUpdatePayload({ ...saved, phone: "9123456789" }, saved)
+    ).toEqual({});
   });
 });

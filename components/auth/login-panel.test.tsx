@@ -36,6 +36,34 @@ vi.mock("@/components/auth/google-sign-in-button", () => ({
   ),
 }));
 
+/**
+ * The real form (and its MSG91 widget) is covered by mobile-otp-form.test.tsx.
+ * Here it is replaced by buttons that report each possible outcome, so these
+ * tests are about what the login panel does with them.
+ */
+let reportedOutcome: unknown;
+vi.mock("@/components/auth/mobile-otp-form", () => ({
+  MobileOtpForm: ({
+    onVerified,
+    finishingLabel,
+  }: {
+    onVerified: (token: string, mobile: string) => Promise<unknown>;
+    finishingLabel?: string;
+  }) => (
+    <div data-testid="mobile-otp-form">
+      <span>{finishingLabel}</span>
+      <button
+        type="button"
+        onClick={async () => {
+          reportedOutcome = await onVerified("msg91-token", "9876543210");
+        }}
+      >
+        simulate verified code
+      </button>
+    </div>
+  ),
+}));
+
 describe("LoginPanel", () => {
   beforeEach(() => {
     push.mockReset();
@@ -44,12 +72,10 @@ describe("LoginPanel", () => {
     setAuthTokens.mockReset();
     getAuthToken.mockReturnValue(null);
     document.body.style.overflow = "";
-    delete window.initSendOTP;
   });
 
   afterEach(() => {
     cleanup();
-    delete window.initSendOTP;
   });
 
   it("renders brand and auth actions", () => {
@@ -99,193 +125,116 @@ describe("LoginPanel", () => {
     });
   });
 
-  it("loads the MSG91 widget and verifies OTP success", async () => {
-    const user = userEvent.setup();
-    const appendChild = vi.spyOn(document.body, "appendChild");
-    verifyOtp.mockResolvedValue({
-      ok: true,
-      data: {
-        accessToken: "access",
-        isNewUser: false,
-        user: {
-          id: "1",
-          name: "S",
-          email: "s@examflex.in",
-          role: "student",
-        },
-      },
-    });
-
-    render(<LoginPanel />);
+  async function openMobileForm(user: ReturnType<typeof userEvent.setup>) {
     await user.click(
       screen.getByRole("button", { name: "Continue with mobile number" })
     );
+    return screen.getByTestId("mobile-otp-form");
+  }
 
-    await waitFor(() => {
-      expect(appendChild).toHaveBeenCalled();
+  const apiUser = {
+    id: "1",
+    name: "S",
+    email: "s@examflex.in",
+    role: "student",
+  };
+
+  it("opens the themed mobile form in place of the buttons", async () => {
+    const user = userEvent.setup();
+    render(<LoginPanel />);
+    await openMobileForm(user);
+    expect(
+      screen.queryByRole("button", { name: "Continue with Google" })
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("Signing you in…")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Other ways to log in/ }));
+    expect(
+      screen.getByRole("button", { name: "Continue with Google" })
+    ).toBeInTheDocument();
+  });
+
+  it("signs in with the verified code and goes to Today", async () => {
+    const user = userEvent.setup();
+    verifyOtp.mockResolvedValue({
+      ok: true,
+      data: { accessToken: "access", isNewUser: false, user: apiUser },
     });
-
-    const script = appendChild.mock.calls
-      .map((call) => call[0])
-      .find(
-        (node): node is HTMLScriptElement =>
-          node instanceof HTMLScriptElement &&
-          node.src.includes("otp-provider.js")
-      );
-    expect(script).toBeTruthy();
-
-    window.initSendOTP = (config) => {
-      config.success({ message: "msg91-token" });
-    };
-    script?.onload?.(new Event("load"));
+    render(<LoginPanel />);
+    await openMobileForm(user);
+    await user.click(screen.getByText("simulate verified code"));
 
     await waitFor(() => {
       expect(verifyOtp).toHaveBeenCalledWith("msg91-token");
-      expect(setAuthTokens).toHaveBeenCalled();
+      expect(setAuthTokens).toHaveBeenCalledWith("access");
       expect(replace).toHaveBeenCalledWith("/today");
     });
+    expect(reportedOutcome).toEqual({ ok: true });
   });
 
-  it("shows verifying failures and cancelled OTP quietly", async () => {
-    const user = userEvent.setup();
-    verifyOtp.mockResolvedValue({ ok: false, message: "nope" });
-
-    render(<LoginPanel />);
-    await user.click(
-      screen.getByRole("button", { name: "Continue with mobile number" })
-    );
-
-    await waitFor(() => {
-      expect(document.querySelector("#msg91-otp-widget")).toBeTruthy();
-    });
-
-    const scripts = Array.from(document.scripts);
-    const script = scripts.find((s) => s.src.includes("otp-provider.js"));
-    window.initSendOTP = (config) => {
-      config.success({ message: "msg91-token" });
-    };
-    script?.onload?.(new Event("load"));
-
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toBeInTheDocument();
-    });
-  });
-
-  it("surfaces OTP widget failure notices and mounts an existing widget", async () => {
-    const user = userEvent.setup();
-    let latestConfig: { failure: (error: unknown) => void } | null = null;
-    window.initSendOTP = (config) => {
-      latestConfig = config;
-    };
-
-    render(<LoginPanel />);
-    await user.click(
-      screen.getByRole("button", { name: "Continue with mobile number" })
-    );
-
-    await waitFor(() => {
-      expect(latestConfig).not.toBeNull();
-    });
-
-    latestConfig?.failure({ message: "Bad OTP" });
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Bad OTP");
-    });
-
-    latestConfig?.failure({ closeByUser: true });
-    await waitFor(() => {
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-
-    await user.click(
-      screen.getByRole("button", { name: "Continue with mobile number" })
-    );
-    await waitFor(() => {
-      expect(latestConfig).not.toBeNull();
-    });
-  });
-
-  it("handles missing MSG91 tokens from the widget success callback", async () => {
-    const user = userEvent.setup();
-    let latestConfig: { success: (data: unknown) => void } | null = null;
-    window.initSendOTP = (config) => {
-      latestConfig = config;
-    };
-
-    render(<LoginPanel />);
-    await user.click(
-      screen.getByRole("button", { name: "Continue with mobile number" })
-    );
-    await waitFor(() => {
-      expect(latestConfig).not.toBeNull();
-    });
-
-    latestConfig?.success({});
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        /could not finish sign-in/i
-      );
-    });
-  });
-
-  it("loads the OTP script when initSendOTP is not yet available", async () => {
-    const user = userEvent.setup();
-    delete window.initSendOTP;
-    const appendChild = vi.spyOn(document.body, "appendChild");
-
-    const { unmount } = render(<LoginPanel />);
-    window.history.pushState({}, "", "/login?redirect=%2Fprofile");
-    await user.click(
-      screen.getByRole("button", { name: "Continue with mobile number" })
-    );
-
-    await waitFor(() => {
-      expect(appendChild).toHaveBeenCalled();
-    });
-
-    const script = appendChild.mock.calls
-      .map((call) => call[0])
-      .find(
-        (node): node is HTMLScriptElement =>
-          node instanceof HTMLScriptElement &&
-          node.src.includes("otp-provider.js")
-      );
-    expect(script).toBeTruthy();
-    script?.onload?.(new Event("load"));
-    unmount();
-  });
-
-  it("redirects to a safe redirect query after OTP success", async () => {
+  it("honours a safe redirect query after sign-in", async () => {
     const user = userEvent.setup();
     window.history.pushState({}, "", "/login?redirect=%2Fprofile");
     verifyOtp.mockResolvedValue({
       ok: true,
-      data: {
-        accessToken: "access",
-        isNewUser: false,
-        user: {
-          id: "1",
-          name: "S",
-          email: "s@examflex.in",
-          role: "student",
-        },
-      },
+      data: { accessToken: "access", isNewUser: false, user: apiUser },
     });
-    let latestConfig: { success: (data: unknown) => void } | null = null;
-    window.initSendOTP = (config) => {
-      latestConfig = config;
-    };
-
     render(<LoginPanel />);
-    await user.click(
-      screen.getByRole("button", { name: "Continue with mobile number" })
+    await openMobileForm(user);
+    await user.click(screen.getByText("simulate verified code"));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/profile"));
+    window.history.pushState({}, "", "/");
+  });
+
+  it("lets the learner retry the same code on a network or server error", async () => {
+    const user = userEvent.setup();
+    verifyOtp.mockResolvedValueOnce({ ok: false, message: "offline" });
+    render(<LoginPanel />);
+    await openMobileForm(user);
+    await user.click(screen.getByText("simulate verified code"));
+    await waitFor(() => expect(reportedOutcome).toBeDefined());
+    expect(reportedOutcome).toMatchObject({ ok: false, retryable: true });
+    expect(
+      (reportedOutcome as { message: string }).message
+    ).toMatch(/something went wrong while completing sign-in/i);
+    expect(setAuthTokens).not.toHaveBeenCalled();
+
+    verifyOtp.mockResolvedValueOnce({ ok: false, status: 503, message: "down" });
+    await user.click(screen.getByText("simulate verified code"));
+    await waitFor(() =>
+      expect(reportedOutcome).toMatchObject({ retryable: true })
     );
-    await waitFor(() => {
-      expect(latestConfig).not.toBeNull();
+  });
+
+  it("shows the server's reason and asks for a new code when the account cannot sign in", async () => {
+    const user = userEvent.setup();
+    verifyOtp.mockResolvedValue({
+      ok: false,
+      status: 401,
+      message: "Your account has been deactivated.",
     });
-    latestConfig?.success({ message: "msg91-token" });
-    await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/profile");
+    render(<LoginPanel />);
+    await openMobileForm(user);
+    await user.click(screen.getByText("simulate verified code"));
+    await waitFor(() => expect(reportedOutcome).toBeDefined());
+    expect(reportedOutcome).toEqual({
+      ok: false,
+      retryable: false,
+      message: "Your account has been deactivated.",
+    });
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("falls back to a generic message when a 4xx has none", async () => {
+    const user = userEvent.setup();
+    verifyOtp.mockResolvedValue({ ok: false, status: 400, message: "" });
+    render(<LoginPanel />);
+    await openMobileForm(user);
+    await user.click(screen.getByText("simulate verified code"));
+    await waitFor(() => expect(reportedOutcome).toBeDefined());
+    expect(reportedOutcome).toMatchObject({
+      retryable: false,
+      message: expect.stringMatching(/something went wrong/i),
     });
   });
 });

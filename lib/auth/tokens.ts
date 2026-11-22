@@ -6,6 +6,7 @@ import { logoutSession, refreshSession } from "@/lib/api/auth";
 import {
   AUTH_SESSION_COOKIE,
   LOGOUT_RESUME_PATH_COOKIE,
+  PROFILE_COMPLETE_COOKIE,
 } from "@/lib/auth/cookie-names";
 import { getWindow } from "@/lib/auth/runtime-env";
 import { isSafeRedirectPath } from "@/lib/auth/safe-redirect";
@@ -132,7 +133,19 @@ export function removeAuthToken(): void {
   if (!getWindow()) return;
   memoryAccessToken = null;
   removeCookie(AUTH_SESSION_COOKIE);
+  removeCookie(PROFILE_COMPLETE_COOKIE);
   notifyAuthListeners();
+}
+
+/** Remember that this learner finished onboarding (a rendering hint only). */
+export function setProfileCompleteHint(): void {
+  if (!getWindow()) return;
+  setCookie(PROFILE_COMPLETE_COOKIE, "1", SESSION_MARKER_TTL_SEC);
+}
+
+export function clearProfileCompleteHint(): void {
+  if (!getWindow()) return;
+  removeCookie(PROFILE_COMPLETE_COOKIE);
 }
 
 /**
@@ -236,6 +249,7 @@ export async function refreshAccessToken(): Promise<string | null> {
           // instead of retrying with a token the API will keep rejecting.
           memoryAccessToken = null;
           removeCookie(AUTH_SESSION_COOKIE);
+          removeCookie(PROFILE_COMPLETE_COOKIE);
           notifyAuthListeners();
           return null;
         }
