@@ -89,7 +89,7 @@ export function MocksStaticSections() {
           id="plan-strip-heading"
           className="font-display text-xl font-semibold tracking-tight text-study-ink sm:text-2xl"
         >
-          Every mock ends in a plan, not just a score.
+          Know where you stand.
         </h2>
         <ol className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLAN_FEATURES.map((feature, index) => (

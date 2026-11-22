@@ -14,8 +14,8 @@ type TodayWorkspaceProps = {
 
 /**
  * Desktop: left = next step → score → subjects;
- * right = equation → mistake → mock → perspective → session.
- * Mobile order differs for empty vs active.
+ * right = mock → mistake → perspective → equation → session.
+ * Mobile follows the same order; only next step / score swap for empty vs active.
  */
 export function TodayWorkspace({ data }: TodayWorkspaceProps) {
   const empty = data.mode === "empty";
@@ -27,10 +27,10 @@ export function TodayWorkspace({ data }: TodayWorkspaceProps) {
           <div className={`${empty ? "order-1" : "order-2"} lg:order-none`}>
             <NextStepCard data={data.nextStep} />
           </div>
-          <div className={`${empty ? "order-3" : "order-1"} lg:order-none`}>
+          <div className={`${empty ? "order-2" : "order-1"} lg:order-none`}>
             <MockScoreCard data={data.latestMock} />
           </div>
-          <div className="order-7 lg:order-none lg:flex lg:flex-1 lg:flex-col">
+          <div className="order-6 lg:order-none lg:flex lg:flex-1 lg:flex-col">
             <SubjectInsightsCard
               section={data.subjectInsights}
               className="lg:flex-1"
@@ -39,19 +39,19 @@ export function TodayWorkspace({ data }: TodayWorkspaceProps) {
         </div>
 
         <div className="contents lg:flex lg:h-full lg:flex-col lg:gap-5">
-          <div className={`${empty ? "order-4" : "order-3"} lg:order-none`}>
-            <EquationBookCard data={data.equationBook} />
-          </div>
-          <div className={`${empty ? "order-5" : "order-4"} lg:order-none`}>
-            <MistakeBookCard data={data.mistakeBook} />
-          </div>
-          <div className={`${empty ? "order-6" : "order-5"} lg:order-none`}>
+          <div className="order-3 lg:order-none">
             <NextMockCard data={data.nextMock} />
           </div>
-          <div className={`${empty ? "order-8" : "order-6"} lg:order-none lg:flex lg:flex-1 lg:flex-col`}>
+          <div className="order-4 lg:order-none">
+            <MistakeBookCard data={data.mistakeBook} />
+          </div>
+          <div className="order-5 lg:order-none lg:flex lg:flex-1 lg:flex-col">
             <PerspectiveCard data={data.perspective} className="lg:flex-1" />
           </div>
-          <div className="order-9 lg:order-none">
+          <div className="order-7 lg:order-none">
+            <EquationBookCard data={data.equationBook} />
+          </div>
+          <div className="order-8 lg:order-none">
             <SessionPlanCard data={data.sessionPlan} />
           </div>
         </div>

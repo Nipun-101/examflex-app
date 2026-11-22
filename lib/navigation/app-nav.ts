@@ -1,7 +1,7 @@
 export const APP_NAV_ITEMS = [
   { href: "/today", label: "Today" },
-  { href: "/mocks", label: "Mocks" },
   { href: "/equation-book", label: "Equation Book" },
+  { href: "/mocks", label: "Mocks" },
   { href: "/mistake-book", label: "Mistake Book" },
   { href: "/analysis", label: "Analysis" },
 ] as const;

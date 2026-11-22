@@ -1,14 +1,12 @@
 type TodayOverviewProps = {
   eyebrow: string;
   headline: string;
-  subhead: string;
   paceBadge: string;
 };
 
 export function TodayOverview({
   eyebrow,
   headline,
-  subhead,
   paceBadge,
 }: TodayOverviewProps) {
   return (
@@ -26,9 +24,6 @@ export function TodayOverview({
         >
           {headline}
         </h1>
-        <p className="mt-3 max-w-2xl text-base leading-[1.4] text-study-muted">
-          {subhead}
-        </p>
       </div>
 
       <p className="inline-flex h-[42px] shrink-0 items-center justify-center self-start rounded-[10px] bg-white px-4 text-sm font-medium whitespace-pre text-study-ink shadow-soft">

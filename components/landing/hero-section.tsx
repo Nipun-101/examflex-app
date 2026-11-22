@@ -3,9 +3,9 @@ import Link from "next/link";
 import { HeroVisual } from "@/components/landing/hero-visual";
 
 const TRUST_ITEMS = [
-  "NTA-pattern mocks",
-  "NCERT-referenced",
-  "Practice, not classes",
+  "NTA model mocks",
+  "NCERT references",
+  "Productive revision",
 ] as const;
 
 export function HeroSection() {
@@ -15,7 +15,7 @@ export function HeroSection() {
         <div className="animate-fade-up flex flex-col items-start gap-5 sm:items-center sm:text-center lg:items-start lg:gap-6 lg:text-left">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3.5 py-2 text-xs font-semibold text-primary sm:text-sm">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
-            NEET 2027 prep is live · JEE coming soon
+            NEET 2027 prep is live
           </span>
 
           <h1 className="text-5xl font-extrabold leading-none tracking-tighter text-primary-deep sm:text-6xl lg:text-7xl">
@@ -23,8 +23,9 @@ export function HeroSection() {
           </h1>
 
           <p className="max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Exam-level mocks, a Mistake Book that shows why you lost marks, and a
-            score you can read in college terms. So every hour you study counts.
+            Exam-level mocks, a Mistake Book that shows why you lost marks, and
+            a score you can read in college terms. So every hour you study
+            counts.
           </p>
 
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row lg:justify-start">

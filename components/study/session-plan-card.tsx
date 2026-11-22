@@ -10,7 +10,7 @@ const STEP_INDEX_CLASS =
 
 export function SessionPlanCard({ data }: SessionPlanCardProps) {
   return (
-    <article className="rounded-[20px] bg-[#f6efd2] px-6 py-6">
+    <article className="rounded-[20px] bg-study-blush px-6 py-6">
       <p className="text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase">
         {data.eyebrow}
       </p>

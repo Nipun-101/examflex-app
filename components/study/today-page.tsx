@@ -24,7 +24,6 @@ export function TodayPageView({
       <TodayOverview
         eyebrow={data.overview.eyebrow}
         headline={data.overview.headline}
-        subhead={data.overview.subhead}
         paceBadge={data.overview.paceBadge}
       />
       <TodayWorkspace data={data} />
