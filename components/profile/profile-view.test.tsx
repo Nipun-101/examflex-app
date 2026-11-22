@@ -136,7 +136,10 @@ describe("ProfileView", () => {
     });
 
     expect(screen.getByLabelText("Full name")).toHaveValue("Aarav Mehta");
-    expect(screen.getByLabelText("Mobile")).toHaveAttribute("readonly");
+    // The number is always captured at sign-up, and this learner already has an email.
+    expect(screen.getByLabelText("Mobile")).toBeDisabled();
+    expect(screen.getByLabelText("Email")).toBeDisabled();
+    expect(screen.getByLabelText("Full name")).toBeEnabled();
     expect(screen.getByText("Prep pulse")).toBeInTheDocument();
     expect(screen.getByText("First Test")).toBeInTheDocument();
     expect(screen.getByText("Bronze")).toBeInTheDocument();
@@ -249,22 +252,99 @@ describe("ProfileView", () => {
     });
   });
 
-  it("clears a field error on edit", async () => {
-    const user = userEvent.setup();
-    renderProfile(<ProfileView chrome={chrome} />);
+  describe("email and mobile editing", () => {
+    // OTP sign-ups carry a placeholder email, shown as empty.
+    const otpProfile: ApiUserProfile = {
+      ...apiProfile,
+      email: "user9876@temp.examflex.com",
+    };
 
-    await waitFor(() => {
-      expect(screen.getByLabelText("Email")).toHaveValue(
-        "aarav.mehta@example.com"
-      );
+    it("locks both the mobile and an existing email, with the blocked cursor", async () => {
+      renderProfile(<ProfileView chrome={chrome} />);
+      await waitFor(() => {
+        expect(screen.getByLabelText("Email")).toHaveValue(
+          "aarav.mehta@example.com"
+        );
+      });
+
+      for (const label of ["Mobile", "Email"]) {
+        const input = screen.getByLabelText(label);
+        expect(input).toBeDisabled();
+        expect(input.className).toContain("cursor-not-allowed");
+      }
     });
 
-    await user.clear(screen.getByLabelText("Email"));
-    await user.click(screen.getByRole("button", { name: "Save details" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Add an email address.");
+    it("does not send the email when a learner with an email edits their name", async () => {
+      const user = userEvent.setup();
+      renderProfile(<ProfileView chrome={chrome} />);
+      await waitFor(() => {
+        expect(screen.getByLabelText("Full name")).toHaveValue("Aarav Mehta");
+      });
 
-    await user.type(screen.getByLabelText("Email"), "riya@example.com");
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      await user.type(screen.getByLabelText("Full name"), " Jr");
+      await user.click(screen.getByRole("button", { name: "Save details" }));
+
+      await waitFor(() => expect(updateMyProfile).toHaveBeenCalled());
+      const payload = updateMyProfile.mock.calls[0]?.[0];
+      expect(payload).toEqual({ name: "Aarav Mehta Jr" });
+      expect(payload).not.toHaveProperty("email");
+      expect(payload).not.toHaveProperty("phoneNumber");
+    });
+
+    it("lets a learner with no email add one, while the mobile stays locked", async () => {
+      getMyProfile.mockResolvedValue({ ok: true, data: otpProfile });
+      renderProfile(<ProfileView chrome={chrome} />);
+      await waitFor(() => {
+        expect(screen.getByLabelText("Full name")).toHaveValue("Aarav Mehta");
+      });
+
+      const email = screen.getByLabelText("Email");
+      expect(email).toHaveValue("");
+      expect(email).toBeEnabled();
+      expect(screen.getByLabelText("Mobile")).toBeDisabled();
+    });
+
+    it("clears a field error on edit", async () => {
+      const user = userEvent.setup();
+      getMyProfile.mockResolvedValue({ ok: true, data: otpProfile });
+      renderProfile(<ProfileView chrome={chrome} />);
+      await waitFor(() => {
+        expect(screen.getByLabelText("Email")).toBeEnabled();
+      });
+
+      await user.type(screen.getByLabelText("Full name"), " X"); // make the form dirty
+      await user.click(screen.getByRole("button", { name: "Save details" }));
+      expect(screen.getByRole("alert")).toHaveTextContent("Add an email address.");
+
+      await user.type(screen.getByLabelText("Email"), "riya@example.com");
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+
+    it("saves the new email once, then locks it", async () => {
+      const user = userEvent.setup();
+      getMyProfile.mockResolvedValue({ ok: true, data: otpProfile });
+      updateMyProfile.mockResolvedValue({
+        ok: true,
+        data: { ...otpProfile, email: "riya@example.com" },
+      });
+      renderProfile(<ProfileView chrome={chrome} />);
+      await waitFor(() => {
+        expect(screen.getByLabelText("Email")).toBeEnabled();
+      });
+
+      await user.type(screen.getByLabelText("Email"), "riya@example.com");
+      await user.click(screen.getByRole("button", { name: "Save details" }));
+
+      await waitFor(() => {
+        expect(updateMyProfile).toHaveBeenCalledWith({ email: "riya@example.com" });
+        expect(screen.getByRole("status")).toHaveTextContent("Saved.");
+      });
+      // Now that an email exists it can no longer be edited here.
+      await waitFor(() => {
+        expect(screen.getByLabelText("Email")).toBeDisabled();
+      });
+      expect(screen.getByLabelText("Email")).toHaveValue("riya@example.com");
+    });
   });
 
   it("shows save errors from the API", async () => {

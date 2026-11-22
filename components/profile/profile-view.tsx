@@ -46,6 +46,7 @@ type ReadyProfile = {
   saved: ProfileContact;
   draft: ProfileContact;
   phoneLocked: boolean;
+  emailLocked: boolean;
 };
 
 type ProfileLoadState =
@@ -99,6 +100,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
       saved: contact,
       draft: contact,
       phoneLocked: user.phoneLocked,
+      emailLocked: user.emailLocked,
     });
     setErrors({});
   }, []);
@@ -185,6 +187,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
   async function handleSave(ready: ReadyProfile) {
     const nextErrors = validateProfileContact(ready.draft, {
       phoneLocked: ready.phoneLocked,
+      emailLocked: ready.emailLocked,
     });
     setErrors(nextErrors);
     if (hasProfileFieldErrors(nextErrors)) {
@@ -193,7 +196,9 @@ export function ProfileView({ chrome }: ProfileViewProps) {
     }
 
     const sanitized = sanitizeProfileContact(ready.draft);
-    const payload = buildUpdatePayload(sanitized, ready.saved);
+    const payload = buildUpdatePayload(sanitized, ready.saved, {
+      emailLocked: ready.emailLocked,
+    });
     if (Object.keys(payload).length === 0) {
       commitReady(ready, { draft: sanitized, saved: sanitized });
       setStatusMessage("Saved.");
@@ -278,7 +283,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
     );
   }
 
-  const { user, draft, saved, phoneLocked } = profileState;
+  const { user, draft, saved, phoneLocked, emailLocked } = profileState;
   const dirty = isProfileContactDirty(draft, saved);
   const avatarUrl = resolveProfileAvatarUrl(user.signInMethod, user.avatarUrl);
 
@@ -329,6 +334,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
           errors={errors}
           dirty={dirty}
           phoneLocked={phoneLocked}
+          emailLocked={emailLocked}
           saving={saving}
           saveLabel={chrome.saveLabel}
           resetLabel={chrome.resetLabel}

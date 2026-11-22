@@ -94,6 +94,7 @@ describe("mapApiUserToProfileUser", () => {
       memberSinceLabel: "On ExamFlex since March 2025",
       membershipTier: "silver",
       phoneLocked: true,
+      emailLocked: true,
     });
   });
 
@@ -110,6 +111,21 @@ describe("mapApiUserToProfileUser", () => {
       membershipTier: "none",
       signInMethod: "otp",
     });
+  });
+
+  it("locks a real email, but leaves a missing one open so it can be added", () => {
+    expect(
+      mapApiUserToProfileUser({ ...base, email: "ada@examflex.in" }).emailLocked
+    ).toBe(true);
+    // OTP sign-ups get a placeholder that is shown as empty: still addable.
+    expect(
+      mapApiUserToProfileUser({ ...base, email: "user98@temp.examflex.com" })
+        .emailLocked
+    ).toBe(false);
+    expect(
+      mapApiUserToProfileUser({ ...base, email: "USER98@TEMP.EXAMFLEX.COM" })
+        .emailLocked
+    ).toBe(false);
   });
 });
 
@@ -129,6 +145,30 @@ describe("buildUpdatePayload", () => {
     ).toEqual({ email: "new@examflex.in" });
 
     expect(buildUpdatePayload(saved, saved)).toEqual({});
+  });
+
+  it("never sends a locked email, even if the draft somehow differs", () => {
+    const saved = { name: "Ada", phone: "9876543210", email: "ada@examflex.in" };
+    expect(
+      buildUpdatePayload(
+        { ...saved, name: "Ada L.", email: "other@example.com" },
+        saved,
+        { emailLocked: true }
+      )
+    ).toEqual({ name: "Ada L." });
+  });
+
+  it("does send an email that is being added for the first time", () => {
+    const saved = { name: "Ada", phone: "9876543210", email: "" };
+    expect(
+      buildUpdatePayload({ ...saved, email: "new@example.com" }, saved, {
+        emailLocked: false,
+      })
+    ).toEqual({ email: "new@example.com" });
+    // no options at all behaves like "not locked"
+    expect(
+      buildUpdatePayload({ ...saved, email: "new@example.com" }, saved)
+    ).toEqual({ email: "new@example.com" });
   });
 
   it("never sends a phone number, even if the draft differs", () => {

@@ -70,10 +70,12 @@ export function mapApiUserToProfileUser(profile: ApiUserProfile): ProfileUser {
   const targetExamId =
     profile.targetExam?.id ?? profile.targetExams?.[0]?.id ?? null;
 
+  const email = displayEmailFromApi(profile.email);
+
   return {
     name: profile.name,
     phone,
-    email: displayEmailFromApi(profile.email),
+    email,
     avatarUrl,
     signInMethod: inferSignInMethod(avatarUrl),
     examTrack: examTrackFromProfile(profile),
@@ -82,6 +84,9 @@ export function mapApiUserToProfileUser(profile: ApiUserProfile): ProfileUser {
     membershipTier: profile.membershipTier ?? "none",
     // Phone can only be set by verifying it with an OTP, never by editing.
     phoneLocked: true,
+    // A real email is fixed. The placeholder given to OTP sign-ups displays as
+    // empty, so those learners can still add their own once.
+    emailLocked: email.length > 0,
   };
 }
 
@@ -96,11 +101,13 @@ export function contactFromProfileUser(user: ProfileUser): ProfileContact {
 /**
  * Build a sparse PATCH body from sanitized draft vs last-saved contact.
  * The phone number is never sent: it can only change by verifying it with an
- * OTP, and the API rejects it on this endpoint.
+ * OTP, and the API rejects it on this endpoint. A locked email is never sent
+ * either: only a missing email can be added.
  */
 export function buildUpdatePayload(
   draft: ProfileContact,
-  saved: ProfileContact
+  saved: ProfileContact,
+  options: { emailLocked?: boolean } = {}
 ): UpdateMyProfilePayload {
   const payload: UpdateMyProfilePayload = {};
 
@@ -108,7 +115,7 @@ export function buildUpdatePayload(
     payload.name = draft.name;
   }
 
-  if (draft.email !== saved.email) {
+  if (!options.emailLocked && draft.email !== saved.email) {
     payload.email = draft.email;
   }
 
