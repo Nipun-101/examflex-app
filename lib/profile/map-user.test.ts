@@ -95,6 +95,7 @@ describe("mapApiUserToProfileUser", () => {
       membershipTier: "silver",
       phoneLocked: true,
       emailLocked: true,
+      emailVerified: false,
     });
   });
 
@@ -127,6 +128,20 @@ describe("mapApiUserToProfileUser", () => {
         .emailLocked
     ).toBe(false);
   });
+
+  it("marks only a real, API-verified email as verified", () => {
+    const map = (email: string, emailVerified?: boolean) =>
+      mapApiUserToProfileUser({
+        ...base,
+        email,
+        ...(emailVerified === undefined ? {} : { emailVerified }),
+      }).emailVerified;
+    expect(map("ada@examflex.in", true)).toBe(true);
+    expect(map("ada@examflex.in", false)).toBe(false);
+    expect(map("ada@examflex.in")).toBe(false);
+    // The placeholder is never shown as verified, whatever the API says.
+    expect(map("user98@temp.examflex.com", true)).toBe(false);
+  });
 });
 
 describe("buildUpdatePayload", () => {
@@ -140,35 +155,20 @@ describe("buildUpdatePayload", () => {
       name: "Ada L.",
     });
 
-    expect(
-      buildUpdatePayload({ ...saved, email: "new@examflex.in" }, saved)
-    ).toEqual({ email: "new@examflex.in" });
-
     expect(buildUpdatePayload(saved, saved)).toEqual({});
   });
 
-  it("never sends a locked email, even if the draft somehow differs", () => {
-    const saved = { name: "Ada", phone: "9876543210", email: "ada@examflex.in" };
-    expect(
-      buildUpdatePayload(
-        { ...saved, name: "Ada L.", email: "other@example.com" },
-        saved,
-        { emailLocked: true }
-      )
-    ).toEqual({ name: "Ada L." });
-  });
-
-  it("does send an email that is being added for the first time", () => {
+  it("never sends the email: it is only added by verifying it", () => {
     const saved = { name: "Ada", phone: "9876543210", email: "" };
     expect(
-      buildUpdatePayload({ ...saved, email: "new@example.com" }, saved, {
-        emailLocked: false,
-      })
-    ).toEqual({ email: "new@example.com" });
-    // no options at all behaves like "not locked"
+      buildUpdatePayload(
+        { ...saved, name: "Ada L.", email: "new@example.com" },
+        saved
+      )
+    ).toEqual({ name: "Ada L." });
     expect(
       buildUpdatePayload({ ...saved, email: "new@example.com" }, saved)
-    ).toEqual({ email: "new@example.com" });
+    ).toEqual({});
   });
 
   it("never sends a phone number, even if the draft differs", () => {

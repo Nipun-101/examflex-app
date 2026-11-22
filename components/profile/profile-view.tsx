@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { ExamChoiceModal } from "@/components/equation-book/exam-choice-modal";
+import { EmailVerifyDialog } from "@/components/profile/email-verify-dialog";
 import { ProfileContactForm } from "@/components/profile/profile-contact-form";
 import { ProfileIdentityCard } from "@/components/profile/profile-identity-card";
 import { ProfilePrepSnapshot } from "@/components/profile/profile-prep-snapshot";
@@ -22,6 +23,7 @@ import {
 import { persistTargetExam } from "@/lib/profile/persist-target-exam";
 import type { EquationExamOption } from "@/types/equation-book";
 import {
+  emailVerifyError,
   hasProfileFieldErrors,
   isProfileContactDirty,
   sanitizeProfileContact,
@@ -47,7 +49,10 @@ type ReadyProfile = {
   draft: ProfileContact;
   phoneLocked: boolean;
   emailLocked: boolean;
+  emailVerified: boolean;
 };
+
+const SUCCESS_MESSAGES = new Set(["Saved.", "Email verified."]);
 
 type ProfileLoadState =
   | { status: "loading" }
@@ -91,19 +96,35 @@ export function ProfileView({ chrome }: ProfileViewProps) {
   const [examOptions, setExamOptions] = useState<EquationExamOption[]>([]);
   const [examPickerOpen, setExamPickerOpen] = useState(false);
   const [examSaving, setExamSaving] = useState(false);
+  /** The email being verified while the dialog is open. */
+  const [verifyingEmail, setVerifyingEmail] = useState<string | null>(null);
 
-  const applyUser = useCallback((user: ProfileUser) => {
-    const contact = contactFromProfileUser(user);
-    setProfileState({
-      status: "ready",
-      user,
-      saved: contact,
-      draft: contact,
-      phoneLocked: user.phoneLocked,
-      emailLocked: user.emailLocked,
-    });
-    setErrors({});
-  }, []);
+  /**
+   * Show the server's copy of the user. `keep` carries over draft edits the
+   * server does not know about yet (an email still to verify, a name not yet
+   * saved), so finishing one action never wipes the other.
+   */
+  const applyUser = useCallback(
+    (user: ProfileUser, keep: Partial<ProfileContact> = {}) => {
+      const contact = contactFromProfileUser(user);
+      setProfileState({
+        status: "ready",
+        user,
+        saved: contact,
+        draft: {
+          ...contact,
+          ...keep,
+          // A locked email always shows what the server has.
+          ...(user.emailLocked ? { email: contact.email } : {}),
+        },
+        phoneLocked: user.phoneLocked,
+        emailLocked: user.emailLocked,
+        emailVerified: user.emailVerified,
+      });
+      setErrors({});
+    },
+    []
+  );
 
   const applyDeskResult = useCallback(
     (result: DeskFetchResult) => {
@@ -187,7 +208,6 @@ export function ProfileView({ chrome }: ProfileViewProps) {
   async function handleSave(ready: ReadyProfile) {
     const nextErrors = validateProfileContact(ready.draft, {
       phoneLocked: ready.phoneLocked,
-      emailLocked: ready.emailLocked,
     });
     setErrors(nextErrors);
     if (hasProfileFieldErrors(nextErrors)) {
@@ -196,11 +216,13 @@ export function ProfileView({ chrome }: ProfileViewProps) {
     }
 
     const sanitized = sanitizeProfileContact(ready.draft);
-    const payload = buildUpdatePayload(sanitized, ready.saved, {
-      emailLocked: ready.emailLocked,
-    });
+    const payload = buildUpdatePayload(sanitized, ready.saved);
     if (Object.keys(payload).length === 0) {
-      commitReady(ready, { draft: sanitized, saved: sanitized });
+      // The email is never saved here, so it stays as the server has it.
+      commitReady(ready, {
+        draft: sanitized,
+        saved: { ...sanitized, email: ready.saved.email },
+      });
       setStatusMessage("Saved.");
       return;
     }
@@ -218,8 +240,27 @@ export function ProfileView({ chrome }: ProfileViewProps) {
       return;
     }
 
-    applyUser(mapApiUserToProfileUser(result.data));
+    applyUser(mapApiUserToProfileUser(result.data), {
+      email: ready.draft.email,
+    });
     setStatusMessage("Saved.");
+  }
+
+  /** Only reachable while the email is editable (no real email yet). */
+  function handleVerifyEmail(ready: ReadyProfile) {
+    const problem = emailVerifyError(ready.draft.email);
+    if (problem) {
+      setErrors((current) => ({ ...current, email: problem }));
+      return;
+    }
+    setStatusMessage(null);
+    setVerifyingEmail(ready.draft.email.trim().toLowerCase());
+  }
+
+  function handleEmailVerified(ready: ReadyProfile, profile: ApiUserProfile) {
+    setVerifyingEmail(null);
+    applyUser(mapApiUserToProfileUser(profile), { name: ready.draft.name });
+    setStatusMessage("Email verified.");
   }
 
   function handleReset(ready: ReadyProfile) {
@@ -283,7 +324,8 @@ export function ProfileView({ chrome }: ProfileViewProps) {
     );
   }
 
-  const { user, draft, saved, phoneLocked, emailLocked } = profileState;
+  const { user, draft, saved, phoneLocked, emailLocked, emailVerified } =
+    profileState;
   const dirty = isProfileContactDirty(draft, saved);
   const avatarUrl = resolveProfileAvatarUrl(user.signInMethod, user.avatarUrl);
 
@@ -316,7 +358,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
       {statusMessage ? (
         <p
           className={`rounded-[12px] px-3.5 py-2.5 text-xs font-medium sm:text-sm ${
-            statusMessage === "Saved."
+            SUCCESS_MESSAGES.has(statusMessage)
               ? "bg-study-lilac text-study-ink"
               : "bg-study-peach/50 text-study-peach-ink"
           }`}
@@ -335,6 +377,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
           dirty={dirty}
           phoneLocked={phoneLocked}
           emailLocked={emailLocked}
+          emailVerified={emailVerified}
           saving={saving}
           saveLabel={chrome.saveLabel}
           resetLabel={chrome.resetLabel}
@@ -347,6 +390,9 @@ export function ProfileView({ chrome }: ProfileViewProps) {
           onReset={() => {
             handleReset(profileState);
           }}
+          onVerifyEmail={() => {
+            handleVerifyEmail(profileState);
+          }}
         />
 
         <ProfilePrepSnapshot
@@ -358,6 +404,16 @@ export function ProfileView({ chrome }: ProfileViewProps) {
           onRetryBadges={handleRetryBadges}
         />
       </div>
+
+      {verifyingEmail ? (
+        <EmailVerifyDialog
+          email={verifyingEmail}
+          onVerified={(profile) => {
+            handleEmailVerified(profileState, profile);
+          }}
+          onClose={() => setVerifyingEmail(null)}
+        />
+      ) : null}
 
       <ExamChoiceModal
         open={examPickerOpen}

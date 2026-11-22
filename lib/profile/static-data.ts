@@ -27,6 +27,7 @@ export const PROFILE_PAGE_DATA: ProfilePageData = {
     membershipTier: "none",
     phoneLocked: true,
     emailLocked: true,
+    emailVerified: false,
   },
   snapshot: [],
 };

@@ -7,6 +7,7 @@ import {
   loadOtpScript,
   otpErrorMessage,
   readWidgetSettings,
+  EMAIL_RETRY_CHANNEL,
   resendOtp,
   resetOtpWidgetForTests,
   sendOtp,
@@ -187,6 +188,13 @@ describe("otp-widget", () => {
       window.retryOtp = vi.fn((_channel, ok) => ok?.({ type: "success" }));
       await expect(resendOtp()).resolves.toBeUndefined();
       expect(window.retryOtp).toHaveBeenCalledWith(null, expect.any(Function), expect.any(Function));
+    });
+
+    it("resends over a named channel (email is '3')", async () => {
+      window.retryOtp = vi.fn((_channel, ok) => ok?.({ type: "success" }));
+      await expect(resendOtp(EMAIL_RETRY_CHANNEL)).resolves.toBeUndefined();
+      expect(EMAIL_RETRY_CHANNEL).toBe("3");
+      expect(window.retryOtp).toHaveBeenCalledWith("3", expect.any(Function), expect.any(Function));
     });
 
     it("returns the access token MSG91 puts in `message`", async () => {

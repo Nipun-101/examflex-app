@@ -83,6 +83,9 @@ export function parseApiUserProfile(value: unknown): ApiUserProfile | null {
   if (typeof value.phoneVerified === "boolean") {
     profile.phoneVerified = value.phoneVerified;
   }
+  if (typeof value.emailVerified === "boolean") {
+    profile.emailVerified = value.emailVerified;
+  }
   if (typeof value.onboardingCompleted === "boolean") {
     profile.onboardingCompleted = value.onboardingCompleted;
   }

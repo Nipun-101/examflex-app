@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { completeOnboarding, verifyMyPhone } from "@/lib/api/onboarding";
+import {
+  completeOnboarding,
+  verifyMyEmail,
+  verifyMyPhone,
+} from "@/lib/api/onboarding";
 
 vi.mock("@/lib/auth/tokens", () => ({
   getAuthToken: () => "mem-token",
@@ -71,6 +75,55 @@ describe("onboarding api", () => {
       const offline = await verifyMyPhone("t");
       expect(offline).toMatchObject({ ok: false, message: expect.stringMatching(/Could not reach ExamFlex/) });
       expect((offline as { status?: number }).status).toBeUndefined();
+    });
+  });
+
+  describe("verifyMyEmail", () => {
+    it("posts only the access token, never an email", async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        new Response(
+          JSON.stringify({ data: { ...profile, emailVerified: true } }),
+          { status: 200 }
+        )
+      );
+      const result = await verifyMyEmail("msg91-email-token");
+
+      expect(result).toMatchObject({ ok: true, data: { emailVerified: true } });
+      const [url, init] = vi.mocked(fetch).mock.calls[0]!;
+      expect(String(url)).toBe("http://localhost:3000/api/v1/users/me/email/verify");
+      expect(init?.method).toBe("POST");
+      expect(JSON.parse(String(init?.body))).toEqual({
+        accessToken: "msg91-email-token",
+      });
+    });
+
+    it("surfaces the API's reason when the email belongs to someone else", async () => {
+      vi.mocked(fetch).mockResolvedValue(
+        new Response(
+          JSON.stringify({ message: "This email belongs to another ExamFlex account." }),
+          { status: 409 }
+        )
+      );
+      expect(await verifyMyEmail("t")).toEqual({
+        ok: false,
+        status: 409,
+        message: "This email belongs to another ExamFlex account.",
+      });
+    });
+
+    it("uses friendly fallbacks for an empty error body and for network failures", async () => {
+      vi.mocked(fetch).mockResolvedValueOnce(new Response("", { status: 500 }));
+      expect(await verifyMyEmail("t")).toMatchObject({
+        ok: false,
+        status: 500,
+        message: "We could not verify that email. Please try again.",
+      });
+
+      vi.mocked(fetch).mockRejectedValueOnce(new Error("offline"));
+      expect(await verifyMyEmail("t")).toMatchObject({
+        ok: false,
+        message: expect.stringMatching(/Could not reach ExamFlex/),
+      });
     });
   });
 

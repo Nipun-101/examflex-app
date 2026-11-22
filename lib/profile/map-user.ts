@@ -87,6 +87,7 @@ export function mapApiUserToProfileUser(profile: ApiUserProfile): ProfileUser {
     // A real email is fixed. The placeholder given to OTP sign-ups displays as
     // empty, so those learners can still add their own once.
     emailLocked: email.length > 0,
+    emailVerified: email.length > 0 && profile.emailVerified === true,
   };
 }
 
@@ -100,23 +101,17 @@ export function contactFromProfileUser(user: ProfileUser): ProfileContact {
 
 /**
  * Build a sparse PATCH body from sanitized draft vs last-saved contact.
- * The phone number is never sent: it can only change by verifying it with an
- * OTP, and the API rejects it on this endpoint. A locked email is never sent
- * either: only a missing email can be added.
+ * Neither contact field is ever sent: the phone number and the email can only
+ * be added by verifying them with an OTP, and the API rejects both here.
  */
 export function buildUpdatePayload(
   draft: ProfileContact,
-  saved: ProfileContact,
-  options: { emailLocked?: boolean } = {}
+  saved: ProfileContact
 ): UpdateMyProfilePayload {
   const payload: UpdateMyProfilePayload = {};
 
   if (draft.name !== saved.name) {
     payload.name = draft.name;
-  }
-
-  if (!options.emailLocked && draft.email !== saved.email) {
-    payload.email = draft.email;
   }
 
   return payload;

@@ -30,6 +30,27 @@ export async function verifyMyPhone(
   }
 }
 
+/**
+ * Attach the email MSG91 just verified (profile page). The API reads the
+ * address from MSG91 using this token; it is never sent from the browser.
+ */
+export async function verifyMyEmail(
+  accessToken: string
+): Promise<ApiResult<ApiUserProfile>> {
+  try {
+    const response = await apiFetch("/api/v1/users/me/email/verify", {
+      method: "POST",
+      body: JSON.stringify({ accessToken }),
+    });
+    return parseProfileResponse(
+      response,
+      "We could not verify that email. Please try again."
+    );
+  } catch {
+    return networkApiFailure(NETWORK_FAILURE);
+  }
+}
+
 /** Save the learner's name and their one target exam and finish onboarding. */
 export async function completeOnboarding(input: {
   name: string;

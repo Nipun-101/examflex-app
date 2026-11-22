@@ -23,11 +23,13 @@ describe("parseApiUserProfile", () => {
       parseApiUserProfile({
         ...baseProfile,
         phoneVerified: true,
+        emailVerified: false,
         onboardingCompleted: false,
         profileComplete: false,
       })
     ).toMatchObject({
       phoneVerified: true,
+      emailVerified: false,
       onboardingCompleted: false,
       profileComplete: false,
     });
@@ -43,9 +45,11 @@ describe("parseApiUserProfile", () => {
     const parsed = parseApiUserProfile({
       ...baseProfile,
       phoneVerified: "yes",
+      emailVerified: "true",
       onboardingCompleted: 1,
       profileComplete: null,
     });
+    expect(parsed).not.toHaveProperty("emailVerified");
     expect(parsed).not.toHaveProperty("profileComplete");
     expect(parsed).not.toHaveProperty("phoneVerified");
     expect(parsed).not.toHaveProperty("onboardingCompleted");
