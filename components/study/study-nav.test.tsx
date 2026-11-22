@@ -5,6 +5,11 @@ import { StudyNav } from "@/components/study/study-nav";
 
 const usePathname = vi.fn(() => "/today");
 const logout = vi.fn();
+const getMyProfile = vi.fn();
+
+vi.mock("@/lib/api/users", () => ({
+  getMyProfile: (...args: unknown[]) => getMyProfile(...args),
+}));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => usePathname(),
@@ -19,6 +24,20 @@ describe("StudyNav", () => {
   beforeEach(() => {
     usePathname.mockReturnValue("/today");
     logout.mockReset();
+    getMyProfile.mockReset();
+    getMyProfile.mockResolvedValue({ ok: false, message: "x" });
+  });
+
+  it("shows the signed-in user's name on the profile link", async () => {
+    getMyProfile.mockResolvedValue({
+      ok: true,
+      data: { name: "Asha Verma" },
+    });
+    render(<StudyNav />);
+
+    const link = await screen.findByRole("link", { name: /Asha Verma/ });
+    expect(link).toHaveAttribute("href", "/profile");
+    expect(screen.getByTitle("Asha Verma")).toBeInTheDocument();
   });
 
   it("renders study destinations, Analysis, and Profile", () => {

@@ -56,13 +56,13 @@ describe("TodayWorkspace", () => {
       name: "Where your next session can help",
     });
 
-    expect(scoreHeading.closest(".order-1")).toHaveClass("lg:order-none");
-    expect(nextStepHeading.closest(".order-2")).toHaveClass("lg:order-none");
-    expect(nextMockHeading.closest(".order-3")).toHaveClass("lg:order-none");
-    expect(mistakeHeading?.closest(".order-4")).toHaveClass("lg:order-none");
-    expect(perspectiveHeading.closest(".order-5")).toHaveClass("lg:order-none");
+    expect(nextStepHeading.closest(".order-1")).toHaveClass("lg:order-none");
+    expect(scoreHeading.closest(".order-2")).toHaveClass("lg:order-none");
+    expect(equationHeading.closest(".order-3")).toHaveClass("lg:order-none");
+    expect(perspectiveHeading.closest(".order-4")).toHaveClass("lg:order-none");
+    expect(nextMockHeading.closest(".order-5")).toHaveClass("lg:order-none");
     expect(insightsHeading.closest(".order-6")).toHaveClass("lg:order-none");
-    expect(equationHeading.closest(".order-7")).toHaveClass("lg:order-none");
+    expect(mistakeHeading?.closest(".order-7")).toHaveClass("lg:order-none");
     expect(sessionHeading.closest(".order-8")).toHaveClass("lg:order-none");
 
     const leftCards = columns[0].querySelectorAll(":scope > div");
@@ -70,11 +70,11 @@ describe("TodayWorkspace", () => {
     expect(leftCards[0]).toContainElement(nextStepHeading);
     expect(leftCards[1]).toContainElement(scoreHeading);
     expect(leftCards[2]).toContainElement(insightsHeading);
-    expect(rightCards[0]).toContainElement(nextMockHeading);
-    expect(rightCards[1]).toContainElement(mistakeHeading!);
+    expect(rightCards[0]).toContainElement(sessionHeading);
+    expect(rightCards[1]).toContainElement(nextMockHeading);
     expect(rightCards[2]).toContainElement(perspectiveHeading);
     expect(rightCards[3]).toContainElement(equationHeading);
-    expect(rightCards[4]).toContainElement(sessionHeading);
+    expect(rightCards[4]).toContainElement(mistakeHeading!);
   });
 
   it("uses empty-state mobile order for new users", () => {
@@ -94,8 +94,8 @@ describe("TodayWorkspace", () => {
     });
 
     expect(startHeading.closest(".order-1")).toHaveClass("lg:order-none");
-    expect(sessionHeading.closest(".order-8")).toHaveClass("lg:order-none");
     expect(scoreHeading.closest(".order-2")).toHaveClass("lg:order-none");
-    expect(mistakeHeading.closest(".order-4")).toHaveClass("lg:order-none");
+    expect(mistakeHeading.closest(".order-7")).toHaveClass("lg:order-none");
+    expect(sessionHeading.closest(".order-8")).toHaveClass("lg:order-none");
   });
 });

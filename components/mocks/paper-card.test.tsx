@@ -134,7 +134,7 @@ describe("PaperCard", () => {
     expect(screen.getByText("Best score · 2 attempts")).toBeInTheDocument();
     expect(screen.getByText("7:40 taken last time")).toBeInTheDocument();
     expect(
-      screen.getByRole("img", { name: "Best score 8 out of 20" })
+      screen.getByRole("img", { name: "Best score 32 out of 80 marks" })
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", {

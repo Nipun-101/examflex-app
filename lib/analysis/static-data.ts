@@ -5,8 +5,8 @@ const CUTOFF_HREF = "https://www.nta.ac.in/";
 /** Shared page chrome for live and illustrative Analysis. */
 export const ANALYSIS_PAGE_CHROME = {
   title: "Your possibilities",
-  tagline: "Explore a path, not a promise.",
-  outlookLabel: "MARKS-BASED OUTLOOK · FULL MOCKS",
+  tagline: "Explore a path, not a promise",
+  outlookLabel: "Marks-based outlook",
   sectionTitle: "What this level could open up",
   sectionSubtitle: "Your recent full mocks vs each course's cut-off",
   cutoffLabel: "Check official counselling cutoffs  ↗",

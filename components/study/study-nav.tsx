@@ -2,12 +2,13 @@
 
 import { LogOut, Menu, UserRound, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   StudyButton,
   StudyControlLink,
 } from "@/components/study/study-button";
 import { StudyWordmark } from "@/components/study/study-wordmark";
+import { getMyProfile } from "@/lib/api/users";
 import { logout } from "@/lib/auth/tokens";
 import {
   APP_NAV_ITEMS,
@@ -19,6 +20,20 @@ export function StudyNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const [userName, setUserName] = useState<string | null>(null);
+
+  // Re-read on navigation so a name edited on the profile page shows up.
+  useEffect(() => {
+    let cancelled = false;
+    void getMyProfile().then((result) => {
+      if (cancelled || !result.ok) return;
+      setUserName(result.data.name?.trim() || null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   const handleLogout = () => {
     setLoggingOut(true);
@@ -59,10 +74,16 @@ export function StudyNav() {
           <StudyControlLink
             href={PROFILE_HREF}
             variant="surface"
-            className="inline-flex h-[42px] items-center justify-center gap-2 rounded-[10px] px-4 text-sm font-semibold"
+            aria-label={userName ? `Profile: ${userName}` : "Profile"}
+            className="inline-flex h-[42px] min-w-0 items-center justify-center gap-2 rounded-[10px] px-3 text-sm font-semibold sm:px-4"
           >
             <UserRound className="h-4 w-4 shrink-0" aria-hidden />
-            <span>Profile</span>
+            <span
+              title={userName ?? undefined}
+              className="max-w-[9ch] truncate sm:max-w-[16ch]"
+            >
+              {userName ?? "Profile"}
+            </span>
           </StudyControlLink>
 
           <StudyButton

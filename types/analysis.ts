@@ -27,6 +27,13 @@ export type AnalysisLatestFullMock = {
   correctCount?: number;
   incorrectCount?: number;
   skippedCount?: number;
+  /** Marks for a correct answer (e.g. 4). */
+  marksPerCorrect?: number;
+  /** Marks lost per wrong answer, as a positive number (e.g. 1). */
+  negativeMarking?: number;
+  durationInMinutes?: number;
+  /** Time used, excluding pauses. */
+  timeTakenSeconds?: number;
 };
 
 export type AnalysisFullMocksSection = {
