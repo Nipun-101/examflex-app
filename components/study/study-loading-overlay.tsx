@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { lockBodyScroll } from "@/lib/study/body-scroll-lock";
 import { StudyLoader } from "@/components/study/study-loader";
 import {
   STUDY_LOADING_HELPER,
@@ -38,12 +39,7 @@ export function StudyLoadingOverlay({
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
+    return lockBodyScroll();
   }, [open, scope]);
 
   if (!open) {

@@ -27,7 +27,7 @@ function PaletteIcon() {
 }
 
 /**
- * Mobile bottom-bar button that opens the question palette. A small amber dot
+ * Mobile bottom-bar button that opens the question palette. A small lime dot
  * on its corner draws the eye while questions remain unvisited. It carries no
  * number on purpose: a count reads as pressure, a dot is just a nudge.
  */
@@ -41,14 +41,14 @@ export function PaletteToggleButton({
       type="button"
       onClick={onClick}
       aria-label="Open question palette"
-      className="relative inline-flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-2xl border-2 border-[#b9cb74] bg-study-lime text-study-ink transition-[filter] hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green"
+      className="relative inline-flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-black/25 bg-white text-study-ink transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-study-green"
     >
       <PaletteIcon />
       {showBadge ? (
         <span
           aria-hidden
           data-testid="palette-not-visited-badge"
-          className="pointer-events-none absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-[#dca64b] ring-[3px] ring-white"
+          className="pointer-events-none absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-study-lime ring-[3px] ring-white"
         />
       ) : null}
     </button>

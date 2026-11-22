@@ -8,6 +8,7 @@ import {
   ImageUnavailableNotice,
 } from "@/components/attempt/attempt-image";
 import { AttemptModal } from "@/components/attempt/attempt-modal";
+import { lockBodyScroll } from "@/lib/study/body-scroll-lock";
 
 type EquationImageProps = {
   src: string;
@@ -37,11 +38,7 @@ export function EquationImage({
   // Keep the page behind the viewer from scrolling.
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previous;
-    };
+    return lockBodyScroll();
   }, [open]);
 
   // A picture that cannot load shows its notice and is not clickable.

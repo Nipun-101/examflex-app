@@ -21,10 +21,10 @@ export const TODAY_EMPTY_SEED: TodayPageData = {
     showPath: true,
   },
   sessionPlan: {
-    eyebrow: "TODAY, KEEP IT LIGHT",
+    eyebrow: "START WITH A BREATH",
     title: "Your 20-minute reset",
     steps: [
-      { index: "01", label: "Take your first mock", state: "active" },
+      { index: "01", label: "Take a chapter-wise mock", state: "active" },
       {
         index: "02",
         label: "Understand your saved mistakes",
@@ -133,7 +133,7 @@ export const TODAY_PAGE_DATA: TodayPageData = {
     showPath: false,
   },
   sessionPlan: {
-    eyebrow: "TODAY, KEEP IT LIGHT",
+    eyebrow: "START WITH A BREATH",
     title: "Your 20-minute reset",
     steps: [
       { index: "01", label: "Understand 5 saved mistakes", state: "active" },
