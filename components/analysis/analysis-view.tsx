@@ -114,36 +114,16 @@ export function AnalysisView({
           </h1>
           <p className="mt-1 text-sm text-study-muted-soft lg:text-base">
             {data.tagline}
-          </p>
-          <p className="mt-3 text-[0.625rem] font-semibold tracking-wide text-study-green uppercase">
-            {hasScore ? data.outlookLabel : "ILLUSTRATIVE MARKS-ONLY OUTLOOK"}
+            <span aria-hidden className="mx-2 text-study-muted-soft/60">
+              ·
+            </span>
+            {hasScore ? data.outlookLabel : "Illustrative marks-only outlook"}
           </p>
         </div>
         <p className="text-[0.6875rem] whitespace-pre text-study-muted-soft">
           {data.examBadge}
         </p>
       </header>
-
-      <AnalysisPerformanceCard
-        label={performanceLabel}
-        score={hasScore ? latest.score : null}
-        maxScore={maxScore}
-        scoreHint={scoreHint}
-      />
-
-      <AnalysisCounselingCard
-        examName={examName}
-        canRequest={canRequestCounseling}
-        onBook={() => setBookingOpen(true)}
-      />
-
-      {overview ? (
-        <AnalysisHistoryCard
-          examId={overview.exam.id}
-          fullMocks={overview.fullMocks}
-          locked={lockedHistory}
-        />
-      ) : null}
 
       <section className="flex flex-col gap-4 lg:gap-5">
         <div>
@@ -181,6 +161,28 @@ export function AnalysisView({
           </StudyNavLink>
         </div>
       </section>
+
+      <AnalysisCounselingCard
+        examName={examName}
+        canRequest={canRequestCounseling}
+        onBook={() => setBookingOpen(true)}
+      />
+
+      {overview ? (
+        <AnalysisHistoryCard
+          examId={overview.exam.id}
+          fullMocks={overview.fullMocks}
+          locked={lockedHistory}
+        />
+      ) : null}
+
+      <AnalysisPerformanceCard
+        label={performanceLabel}
+        score={hasScore ? latest.score : null}
+        maxScore={maxScore}
+        scoreHint={scoreHint}
+        latest={hasScore ? latest : null}
+      />
 
       {overview ? (
         <AnalysisSubjectsSection

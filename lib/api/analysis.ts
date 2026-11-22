@@ -102,6 +102,10 @@ function parseLatest(value: unknown): AnalysisLatestFullMock | null {
     ...optionalField("correctCount", readNumber(value.correctCount)),
     ...optionalField("incorrectCount", readNumber(value.incorrectCount)),
     ...optionalField("skippedCount", readNumber(value.skippedCount)),
+    ...optionalField("marksPerCorrect", readNumber(value.marksPerCorrect)),
+    ...optionalField("negativeMarking", readNumber(value.negativeMarking)),
+    ...optionalField("durationInMinutes", readNumber(value.durationInMinutes)),
+    ...optionalField("timeTakenSeconds", readNumber(value.timeTakenSeconds)),
   };
 }
 

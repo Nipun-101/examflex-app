@@ -122,20 +122,34 @@ function ProgressBlock({ paper }: { paper: PaperCardData }) {
 const RING_RADIUS = 36;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
+/** Marks can be fractional (negative marking); trim float noise. */
+function formatMarks(value: number): string {
+  return String(Math.round(value * 100) / 100);
+}
+
 function PaperScoreRing({
   correct,
   total,
+  marks,
+  totalMarks,
 }: {
   correct: number;
   total: number;
+  /** Best marks obtained; the ring itself still tracks correct/total. */
+  marks?: number | undefined;
+  totalMarks: number;
 }) {
+  const showMarks = marks !== undefined && Number.isFinite(marks);
+  const label = showMarks
+    ? `${formatMarks(marks)}/${formatMarks(totalMarks)}`
+    : `${correct}/${total}`;
   const percentage = scorePercentage(correct, total);
   const dashOffset = RING_CIRCUMFERENCE * (1 - percentage / 100);
 
   return (
     <div
       role="img"
-      aria-label={`Best score ${correct} out of ${total}`}
+      aria-label={`Best score ${label.replace("/", " out of ")}${showMarks ? " marks" : ""}`}
       className="relative size-[6.5rem] shrink-0"
     >
       <svg className="size-full" viewBox="0 0 100 100" aria-hidden>
@@ -164,7 +178,7 @@ function PaperScoreRing({
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="font-display text-sm font-bold tabular-nums text-study-ink">
-          {correct}/{total}
+          {label}
         </span>
       </div>
     </div>
@@ -182,7 +196,12 @@ function BestScoreBlock({ paper }: { paper: PaperCardData }) {
 
   return (
     <div className="flex items-center gap-3.5">
-      <PaperScoreRing correct={correct} total={paper.totalQuestions} />
+      <PaperScoreRing
+        correct={correct}
+        total={paper.totalQuestions}
+        marks={paper.bestScore}
+        totalMarks={paper.totalMarks}
+      />
       <div className="min-w-0 space-y-1">
         <p className="text-sm font-bold text-study-ink">
           Best score · {attempts}{" "}

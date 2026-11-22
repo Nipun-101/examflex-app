@@ -1,11 +1,16 @@
 import { AnalysisScoreGauge } from "@/components/analysis/analysis-score-gauge";
+import { AnalysisLatestMockInsights } from "@/components/analysis/analysis-latest-mock-insights";
 import { formatAnalysisScore } from "@/lib/analysis/format-score";
+import { latestMockMetrics } from "@/lib/analysis/latest-mock-metrics";
+import type { AnalysisLatestFullMock } from "@/types/analysis";
 
 type AnalysisPerformanceCardProps = {
   label: string;
   score: number | null;
   maxScore: number;
   scoreHint: string;
+  /** Latest full mock; when it carries question counts the insight card renders. */
+  latest?: AnalysisLatestFullMock | null;
 };
 
 export function AnalysisPerformanceCard({
@@ -13,7 +18,12 @@ export function AnalysisPerformanceCard({
   score,
   maxScore,
   scoreHint,
+  latest = null,
 }: AnalysisPerformanceCardProps) {
+  const metrics = latestMockMetrics(latest);
+  if (metrics) {
+    return <AnalysisLatestMockInsights label={label} metrics={metrics} />;
+  }
   const empty = score === null;
   const belowZero = score !== null && score < 0;
 
