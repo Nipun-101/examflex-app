@@ -33,7 +33,7 @@ import {
   buildSectionBreakdown,
   buildSubjectBreakdown,
 } from "@/lib/mocks/adapt-results";
-import { formatTimeTaken } from "@/lib/mocks/attempt-format";
+import { formatScore, formatTimeTaken } from "@/lib/mocks/attempt-format";
 import {
   attemptTitle,
   paperListLabel,
@@ -276,6 +276,17 @@ export function MockTestResults({
   const questionTotal =
     questions.length ||
     result.correctAnswers + result.incorrectAnswers + result.unansweredQuestions;
+  // Shrink the ring value as it gets longer so it stays inside the arc.
+  const scoreChars = Math.max(
+    formatScore(result.score).length,
+    formatScore(result.totalScore).length + 1
+  );
+  const ringValueClass =
+    scoreChars <= 3
+      ? "font-display text-2xl font-bold text-white sm:text-3xl"
+      : scoreChars === 4
+        ? "font-display text-xl font-bold text-white sm:text-2xl"
+        : "font-display text-base font-bold text-white sm:text-xl";
   const mistakeCount = result.incorrectAnswers + result.unansweredQuestions;
   const timeLabel = formatTimeTaken(result.timeTaken);
   const paperTitle = attemptTitle(mockTestData);
@@ -302,9 +313,10 @@ export function MockTestResults({
     >
       <div className="flex items-center gap-[18px]">
         <ScoreRing
-          earned={result.correctAnswers}
-          max={questionTotal}
+          earned={result.score}
+          max={result.totalScore}
           tone="onDark"
+          valueClassName={ringValueClass}
           ofClassName="text-xs font-medium text-[#a8bdb4]"
           svgClassName="size-[5.75rem]"
         />
