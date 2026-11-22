@@ -1,4 +1,6 @@
-export const COUNSELING_EXPERT_NAME = "The Examflex";
+export const COUNSELING_EXPERT_NAME = "Anandu Narayanan";
+export const COUNSELING_EXPERT_PHOTO_URL =
+  "https://res.cloudinary.com/itztxiph/image/upload/v1795349409/138972.jpg";
 
 export type CounselingBenefit = {
   id: string;

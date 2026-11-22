@@ -7,12 +7,12 @@ describe("counseling copy", () => {
     expect(copy.badge).toContain("JEE MAIN");
     expect(copy.body).toContain("JEE Main expert");
     expect(copy.expertRole).toContain("JEE Main mentor");
-    expect(copy.expertName).toBe("The Examflex");
+    expect(copy.expertName).toBe("Anandu Narayanan");
   });
 
   it("builds the modal subtitle", () => {
     expect(counselingModalSubtitle("NEET UG")).toBe(
-      "with The Examflex · NEET UG mentor"
+      "with Anandu Narayanan · NEET UG mentor"
     );
   });
 });
