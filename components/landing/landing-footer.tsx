@@ -39,8 +39,8 @@ export function LandingFooter() {
         <div className="sm:col-span-2 lg:col-span-1">
           <BrandMark />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            Rise above cutoffs. Smart NEET &amp; JEE preparation built for
-            students across India 🇮🇳
+            Rise above cutoffs. Smart NEET preparation built for students across
+            India 🇮🇳
           </p>
         </div>
 

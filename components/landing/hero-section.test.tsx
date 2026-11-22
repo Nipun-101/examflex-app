@@ -15,9 +15,9 @@ describe("HeroSection", () => {
     expect(
       screen.getByRole("link", { name: /Explore tests/i })
     ).toHaveAttribute("href", "#tests");
-    expect(screen.getByText("NTA-pattern mocks")).toBeInTheDocument();
-    expect(screen.getByText("NCERT-referenced")).toBeInTheDocument();
-    expect(screen.getByText("Practice, not classes")).toBeInTheDocument();
+    expect(screen.getByText("NTA model mocks")).toBeInTheDocument();
+    expect(screen.getByText("NCERT references")).toBeInTheDocument();
+    expect(screen.getByText("Productive revision")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Score 548 of 720" })).toBeInTheDocument();
     expect(screen.getByText("~14k to 19k")).toBeInTheDocument();
     expect(screen.getByText("Open Mistake Book →")).toBeInTheDocument();

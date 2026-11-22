@@ -9,8 +9,8 @@ describe("app navigation", () => {
   it("lists study destinations with Analysis instead of Colleges", () => {
     expect(APP_NAV_ITEMS.map((item) => item.label)).toEqual([
       "Today",
-      "Mocks",
       "Equation Book",
+      "Mocks",
       "Mistake Book",
       "Analysis",
     ]);

@@ -2,19 +2,75 @@
 
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "@/components/landing/brand-mark";
 
 const NAV_LINKS = [
   { href: "#", label: "Home" },
-  { href: "#tests", label: "Mocks" },
   { href: "#equation-book", label: "Equation Book" },
+  { href: "#tests", label: "Mocks" },
   { href: "#mistake-book", label: "Mistake Book" },
   { href: "#performance", label: "Analysis" },
 ] as const;
 
+const ACTIVE_OFFSET = 120;
+
+// Sections can share a row (Mistake Book / Equation Book), so several may
+// pass the offset at the same scroll position. Take the one closest to the
+// offset, and on a tie keep the current selection if it is among them.
+function getActiveHref(current: string): string {
+  let best: string[] = [NAV_LINKS[0].href];
+  let bestTop = -Infinity;
+  for (const link of NAV_LINKS.slice(1)) {
+    const el = document.getElementById(link.href.slice(1));
+    if (!el) continue;
+    const top = el.getBoundingClientRect().top;
+    if (top > ACTIVE_OFFSET) continue;
+    if (top > bestTop + 1) {
+      best = [link.href];
+      bestTop = top;
+    } else if (Math.abs(top - bestTop) <= 1) {
+      best.push(link.href);
+    }
+  }
+  return best.includes(current) ? current : (best[0] ?? NAV_LINKS[0].href);
+}
+
 export function LandingHeader() {
   const [open, setOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState<string>(NAV_LINKS[0].href);
+
+  // After a click, keep the clicked link active until the user scrolls
+  // manually, so the programmatic scroll can't override it.
+  const lockedRef = useRef(false);
+
+  const selectLink = (href: string) => {
+    lockedRef.current = true;
+    setActiveHref(href);
+  };
+
+  useEffect(() => {
+    const update = () => {
+      if (lockedRef.current) return;
+      setActiveHref((current) => getActiveHref(current));
+    };
+    const unlock = () => {
+      lockedRef.current = false;
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    window.addEventListener("wheel", unlock, { passive: true });
+    window.addEventListener("touchmove", unlock, { passive: true });
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      window.removeEventListener("wheel", unlock);
+      window.removeEventListener("touchmove", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-md">
@@ -24,19 +80,24 @@ export function LandingHeader() {
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
-          {NAV_LINKS.map((link, index) => (
-            <Link
-              key={link.label}
-              href={link.href}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                index === 0
-                  ? "bg-primary-soft text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const active = link.href === activeHref;
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                aria-current={active ? "location" : undefined}
+                onClick={() => selectLink(link.href)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  active
+                    ? "bg-primary-soft text-primary"
+                    : "text-foreground/80 hover:text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
@@ -76,8 +137,16 @@ export function LandingHeader() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="rounded-xl px-3 py-3 text-sm font-medium text-foreground hover:bg-muted"
-                onClick={() => setOpen(false)}
+                aria-current={link.href === activeHref ? "location" : undefined}
+                className={`rounded-xl px-3 py-3 text-sm font-semibold hover:bg-muted ${
+                  link.href === activeHref
+                    ? "bg-primary-soft text-primary"
+                    : "text-foreground"
+                }`}
+                onClick={() => {
+                  selectLink(link.href);
+                  setOpen(false);
+                }}
               >
                 {link.label}
               </Link>

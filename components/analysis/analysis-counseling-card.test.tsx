@@ -16,7 +16,7 @@ describe("AnalysisCounselingCard", () => {
     );
 
     expect(screen.getByText(/PREMIUM · 1:1 WITH OUR NEET UG EXPERT/i)).toBeInTheDocument();
-    expect(screen.getAllByText("The Examflex").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Anandu Narayanan").length).toBeGreaterThan(0);
     const buttons = screen.getAllByRole("button", {
       name: /Book my 1:1 session/i,
     });

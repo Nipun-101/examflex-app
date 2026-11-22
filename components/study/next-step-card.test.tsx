@@ -28,10 +28,10 @@ describe("NextStepCard", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Your first step is one mock." })
+      screen.getByRole("heading", { name: "Your first step is a quick revision." })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Take your first mock/i })
+      screen.getByRole("link", { name: /Open Equation Book/i })
     ).toBeInTheDocument();
     expect(container.querySelector("svg")).not.toBeNull();
   });

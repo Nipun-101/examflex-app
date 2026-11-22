@@ -7,7 +7,7 @@ type NextMockCardProps = {
 
 export function NextMockCard({ data }: NextMockCardProps) {
   return (
-    <article className="rounded-[20px] bg-white px-6 py-5 shadow-soft">
+    <article className="rounded-[20px] bg-study-lilac px-6 py-5">
       <p className="text-[0.625rem] font-semibold leading-[1.4] text-study-green">
         {data.eyebrow}
       </p>

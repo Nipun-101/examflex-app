@@ -6,7 +6,7 @@ describe("LandingFooter", () => {
   it("renders brand, columns, and copyright", () => {
     render(<LandingFooter />);
 
-    expect(screen.getByText(/Smart NEET & JEE preparation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Smart NEET preparation/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Platform" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Support" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Legal" })).toBeInTheDocument();

@@ -43,11 +43,13 @@ describe("TodayPage", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "One good step at a time." })
+        screen.getByRole("heading", { name: "One good step at a time." }),
       ).toBeInTheDocument();
     });
     expect(
-      screen.getByRole("link", { name: /Take your first mock/i })
+      screen.getByRole("heading", {
+        name: "Your first step is a quick revision.",
+      }),
     ).toBeInTheDocument();
   });
 });

@@ -62,7 +62,7 @@ describe("TodayPageClient", () => {
       expect(
         screen.getByRole("heading", {
           name: "Your mistakes have a next chapter.",
-        })
+        }),
       ).toBeInTheDocument();
     });
     expect(getToday).toHaveBeenCalledWith("exam-neet");
@@ -80,11 +80,15 @@ describe("TodayPageClient", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("link", { name: /Take your first mock/i })
+        screen.getByRole("heading", {
+          name: "Your first step is a quick revision.",
+        }),
       ).toBeInTheDocument();
     });
     expect(getToday).not.toHaveBeenCalled();
-    expect(screen.getByText(/Unlocks with your first score/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Unlocks with your first score/i),
+    ).toBeInTheDocument();
   });
 
   it("shows soft error banner with empty seed on API failure", async () => {
@@ -107,13 +111,15 @@ describe("TodayPageClient", () => {
     render(<TodayPageClient />);
 
     await waitFor(() => {
-      expect(
-        screen.getByRole("alert")
-      ).toHaveTextContent(/Could not load your Today dashboard/i);
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        /Could not load your Today dashboard/i,
+      );
     });
     expect(TODAY_EMPTY_SEED.mode).toBe("empty");
     expect(
-      screen.getByRole("link", { name: /Take your first mock/i })
+      screen.getByRole("heading", {
+        name: "Your first step is a quick revision.",
+      }),
     ).toBeInTheDocument();
   });
 });

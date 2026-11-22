@@ -8,7 +8,7 @@ type EquationBookCardProps = {
 
 export function EquationBookCard({ data }: EquationBookCardProps) {
   return (
-    <article className="rounded-[20px] bg-study-lilac px-6 py-5">
+    <article className="rounded-[20px] bg-study-butter px-6 py-5">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[0.625rem] font-semibold leading-[1.4] text-study-green">
