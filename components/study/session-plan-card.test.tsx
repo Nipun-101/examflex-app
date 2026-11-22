@@ -17,7 +17,7 @@ describe("SessionPlanCard", () => {
   it("keeps empty checklist steps visually active", () => {
     render(<SessionPlanCard data={TODAY_EMPTY_SEED.sessionPlan} />);
 
-    expect(screen.getByText("Take your first mock")).toBeInTheDocument();
+    expect(screen.getByText("Take a chapter-wise mock")).toBeInTheDocument();
     expect(screen.getByText("Understand your saved mistakes")).toBeInTheDocument();
     expect(screen.getByText("Recall your first equations")).toBeInTheDocument();
     expect(screen.queryByText(/\(locked\)/)).not.toBeInTheDocument();

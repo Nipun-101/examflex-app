@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { BrandMark } from "@/components/landing/brand-mark";
+import { lockBodyScroll } from "@/lib/study/body-scroll-lock";
 import { verifyOtp } from "@/lib/api/auth";
 import {
   extractMsg91AccessToken,
@@ -103,8 +104,7 @@ export function LoginPanel() {
   }, [router]);
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") close();
@@ -112,7 +112,7 @@ export function LoginPanel() {
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       window.removeEventListener("keydown", onKeyDown);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- close uses stable router

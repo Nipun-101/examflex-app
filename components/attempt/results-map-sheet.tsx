@@ -11,6 +11,7 @@ import {
   type ResultsMapStatusCounts,
   type ResultsStatusFilter,
 } from "@/components/attempt/results-question-map";
+import { lockBodyScroll } from "@/lib/study/body-scroll-lock";
 import { StudyControlLink } from "@/components/study/study-button";
 
 type ResultsMapSheetProps = {
@@ -59,8 +60,7 @@ export function ResultsMapSheet({
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     const opener = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
 
@@ -70,7 +70,7 @@ export function ResultsMapSheet({
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
+      unlockScroll();
       opener?.focus?.();
     };
   }, [open, onClose]);
