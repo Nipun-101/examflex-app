@@ -80,6 +80,15 @@ export function parseApiUserProfile(value: unknown): ApiUserProfile | null {
   if (typeof value.phoneNumber === "string") {
     profile.phoneNumber = value.phoneNumber;
   }
+  if (typeof value.phoneVerified === "boolean") {
+    profile.phoneVerified = value.phoneVerified;
+  }
+  if (typeof value.onboardingCompleted === "boolean") {
+    profile.onboardingCompleted = value.onboardingCompleted;
+  }
+  if (typeof value.profileComplete === "boolean") {
+    profile.profileComplete = value.profileComplete;
+  }
   if (typeof value.bio === "string") profile.bio = value.bio;
   if (typeof value.avatarUrl === "string") profile.avatarUrl = value.avatarUrl;
 
@@ -109,7 +118,7 @@ export function parseApiUserProfile(value: unknown): ApiUserProfile | null {
   return profile;
 }
 
-async function parseProfileResponse(
+export async function parseProfileResponse(
   response: Response,
   fallback: string
 ): Promise<ApiResult<ApiUserProfile>> {

@@ -10,7 +10,6 @@ const validBody = {
   message: "ok",
   data: {
     accessToken: "access",
-    expiresIn: 900,
     isNewUser: false,
     user: {
       id: "1",
@@ -39,7 +38,6 @@ describe("api auth", () => {
       ok: true,
       data: {
         accessToken: "access",
-        expiresIn: 900,
         isNewUser: false,
         user: validBody.data.user,
       },

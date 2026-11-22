@@ -18,6 +18,39 @@ const baseProfile = {
 };
 
 describe("parseApiUserProfile", () => {
+  it("reads the verification and onboarding flags", () => {
+    expect(
+      parseApiUserProfile({
+        ...baseProfile,
+        phoneVerified: true,
+        onboardingCompleted: false,
+        profileComplete: false,
+      })
+    ).toMatchObject({
+      phoneVerified: true,
+      onboardingCompleted: false,
+      profileComplete: false,
+    });
+  });
+
+  it("leaves the flags unset when the API does not send them", () => {
+    const parsed = parseApiUserProfile(baseProfile);
+    expect(parsed).not.toHaveProperty("profileComplete");
+    expect(parsed).not.toHaveProperty("phoneVerified");
+  });
+
+  it("ignores flags that are not booleans", () => {
+    const parsed = parseApiUserProfile({
+      ...baseProfile,
+      phoneVerified: "yes",
+      onboardingCompleted: 1,
+      profileComplete: null,
+    });
+    expect(parsed).not.toHaveProperty("profileComplete");
+    expect(parsed).not.toHaveProperty("phoneVerified");
+    expect(parsed).not.toHaveProperty("onboardingCompleted");
+  });
+
   it("parses a full profile", () => {
     expect(
       parseApiUserProfile({

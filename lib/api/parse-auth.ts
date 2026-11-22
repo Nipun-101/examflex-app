@@ -45,13 +45,6 @@ export function parseAuthResponse(body: unknown): AuthResponse | null {
     isNewUser: data.isNewUser === true,
   };
 
-  if (typeof data.refreshToken === "string") {
-    result.refreshToken = data.refreshToken;
-  }
-  if (typeof data.expiresIn === "number") {
-    result.expiresIn = data.expiresIn;
-  }
-
   return result;
 }
 

@@ -29,15 +29,6 @@ export function displayPhoneFromApi(phoneNumber: string | undefined): string {
   return digits;
 }
 
-export function toE164IndianMobile(phoneDigits: string): string {
-  const digits = phoneDigits.replace(/\D/g, "");
-  const ten =
-    digits.length === 12 && digits.startsWith("91")
-      ? digits.slice(2)
-      : digits;
-  return `+91${ten}`;
-}
-
 export function inferSignInMethod(
   avatarUrl: string | null | undefined
 ): ProfileSignInMethod {
@@ -89,7 +80,8 @@ export function mapApiUserToProfileUser(profile: ApiUserProfile): ProfileUser {
     targetExamId,
     memberSinceLabel: formatMemberSinceLabel(profile.createdAt),
     membershipTier: profile.membershipTier ?? "none",
-    phoneLocked: phone.length > 0,
+    // Phone can only be set by verifying it with an OTP, never by editing.
+    phoneLocked: true,
   };
 }
 
@@ -103,12 +95,12 @@ export function contactFromProfileUser(user: ProfileUser): ProfileContact {
 
 /**
  * Build a sparse PATCH body from sanitized draft vs last-saved contact.
- * Locked phones are never sent.
+ * The phone number is never sent: it can only change by verifying it with an
+ * OTP, and the API rejects it on this endpoint.
  */
 export function buildUpdatePayload(
   draft: ProfileContact,
-  saved: ProfileContact,
-  phoneLocked: boolean
+  saved: ProfileContact
 ): UpdateMyProfilePayload {
   const payload: UpdateMyProfilePayload = {};
 
@@ -118,10 +110,6 @@ export function buildUpdatePayload(
 
   if (draft.email !== saved.email) {
     payload.email = draft.email;
-  }
-
-  if (!phoneLocked && draft.phone !== saved.phone && draft.phone.length > 0) {
-    payload.phoneNumber = toE164IndianMobile(draft.phone);
   }
 
   return payload;

@@ -193,11 +193,7 @@ export function ProfileView({ chrome }: ProfileViewProps) {
     }
 
     const sanitized = sanitizeProfileContact(ready.draft);
-    const payload = buildUpdatePayload(
-      sanitized,
-      ready.saved,
-      ready.phoneLocked
-    );
+    const payload = buildUpdatePayload(sanitized, ready.saved);
     if (Object.keys(payload).length === 0) {
       commitReady(ready, { draft: sanitized, saved: sanitized });
       setStatusMessage("Saved.");

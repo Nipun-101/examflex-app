@@ -34,7 +34,6 @@ export type GoogleSessionResult =
   | {
       ok: true;
       accessToken: string;
-      expiresIn?: number;
       nextPath: string;
     }
   | { ok: false; message: string };
@@ -123,14 +122,6 @@ export function completeGoogleSession(): Promise<GoogleSessionResult> {
       }
 
       clearGoogleHandoff();
-      if (typeof result.data.expiresIn === "number") {
-        return {
-          ok: true as const,
-          accessToken: result.data.accessToken,
-          expiresIn: result.data.expiresIn,
-          nextPath: getSafeRedirectPath(parsed.value.nextPath),
-        };
-      }
       return {
         ok: true as const,
         accessToken: result.data.accessToken,

@@ -17,7 +17,6 @@ import {
   isAuthenticated,
   refreshAccessToken,
   subscribeAuthChange,
-  wipeLegacyAuthStorage,
 } from "@/lib/auth/tokens";
 import type { AuthStatus } from "@/types/auth";
 
@@ -50,7 +49,6 @@ let bootPromise: Promise<void> | null = null;
 function bootAuthSession(): Promise<void> {
   if (!bootPromise) {
     bootPromise = (async () => {
-      wipeLegacyAuthStorage();
       await refreshAccessToken();
     })();
   }

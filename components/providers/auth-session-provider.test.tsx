@@ -9,7 +9,6 @@ import {
 const refreshAccessToken = vi.fn();
 const getAuthToken = vi.fn();
 const healAuthSessionCookies = vi.fn();
-const wipeLegacyAuthStorage = vi.fn();
 const subscribeAuthChange = vi.fn(() => () => undefined);
 const isAuthenticated = vi.fn(() => false);
 const getWindow = vi.fn(() => window);
@@ -18,7 +17,6 @@ vi.mock("@/lib/auth/tokens", () => ({
   refreshAccessToken: (...args: unknown[]) => refreshAccessToken(...args),
   getAuthToken: () => getAuthToken(),
   healAuthSessionCookies: () => healAuthSessionCookies(),
-  wipeLegacyAuthStorage: () => wipeLegacyAuthStorage(),
   subscribeAuthChange: (...args: unknown[]) => subscribeAuthChange(...args),
   isAuthenticated: () => isAuthenticated(),
 }));
@@ -61,7 +59,6 @@ describe("AuthSessionProvider", () => {
     await waitFor(() => {
       expect(screen.getByText("unauthenticated")).toBeInTheDocument();
     });
-    expect(wipeLegacyAuthStorage).toHaveBeenCalled();
   });
 
   it("cancels boot work after unmount", async () => {

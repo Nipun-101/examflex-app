@@ -22,7 +22,7 @@ export function GoogleOAuthReturn() {
         setMessage(result.message);
         return;
       }
-      setAuthTokens(result.accessToken, null, result.expiresIn);
+      setAuthTokens(result.accessToken);
       router.replace(result.nextPath);
     });
 

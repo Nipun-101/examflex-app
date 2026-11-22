@@ -8,7 +8,7 @@ type CounselingExpertAvatarProps = {
   size?: "sm" | "md";
 };
 
-/** Expert photo with multi-color ring — matches Analysis premium card design. */
+/** Expert photo with single soft-gold ring — matches Analysis premium card design. */
 export function CounselingExpertAvatar({
   size = "md",
 }: CounselingExpertAvatarProps) {
@@ -17,11 +17,7 @@ export function CounselingExpertAvatar({
 
   return (
     <div
-      className={`box-border flex shrink-0 items-center justify-center rounded-full p-[3px] ${dim}`}
-      style={{
-        background:
-          "conic-gradient(from 210deg, #8b5cf6, #3b82f6, #22c55e, #f59e0b, #f97316, #8b5cf6)",
-      }}
+      className={`box-border flex shrink-0 items-center justify-center rounded-full bg-[#e8c27a] p-[3px] ${dim}`}
     >
       <Image
         src={COUNSELING_EXPERT_PHOTO_URL}

@@ -23,6 +23,12 @@ export type ApiUserProfile = {
   name: string;
   email: string;
   phoneNumber?: string;
+  /** True once the number was proven with an OTP. */
+  phoneVerified?: boolean;
+  /** True once name + target exam were confirmed on first run. */
+  onboardingCompleted?: boolean;
+  /** Verified number AND onboarding done. Students without it are gated. */
+  profileComplete?: boolean;
   role: string;
   isActive: boolean;
   bio?: string;
@@ -40,7 +46,6 @@ export type ApiUserProfile = {
 export type UpdateMyProfilePayload = {
   name?: string;
   email?: string;
-  phoneNumber?: string;
   bio?: string;
   avatarUrl?: string;
   location?: ApiUserLocation;

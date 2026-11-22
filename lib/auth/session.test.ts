@@ -39,15 +39,28 @@ describe("auth session", () => {
     await expect(getSession()).resolves.toEqual({ user: MARKER_SESSION_USER });
   });
 
-  it("accepts legacy authToken cookie as a session marker", async () => {
-    cookiesMock.mockResolvedValue({
-      get: (name: string) =>
-        name === "authToken" ? { value: "legacy" } : undefined,
+  describe("hasProfileCompleteHint", () => {
+    it("is true only when the hint cookie is present", async () => {
+      const { hasProfileCompleteHint } = await import("@/lib/auth/session");
+
+      cookiesMock.mockResolvedValue({
+        get: (name: string) =>
+          name === "profileComplete" ? { value: "1" } : undefined,
+      });
+      await expect(hasProfileCompleteHint()).resolves.toBe(true);
+
+      cookiesMock.mockResolvedValue({ get: () => undefined });
+      await expect(hasProfileCompleteHint()).resolves.toBe(false);
     });
-    const { getSession, MARKER_SESSION_USER } = await import(
-      "@/lib/auth/session"
-    );
-    await expect(getSession()).resolves.toEqual({ user: MARKER_SESSION_USER });
+
+    it("is not fooled by the session marker alone", async () => {
+      const { hasProfileCompleteHint } = await import("@/lib/auth/session");
+      cookiesMock.mockResolvedValue({
+        get: (name: string) =>
+          name === "authSession" ? { value: "1" } : undefined,
+      });
+      await expect(hasProfileCompleteHint()).resolves.toBe(false);
+    });
   });
 
   it("resolves an existing session without redirecting", async () => {
