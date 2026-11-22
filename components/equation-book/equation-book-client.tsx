@@ -24,6 +24,8 @@ export function EquationBookClient() {
   const searchParams = useSearchParams();
   const [bootLoading, setBootLoading] = useState(true);
   const [cardsLoading, setCardsLoading] = useState(false);
+  const [subjectsLoaded, setSubjectsLoaded] = useState(false);
+  const [cardsLoaded, setCardsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [availableExams, setAvailableExams] = useState<EquationExamOption[]>(
     []
@@ -99,6 +101,7 @@ export function EquationBookClient() {
     async function loadSubjects() {
       const result = await getSubjectsForExam(exam!.id);
       if (cancelled) return;
+      setSubjectsLoaded(true);
       if (!result.ok) {
         setError(result.message);
         return;
@@ -154,6 +157,7 @@ export function EquationBookClient() {
         setCards(result.data.items);
       }
       setCardsLoading(false);
+      setCardsLoaded(true);
     }
 
     void loadCards();
@@ -162,8 +166,19 @@ export function EquationBookClient() {
     };
   }, [canLoadCards, exam, subjectId, topicId]);
 
+  // One shared overlay for every wait on this page: boot, the subject
+  // catalog, the first cards and each chapter / subject switch. It stays up
+  // across the gaps between them so no inline "loading" text ever shows.
+  const busy =
+    bootLoading ||
+    cardsLoading ||
+    (exam !== null &&
+      !error &&
+      (!subjectsLoaded || (canLoadCards && !cardsLoaded)));
+  const overlay = <StudyRouteLoading busy={busy} />;
+
   if (bootLoading) {
-    return <StudyRouteLoading busy />;
+    return overlay;
   }
 
   if (error && !exam) {
@@ -176,6 +191,7 @@ export function EquationBookClient() {
 
   return (
     <>
+      {overlay}
       {exam ? (
         <EquationBookView
           examId={exam.id}
