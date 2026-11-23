@@ -92,7 +92,7 @@ export interface AttemptMockTestData {
   negativeMarking: number | null;
   passingScore: number | null;
   exam: AttemptExamRef;
-  /** TOPIC_WISE → Chapter Wise, FULL_EXAM → Full Mocks, SPRINT → Sprint Tests. */
+  /** TOPIC_WISE → Chapter Wise, FULL_EXAM → Full Mocks, SPRINT → Rapid Rounds (cosmetic UI name; backend value stays SPRINT). */
   paperType?: PaperType;
   subject?: AttemptSubjectRef;
   topic?: AttemptTopicRef;

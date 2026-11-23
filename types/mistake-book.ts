@@ -2,6 +2,7 @@ export type MistakeTripReason = "concept-gap" | "calculation" | "time";
 
 export type MistakeKind = "incorrect" | "unattended";
 
+// SPRINT is the backend value; the UI shows it as "Rapid Round(s)" (cosmetic).
 export type MistakePaperType = "TOPIC_WISE" | "FULL_EXAM" | "SPRINT";
 
 /** Subject filter id; `"all"` means no subject filter. */

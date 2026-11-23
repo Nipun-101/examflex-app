@@ -48,7 +48,7 @@ export function paperTypeLabel(paperType: string): string {
     case "FULL_EXAM":
       return "Full mock";
     case "SPRINT":
-      return "Sprint";
+      return "Rapid Round"; // cosmetic rename of backend SPRINT
     case "TOPIC_WISE":
       return "Chapter wise";
     default:

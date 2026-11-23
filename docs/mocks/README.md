@@ -19,7 +19,7 @@ Ported behavior from ezprep-app (`/dashboard` … `/dashboard/attempt/...`) agai
 - `/mocks/exam/[id]` — overview
 - `/mocks/exam/[id]/chapter-wise` — chapter-wise papers
 - `/mocks/exam/[id]/full-mocks` — full mocks
-- `/mocks/exam/[id]/sprint-tests` — sprint tests
+- `/mocks/exam/[id]/rapid-rounds` — Rapid Rounds (UI name for backend sprint tests; cosmetic rename only)
 - `/mocks/attempt/[attemptId]` — full-screen runner (no StudyNav)
 - `/mocks/attempt/[attemptId]/result` — results
 

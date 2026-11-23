@@ -38,7 +38,11 @@ function isFullMock(
 /**
  * Where a finished or paused attempt returns inside an exam.
  * TOPIC_WISE (and unknown types) → Chapter Wise, FULL_EXAM → Full Mocks,
- * SPRINT → Sprint Tests.
+ * SPRINT → Rapid Rounds.
+ *
+ * COSMETIC RENAME: "Sprint Tests" are shown to users as "Rapid Rounds", and the
+ * web route segment is `rapid-rounds`. This is frontend-only — the backend paper
+ * type is still `SPRINT` and its endpoint is still `/api/v1/sprint-tests`.
  */
 export function examTestListPath(
   examId: string,
@@ -46,7 +50,7 @@ export function examTestListPath(
   options: ExamTestRouteOptions = {}
 ): string {
   const hub = examHubPath(examId);
-  if (paperType === "SPRINT") return `${hub}/sprint-tests`;
+  if (paperType === "SPRINT") return `${hub}/rapid-rounds`;
   if (isFullMock(paperType, options)) return `${hub}/full-mocks`;
   return `${hub}/chapter-wise`;
 }
@@ -56,7 +60,7 @@ export function examTestExitLabel(
   paperType?: PaperType | string | null,
   options: ExamTestRouteOptions = {}
 ): string {
-  if (paperType === "SPRINT") return "Exit to Sprint Tests";
+  if (paperType === "SPRINT") return "Exit to Rapid Rounds";
   if (isFullMock(paperType, options)) return "Exit to Full Mocks";
   return "Exit to Chapter Wise";
 }

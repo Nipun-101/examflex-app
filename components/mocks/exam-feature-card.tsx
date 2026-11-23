@@ -40,7 +40,9 @@ export function ExamFeatureCard({ exam }: ExamFeatureCardProps) {
     },
     {
       type: "SPRINT",
-      label: "Sprint tests",
+      // Cosmetic rename: backend SPRINT papers (paperCounts.sprint) are shown as
+      // "Rapid Rounds". API contract unchanged.
+      label: "Rapid Rounds",
       count: exam.paperCounts.sprint,
     },
   ];

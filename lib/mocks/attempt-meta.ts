@@ -27,12 +27,15 @@ export function attemptExitLabel(meta: AttemptMockTestData): string {
   });
 }
 
-/** Human name of the paper list ("Chapter Wise", "Full Mocks", "Sprint Tests"). */
+/**
+ * Human name of the paper list ("Chapter Wise", "Full Mocks", "Rapid Rounds").
+ * SPRINT is the backend name; "Rapid Rounds" is the cosmetic UI name.
+ */
 export function paperListLabel(
   paperType: PaperType | undefined,
   missingAsFullMock: boolean
 ): string {
-  if (paperType === "SPRINT") return "Sprint Tests";
+  if (paperType === "SPRINT") return "Rapid Rounds"; // cosmetic rename of backend SPRINT
   if (paperType === "FULL_EXAM" || (!paperType && missingAsFullMock)) {
     return "Full Mocks";
   }

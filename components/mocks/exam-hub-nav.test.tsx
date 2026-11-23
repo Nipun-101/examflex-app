@@ -18,7 +18,7 @@ describe("ExamHubNav", () => {
     expect(examHubTabs("ex1").map((tab) => tab.label)).toEqual([
       "Chapter Wise",
       "Full Mocks",
-      "Sprint",
+      "Rapid Rounds",
     ]);
     render(<ExamHubNav examId="ex1" />);
     expect(screen.getByRole("link", { name: "Chapter Wise" })).toHaveAttribute(
@@ -29,8 +29,8 @@ describe("ExamHubNav", () => {
       "href",
       "/mocks/exam/ex1/full-mocks"
     );
-    const sprint = screen.getByRole("link", { name: "Sprint" });
-    expect(sprint).toHaveAttribute("href", "/mocks/exam/ex1/sprint-tests");
+    const sprint = screen.getByRole("link", { name: "Rapid Rounds" });
+    expect(sprint).toHaveAttribute("href", "/mocks/exam/ex1/rapid-rounds");
     expect(sprint).toHaveClass("hover:bg-study-mint");
     expect(sprint).not.toHaveClass("hover:bg-study-canvas");
     expect(screen.queryByRole("link", { name: "Overview" })).not.toBeInTheDocument();
@@ -57,9 +57,9 @@ describe("ExamHubNav", () => {
   });
 
   it("keeps a list tab active on nested routes", () => {
-    pathname = "/mocks/exam/ex1/sprint-tests/extra";
+    pathname = "/mocks/exam/ex1/rapid-rounds/extra";
     render(<ExamHubNav examId="ex1" />);
-    expect(screen.getByRole("link", { name: "Sprint" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Rapid Rounds" })).toHaveAttribute(
       "aria-current",
       "page"
     );

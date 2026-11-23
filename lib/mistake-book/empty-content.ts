@@ -33,7 +33,7 @@ export const MISTAKE_BOOK_EMPTY_CONTENT: MistakeBookEmptyContent = {
     {
       number: "01",
       title: "Take a mock",
-      body: "Any full mock, chapter test, or sprint.",
+      body: "Any full mock, chapter test, or Rapid Round.",
     },
     {
       number: "02",

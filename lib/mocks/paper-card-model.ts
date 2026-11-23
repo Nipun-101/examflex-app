@@ -179,12 +179,18 @@ export function fullMockToCard(paper: ApiFullMockTest): PaperCardData {
   });
 }
 
+/**
+ * Maps a backend sprint test to a card. UI name is "Rapid Round(s)" (cosmetic
+ * rename only); the API type / endpoint stay `SPRINT` / `sprint-tests`.
+ */
 export function sprintTestToCard(paper: ApiSprintTest): PaperCardData {
   const title = paper.title || paper.exam?.name || UNTITLED_PAPER;
   return toCardData(paper, {
     title,
-    subtitle: "Sprint",
-    eyebrow: "SPRINT",
+    // Cosmetic rename: backend SPRINT papers are displayed as "Rapid Round".
+    // `kind: "sprint"` is an internal key and intentionally unchanged.
+    subtitle: "Rapid Round",
+    eyebrow: "RAPID ROUND",
     kind: "sprint",
     subjectName: null,
     topicName: null,

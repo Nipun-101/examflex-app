@@ -21,7 +21,7 @@ describe("papersEmptyContent", () => {
       "Full mock picked"
     );
     expect(papersEmptyContent("FULL_EXAM").body).toMatch(/Full mocks/i);
-    expect(papersEmptyContent("SPRINT").steps[0]?.label).toBe("Sprint picked");
-    expect(papersEmptyContent("SPRINT").body).toMatch(/Sprint tests/i);
+    expect(papersEmptyContent("SPRINT").steps[0]?.label).toBe("Rapid Round picked");
+    expect(papersEmptyContent("SPRINT").body).toMatch(/Rapid Rounds/i);
   });
 });

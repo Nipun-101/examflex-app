@@ -13,7 +13,7 @@ import FullMocksPage, {
 } from "@/app/(app)/(study)/mocks/exam/[id]/full-mocks/page";
 import SprintTestsPage, {
   metadata as sprintMetadata,
-} from "@/app/(app)/(study)/mocks/exam/[id]/sprint-tests/page";
+} from "@/app/(app)/(study)/mocks/exam/[id]/rapid-rounds/page";
 
 const useParams = vi.fn(() => ({ id: "6ac1335993fbfb809bc99def" }));
 const redirect = vi.fn((href: string) => {
@@ -123,9 +123,9 @@ describe("exam hub routes", () => {
     expect(fullMetadata.title).toBe("Full Mocks");
   });
 
-  it("renders Sprint Tests", () => {
+  it("renders Rapid Rounds", () => {
     render(<SprintTestsPage />);
     expect(screen.getByText("sprint")).toBeInTheDocument();
-    expect(sprintMetadata.title).toBe("Sprint Tests");
+    expect(sprintMetadata.title).toBe("Rapid Rounds");
   });
 });

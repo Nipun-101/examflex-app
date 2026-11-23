@@ -35,7 +35,7 @@ describe("exit paths", () => {
 
   it("routes sprint and full mocks", () => {
     expect(attemptExitHref(meta({ paperType: "SPRINT" }))).toBe(
-      "/mocks/exam/ex1/sprint-tests"
+      "/mocks/exam/ex1/rapid-rounds"
     );
     expect(attemptExitLabel(meta({ paperType: "FULL_EXAM" }))).toBe(
       "Exit to Full Mocks"
@@ -63,7 +63,7 @@ describe("exit paths", () => {
 
 describe("paperListLabel", () => {
   it("names each list", () => {
-    expect(paperListLabel("SPRINT", false)).toBe("Sprint Tests");
+    expect(paperListLabel("SPRINT", false)).toBe("Rapid Rounds");
     expect(paperListLabel("FULL_EXAM", false)).toBe("Full Mocks");
     expect(paperListLabel(undefined, true)).toBe("Full Mocks");
     expect(paperListLabel("TOPIC_WISE", true)).toBe("Chapter Wise");

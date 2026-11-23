@@ -22,7 +22,7 @@ describe("PapersEmptyState", () => {
 
   it("uses sprint-specific first-step copy", () => {
     render(<PapersEmptyState paperType="SPRINT" />);
-    expect(screen.getByText("Sprint picked")).toBeInTheDocument();
-    expect(screen.getByText(/Sprint tests are added/i)).toBeInTheDocument();
+    expect(screen.getByText("Rapid Round picked")).toBeInTheDocument();
+    expect(screen.getByText(/Rapid Rounds are added/i)).toBeInTheDocument();
   });
 });

@@ -16,7 +16,7 @@ Base: `/api/v1`. Student lists/attempts need JWT via `apiFetch`.
 | --- | --- | --- |
 | GET | `/mock-tests/exam/:examId` | Chapter-wise (`TOPIC_WISE`) |
 | GET | `/full-mock-tests?examId=` | Full mocks |
-| GET | `/sprint-tests?examId=` | Sprint |
+| GET | `/sprint-tests?examId=` | Sprint (shown in UI as "Rapid Rounds" — cosmetic rename, API unchanged) |
 
 List items include `userAttemptAction` (`START` \| `RESUME` \| `RETAKE`), `access`, optional `resumeAttemptId`.
 
