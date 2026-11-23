@@ -12,6 +12,11 @@ type SprintTestsListProps = {
   examId?: string;
 };
 
+/**
+ * Rapid Rounds list. COSMETIC RENAME: the UI says "Rapid Rounds" but this still
+ * loads backend sprint tests (`getSprintTests` → `GET /api/v1/sprint-tests`,
+ * paperType `SPRINT`). Identifiers keep the "sprint" name to match the backend.
+ */
 export function SprintTestsList({ examId: examIdProp }: SprintTestsListProps) {
   const examId = useResolvedExamId(examIdProp);
 
@@ -36,7 +41,7 @@ export function SprintTestsList({ examId: examIdProp }: SprintTestsListProps) {
 
   return (
     <PaperList
-      title="Sprint Tests"
+      title="Rapid Rounds"
       description="Short timed papers for quick revision."
       paperType="SPRINT"
       fetchPage={fetchPage}

@@ -11,6 +11,12 @@ import type {
   PaginatedList,
 } from "@/types/mock-test";
 
+/**
+ * COSMETIC RENAME NOTE: the UI calls these "Rapid Rounds", but the backend
+ * contract is unchanged — endpoint `/api/v1/sprint-tests`, paper type `SPRINT`.
+ * Do NOT rename this client, its types or the endpoint.
+ */
+
 /** Parse one sprint (SPRINT) paper list item. */
 export function parseApiSprintTest(value: unknown): ApiSprintTest | null {
   if (!isApiRecord(value)) return null;
@@ -38,6 +44,6 @@ export async function getSprintTests(
     `/api/v1/sprint-tests${query}`,
     { method: "GET" },
     (_data, raw) => parseSprintTestsPage(raw),
-    "Could not load sprint tests. Please try again."
+    "Could not load Rapid Rounds. Please try again."
   );
 }

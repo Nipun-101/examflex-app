@@ -194,7 +194,7 @@ function MocksHomeHeader({
         {pager}
       </div>
       <p className="max-w-xl text-sm text-study-muted-soft">
-        Pick an exam to open chapter-wise papers, full mocks, and sprint tests.
+        Pick an exam to open chapter-wise papers, full mocks, and Rapid Rounds.
       </p>
       {hint ? (
         <p className="text-xs text-study-muted-soft" role="note">

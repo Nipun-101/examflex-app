@@ -2,6 +2,7 @@
 export interface ApiExamPaperCounts {
   chapterWise: number;
   fullMocks: number;
+  /** Backend key; shown in the UI as "Rapid Rounds" (cosmetic rename). */
   sprint: number;
 }
 

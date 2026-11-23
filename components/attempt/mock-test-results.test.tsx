@@ -188,8 +188,8 @@ describe("MockTestResults", () => {
       />
     );
     expect(
-      screen.getByRole("link", { name: "More Sprint Tests" })
-    ).toHaveAttribute("href", "/mocks/exam/exam1/sprint-tests");
+      screen.getByRole("link", { name: "More Rapid Rounds" })
+    ).toHaveAttribute("href", "/mocks/exam/exam1/rapid-rounds");
     unmount();
     render(
       <MockTestResults

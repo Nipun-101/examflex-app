@@ -50,6 +50,6 @@ describe("mistake-book selectors", () => {
     );
     expect(paperTypeLabel("FULL_EXAM")).toBe("Full mock");
     expect(paperTypeLabel("TOPIC_WISE")).toBe("Chapter wise");
-    expect(paperTypeLabel("SPRINT")).toBe("Sprint");
+    expect(paperTypeLabel("SPRINT")).toBe("Rapid Round");
   });
 });

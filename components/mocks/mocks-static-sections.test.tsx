@@ -10,13 +10,13 @@ describe("MocksStaticSections", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Full mocks")).toBeInTheDocument();
     expect(screen.getByText("Chapter-wise tests")).toBeInTheDocument();
-    expect(screen.getByText("Sprint tests")).toBeInTheDocument();
+    expect(screen.getByText("Rapid Rounds")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
         name: "Know where you stand.",
       })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Sprint teaser")).toHaveTextContent(
+    expect(screen.getByLabelText("Rapid Rounds teaser")).toHaveTextContent(
       /Short on time/
     );
   });

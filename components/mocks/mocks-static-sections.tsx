@@ -7,10 +7,11 @@ const WAYS = [
   {
     title: "Chapter-wise tests",
     body: "One chapter at a time, so you can fix a weak spot fast.",
-    bestFor: "After a Mistake Book session",
+    bestFor: "After an Equation Book session",
   },
   {
-    title: "Sprint tests",
+    // Cosmetic rename: backend SPRINT papers are displayed as "Rapid Rounds".
+    title: "Rapid Rounds",
     body: "A short set you can finish between classes.",
     bestFor: "A busy day",
   },
@@ -27,10 +28,10 @@ const PLAN_FEATURES = [
   },
   {
     title: "Equation Book",
-    body: "The formula or line you missed, as a recall card.",
+    body: "The formula or detail you missed, saved for review.",
   },
   {
-    title: "Colleges",
+    title: "Analysis",
     body: "Where your range sits against past cutoffs.",
   },
 ] as const;
@@ -40,14 +41,14 @@ export function MocksStaticSections() {
   return (
     <div className="space-y-8">
       <section
-        aria-label="Sprint teaser"
+        aria-label="Rapid Rounds teaser"
         className="rounded-[18px] bg-study-mint px-5 py-5 sm:px-6 lg:hidden"
       >
         <p className="text-[0.6875rem] font-semibold tracking-wide text-study-green uppercase">
           Short on time?
         </p>
         <h2 className="mt-1 font-display text-lg font-semibold text-study-ink">
-          A sprint test takes minutes, not hours.
+          A Rapid Round takes minutes, not hours.
         </h2>
         <p className="mt-1 text-sm text-study-muted-soft">
           Coming soon with chapter-wise tests.

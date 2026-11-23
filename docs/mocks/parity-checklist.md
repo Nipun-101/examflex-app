@@ -5,7 +5,7 @@
 - [x] Categories with exams + `testsCount`
 - [x] Empty and error states
 - [x] Exam intro: header, description, structure
-- [x] Tabs: Overview · Chapter Wise · Full Mocks · Sprint Tests
+- [x] Tabs: Overview · Chapter Wise · Full Mocks · Rapid Rounds
 - [x] Paginated paper lists
 - [x] START / RETAKE / RESUME actions
 - [x] Concurrent launch lock

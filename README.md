@@ -1,7 +1,7 @@
 # ExamFlex App
 
 Mobile-first web app for NEET & JEE exam preparation. Learners sign in, take
-full mocks, sprint tests and chapter-wise tests, review their mistakes, and
+full mocks, Rapid Rounds and chapter-wise tests, review their mistakes, and
 track their progress. It is the learner-facing client of the ExamFlex platform.
 
 ## What you need for local development
@@ -131,7 +131,7 @@ to the file). Test fixtures live in `test-utils/`.
 | Area | Routes |
 | --- | --- |
 | Public | `/` (landing), `/login`, `/help`, `/faqs`, `/contact`, `/terms`, `/privacy-policy`, `/user-policy`, `/delete-account` |
-| Study (signed in) | `/today`, `/mocks`, `/mocks/exam/[id]` (`full-mocks`, `sprint-tests`, `chapter-wise`), `/analysis`, `/equation-book`, `/mistake-book`, `/profile` |
+| Study (signed in) | `/today`, `/mocks`, `/mocks/exam/[id]` (`full-mocks`, `rapid-rounds`, `chapter-wise`), `/analysis`, `/equation-book`, `/mistake-book`, `/profile` |
 | Attempt (signed in) | `/mocks/attempt/[attemptId]`, `/mocks/attempt/[attemptId]/result` |
 
 Signed-in routes redirect to `/login` without a session. `/login` redirects to

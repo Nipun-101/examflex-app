@@ -89,9 +89,10 @@ export function papersEmptyContent(paperType: PaperType): PapersEmptyContent {
     );
   }
   if (paperType === "SPRINT") {
+    // Cosmetic rename: SPRINT is displayed as "Rapid Rounds".
     return content(
-      "Sprint picked",
-      "Sprint tests are added in short sets for each subject. Yours hasn't landed yet."
+      "Rapid Round picked",
+      "Rapid Rounds are added in short sets for each subject. Yours hasn't landed yet."
     );
   }
   return content(

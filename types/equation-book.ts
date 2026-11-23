@@ -41,7 +41,7 @@ export type EquationExamOption = {
 /** Static chrome copy for the recall session. */
 export const EQUATION_BOOK_COPY = {
   title: "Equation Book",
-  tagline: "A few cards. A clearer head.",
+  tagline: "Key equations. Clearer concepts.",
   eyebrow: "DON'T PEEK YET",
   revealedLabel: "LOCKED IN",
   browseLabel: "Just looking for a formula? Browse all  →",
@@ -50,5 +50,5 @@ export const EQUATION_BOOK_COPY = {
   emptyEyebrow: "Recall beats rereading",
   emptyTitle: "Your deck is waiting for its first card.",
   emptyBody:
-    "Equations for each chapter show up here once they're published. Flip to recall, then lock it in. A few cards. A clearer head.",
+    "Equations for each chapter show up here once they're published. Flip to recall, then lock it in. Key equations. Clearer concepts.",
 } as const;

@@ -30,7 +30,7 @@ describe("examTestListPath", () => {
       "/mocks/exam/e1/full-mocks"
     );
     expect(examTestListPath("e1", "SPRINT")).toBe(
-      "/mocks/exam/e1/sprint-tests"
+      "/mocks/exam/e1/rapid-rounds"
     );
   });
 
@@ -55,7 +55,7 @@ describe("examTestListPath", () => {
       "/mocks/exam/e1/chapter-wise"
     );
     expect(examTestListPath("e1", "SPRINT", options)).toBe(
-      "/mocks/exam/e1/sprint-tests"
+      "/mocks/exam/e1/rapid-rounds"
     );
     expect(
       examTestListPath("e1", undefined, { treatMissingAsFullMock: false })
@@ -67,7 +67,7 @@ describe("examTestExitLabel", () => {
   it("labels each destination", () => {
     expect(examTestExitLabel("TOPIC_WISE")).toBe("Exit to Chapter Wise");
     expect(examTestExitLabel("FULL_EXAM")).toBe("Exit to Full Mocks");
-    expect(examTestExitLabel("SPRINT")).toBe("Exit to Sprint Tests");
+    expect(examTestExitLabel("SPRINT")).toBe("Exit to Rapid Rounds");
     expect(examTestExitLabel()).toBe("Exit to Chapter Wise");
     expect(examTestExitLabel(null)).toBe("Exit to Chapter Wise");
   });

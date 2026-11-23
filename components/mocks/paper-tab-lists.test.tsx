@@ -130,7 +130,7 @@ describe("paper tab lists", () => {
     });
   });
 
-  it("Sprint Tests loads papers for the exam", async () => {
+  it("Rapid Rounds loads papers for the exam", async () => {
     getSprintTests.mockResolvedValue({
       ok: true,
       data: { data: [{ ...base, exam: null }], pagination },
@@ -140,7 +140,7 @@ describe("paper tab lists", () => {
     expect(
       await screen.findByRole("heading", { name: "Paper One" })
     ).toBeInTheDocument();
-    expect(screen.getByText("SPRINT")).toBeInTheDocument();
+    expect(screen.getByText("RAPID ROUND")).toBeInTheDocument();
     expect(getSprintTests).toHaveBeenCalledWith({
       examId: "ex1",
       page: 1,
@@ -151,7 +151,7 @@ describe("paper tab lists", () => {
   it.each([
     ["Chapter Wise", getMockTestsByExam, <ChapterWiseList key="c" examId="ex1" />],
     ["Full Mocks", getFullMockTests, <FullMocksList key="f" examId="ex1" />],
-    ["Sprint Tests", getSprintTests, <SprintTestsList key="s" examId="ex1" />],
+    ["Rapid Rounds", getSprintTests, <SprintTestsList key="s" examId="ex1" />],
   ])("%s shows API errors", async (_name, mock, node) => {
     mock.mockResolvedValue({ ok: false, message: "Could not load" });
     wrap(node);

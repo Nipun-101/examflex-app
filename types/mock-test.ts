@@ -2,7 +2,10 @@ import type { PaperAccessFields } from "@/types/access";
 
 /**
  * API paper types. TOPIC_WISE papers are labeled "Chapter Wise" in the UI,
- * FULL_EXAM "Full Mocks" and SPRINT "Sprint Tests".
+ * FULL_EXAM "Full Mocks" and SPRINT "Rapid Rounds".
+ *
+ * COSMETIC RENAME: SPRINT is still the backend value (and `/sprint-tests` the
+ * endpoint); "Rapid Rounds" is only the user-facing label in this app.
  */
 export type PaperType = "TOPIC_WISE" | "FULL_EXAM" | "SPRINT";
 

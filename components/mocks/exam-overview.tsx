@@ -12,7 +12,7 @@ import {
 } from "@/lib/mocks/format";
 
 const EMPTY_DESCRIPTION =
-  "Pick Chapter Wise, Full Mocks, or Sprint Tests to start practicing.";
+  "Pick Chapter Wise, Full Mocks, or Rapid Rounds to start practicing.";
 
 export function ExamOverview() {
   const { examId, exam, loading } = useExamPage();

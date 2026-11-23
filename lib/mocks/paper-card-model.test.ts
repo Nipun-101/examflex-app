@@ -186,8 +186,8 @@ describe("sprintTestToCard", () => {
   it("labels sprint papers", () => {
     expect(sprintTestToCard(sprint)).toMatchObject({
       title: "Paper",
-      subtitle: "Sprint",
-      eyebrow: "SPRINT",
+      subtitle: "Rapid Round",
+      eyebrow: "RAPID ROUND",
       kind: "sprint",
     });
   });

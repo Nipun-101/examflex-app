@@ -242,7 +242,7 @@ export function EquationBookView({
                   {activeChapter.label}
                 </p>
                 <p className="mt-1 text-sm text-study-muted-soft">
-                  Card {safeIndex + 1} of {cards.length}. Keep going until the
+                  Concept {safeIndex + 1} of {cards.length}. Keep going until the
                   chapter feels automatic.
                 </p>
               </div>

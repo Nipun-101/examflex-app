@@ -5,7 +5,7 @@ vi.mock("@/components/equation-book/equation-book-client", () => ({
   EquationBookClient: () => (
     <div>
       <h1>Equation Book</h1>
-      <p>A few cards. A clearer head.</p>
+      <p>Key equations. Clearer concepts.</p>
     </div>
   ),
 }));
@@ -20,7 +20,7 @@ describe("EquationBookPage", () => {
       screen.getByRole("heading", { name: "Equation Book" })
     ).toBeInTheDocument();
     expect(
-      screen.getByText("A few cards. A clearer head.")
+      screen.getByText("Key equations. Clearer concepts.")
     ).toBeInTheDocument();
   });
 });

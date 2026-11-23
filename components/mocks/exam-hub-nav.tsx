@@ -21,7 +21,8 @@ export function examHubTabs(examId: string) {
     },
     {
       href: examTestListPath(examId, "SPRINT"),
-      label: "Sprint",
+      // Cosmetic rename: backend SPRINT papers are displayed as "Rapid Rounds".
+      label: "Rapid Rounds",
     },
   ];
 }
