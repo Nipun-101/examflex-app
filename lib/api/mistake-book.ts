@@ -17,6 +17,8 @@ import type {
   MistakeBookStartWith,
   MistakeBookSubjectCount,
   MistakeChapterOption,
+  MistakeCitation,
+  MistakeCitationStatus,
   MistakeItem,
   MistakeKind,
   MistakePaperType,
@@ -33,6 +35,12 @@ const PAPER_TYPES: readonly MistakePaperType[] = [
   "SPRINT",
 ];
 const KINDS: readonly MistakeKind[] = ["incorrect", "unattended"];
+const CITATION_STATUSES: readonly MistakeCitationStatus[] = [
+  "pending",
+  "done",
+  "failed",
+  "skipped",
+];
 const TRIP_REASONS: readonly MistakeTripReason[] = [
   "concept-gap",
   "calculation",
@@ -49,6 +57,41 @@ function parseKind(value: unknown): MistakeKind | undefined {
 
 function parseTripReason(value: unknown): MistakeTripReason | undefined {
   return TRIP_REASONS.find((reason) => reason === value);
+}
+
+function parseCitationStatus(
+  value: unknown
+): MistakeCitationStatus | undefined {
+  return CITATION_STATUSES.find((status) => status === value);
+}
+
+/** Tolerant: a malformed citation is dropped, never the whole entry. */
+export function parseMistakeCitation(value: unknown): MistakeCitation | null {
+  if (!isApiRecord(value)) return null;
+  const title = readString(value.title);
+  const content = readString(value.content);
+  if (title === undefined || content === undefined) return null;
+  const images = (readStringList(value.images) ?? []).filter((url) =>
+    url.trim()
+  );
+  return {
+    title,
+    content,
+    images,
+    ...optionalField("chapterName", readString(value.chapterName)),
+    ...optionalField("grade", readString(value.grade)),
+    ...optionalField("pageNumber", readNumber(value.pageNumber)),
+  };
+}
+
+/** The API sends at most one citation (rank 1); take the first that parses. */
+function parseFirstCitation(value: unknown): MistakeCitation | undefined {
+  if (!Array.isArray(value)) return undefined;
+  for (const item of value) {
+    const citation = parseMistakeCitation(item);
+    if (citation) return citation;
+  }
+  return undefined;
 }
 
 function parseIsoDate(value: unknown): string | undefined {
@@ -218,6 +261,11 @@ export function parseMistakeItem(value: unknown): MistakeItem | null {
     ...optionalField("imageUrl", readString(value.imageUrl)),
     ...optionalField("yourAnswerLabel", readString(value.yourAnswerLabel)),
     ...optionalField("yourAnswer", readString(value.yourAnswer)),
+    ...optionalField(
+      "citationStatus",
+      parseCitationStatus(value.citationStatus)
+    ),
+    ...optionalField("citation", parseFirstCitation(value.citations)),
   };
 }
 
