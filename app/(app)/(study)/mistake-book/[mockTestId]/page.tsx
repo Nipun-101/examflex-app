@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MistakeBookSessionClient } from "@/components/mistake-book/mistake-book-session-client";
 
 type MistakeBookSessionPageProps = {
@@ -10,9 +11,19 @@ export const metadata: Metadata = {
   description: "Clear wrong and blank answers from this mock paper.",
 };
 
-export default async function MistakeBookSessionPage({
+async function MistakeBookSessionContent({
   params,
 }: MistakeBookSessionPageProps) {
   const { mockTestId } = await params;
   return <MistakeBookSessionClient mockTestId={mockTestId} />;
+}
+
+export default function MistakeBookSessionPage({
+  params,
+}: MistakeBookSessionPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <MistakeBookSessionContent params={params} />
+    </Suspense>
+  );
 }

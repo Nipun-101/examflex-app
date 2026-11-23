@@ -194,9 +194,11 @@ export function MistakeBookView({
                 />
                 <MistakeQuestionBlock mistake={active} />
                 <MistakeAnswerCompare mistake={active} />
-                <div className="lg:flex-1">
-                  <MistakeInsightCard mistake={active} />
-                </div>
+                {active.insightBody.trim() || active.insightFormula.trim() ? (
+                  <div className="lg:flex-1">
+                    <MistakeInsightCard mistake={active} />
+                  </div>
+                ) : null}
                 <MistakeSourceLink mistake={active} />
               </div>
 
