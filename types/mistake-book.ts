@@ -19,6 +19,19 @@ export type MistakeChapterOption = {
   subjectId: string;
 };
 
+export type MistakeCitationStatus = "pending" | "done" | "failed" | "skipped";
+
+/** The rank-1 NCERT passage for a question. */
+export type MistakeCitation = {
+  title: string;
+  /** Mathpix markdown; may hold `<figure>` blocks that name `images`. */
+  content: string;
+  images: readonly string[];
+  chapterName?: string;
+  grade?: string;
+  pageNumber?: number;
+};
+
 export type MistakeItem = {
   id: string;
   kind: MistakeKind;
@@ -42,6 +55,10 @@ export type MistakeItem = {
   sourceHref: string;
   sourceHint: string;
   tripReason: MistakeTripReason;
+  /** Absent when the API sent no status (lookup never ran). */
+  citationStatus?: MistakeCitationStatus;
+  /** Rank-1 NCERT citation, when the question has one. */
+  citation?: MistakeCitation;
 };
 
 export type MistakeTripOption = {

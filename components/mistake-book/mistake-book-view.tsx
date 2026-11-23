@@ -12,6 +12,7 @@ import {
 import { MistakeAnswerCompare } from "@/components/mistake-book/mistake-answer-compare";
 import { MistakeFilters } from "@/components/mistake-book/mistake-filters";
 import { MistakeInsightCard } from "@/components/mistake-book/mistake-insight-card";
+import { MistakeNcertCard } from "@/components/mistake-book/mistake-ncert-card";
 import { MistakeProgress } from "@/components/mistake-book/mistake-progress";
 import { MistakeQuestionBlock } from "@/components/mistake-book/mistake-question-block";
 import { MistakeRail } from "@/components/mistake-book/mistake-rail";
@@ -194,6 +195,7 @@ export function MistakeBookView({
                 />
                 <MistakeQuestionBlock mistake={active} />
                 <MistakeAnswerCompare mistake={active} />
+                <MistakeNcertCard key={active.id} mistake={active} />
                 {active.insightBody.trim() || active.insightFormula.trim() ? (
                   <div className="lg:flex-1">
                     <MistakeInsightCard mistake={active} />

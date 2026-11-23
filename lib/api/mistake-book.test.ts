@@ -81,6 +81,76 @@ describe("mistake-book API parsers", () => {
     expect(unattended?.yourAnswer).toBeUndefined();
   });
 
+  const entryBase = {
+    id: "e1",
+    kind: "incorrect",
+    questionId: "q1",
+    questionNumber: "Q1",
+    subjectId: "s1",
+    subjectLabel: "CHEMISTRY",
+    prompt: "Prompt",
+    correctAnswerLabel: "CORRECT · B",
+    correctAnswer: "2",
+    insightTitle: "Solution",
+    insightBody: "Body",
+    insightFormula: "",
+    sourceLabel: "",
+    sourceHref: "",
+    sourceHint: "hint",
+    tripReason: "concept-gap",
+  };
+
+  it("parses the rank-1 NCERT citation and its status", () => {
+    const item = parseMistakeItem({
+      ...entryBase,
+      citationStatus: "done",
+      citations: [
+        {
+          title: "Potassium Dichromate",
+          content: "Dichromate text",
+          images: ["https://cdn.test/figure-7.jpg", "", 3],
+          chapterName: "The d - and f -Block Elements",
+          grade: "XII",
+          pageNumber: 105,
+          sourceDoc: "The_d_-_and_f_-Block_Elements.pdf",
+        },
+      ],
+    });
+    expect(item?.citationStatus).toBe("done");
+    expect(item?.citation).toEqual({
+      title: "Potassium Dichromate",
+      content: "Dichromate text",
+      images: ["https://cdn.test/figure-7.jpg"],
+      chapterName: "The d - and f -Block Elements",
+      grade: "XII",
+      pageNumber: 105,
+    });
+    expect(item?.citation).not.toHaveProperty("sourceDoc");
+  });
+
+  it("keeps the entry when citation fields are missing or malformed", () => {
+    const missing = parseMistakeItem(entryBase);
+    expect(missing?.id).toBe("e1");
+    expect(missing?.citation).toBeUndefined();
+    expect(missing?.citationStatus).toBeUndefined();
+
+    const malformed = parseMistakeItem({
+      ...entryBase,
+      citationStatus: "unknown",
+      citations: [{ title: 5 }, "bad"],
+    });
+    expect(malformed?.id).toBe("e1");
+    expect(malformed?.citation).toBeUndefined();
+    expect(malformed?.citationStatus).toBeUndefined();
+
+    const nullStatus = parseMistakeItem({
+      ...entryBase,
+      citationStatus: null,
+      citations: {},
+    });
+    expect(nullStatus?.citation).toBeUndefined();
+  });
+
   it("parses session detail", () => {
     const detail = parseMistakeBookSessionDetail({
       mockTestId: "mt1",
