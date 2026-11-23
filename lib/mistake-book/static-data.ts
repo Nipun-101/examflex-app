@@ -50,7 +50,7 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       yourAnswer: "4.9 m/s²",
       correctAnswerLabel: "CORRECT · C",
       correctAnswer: "3.2 m/s²",
-      insightTitle: "The bit that changes the answer",
+      insightTitle: "Solution",
       insightBody:
         "Friction acts up the slope, so subtract it from the component of gravity.",
       insightFormula: "a = g(sin 30° − 0.2 cos 30°)",
@@ -73,7 +73,7 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       yourAnswer: "μN",
       correctAnswerLabel: "CORRECT · D",
       correctAnswer: "μmg / √(1 + μ²)",
-      insightTitle: "The bit that changes the answer",
+      insightTitle: "Solution",
       insightBody:
         "The minimum force is at an angle to the horizontal, reducing the normal reaction.",
       insightFormula: "F_min = μmg / √(1 + μ²)",
@@ -96,7 +96,7 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       yourAnswer: "10 J",
       correctAnswerLabel: "CORRECT · B",
       correctAnswer: "2 J",
-      insightTitle: "The bit that changes the answer",
+      insightTitle: "Solution",
       insightBody: "Work is the dot product. Watch the sign on the ĵ term.",
       insightFormula: "W = F · s = 3(2) + 4(−1) = 2 J",
       sourceLabel: "NCERT XI · Work, energy & power  ↗",
@@ -118,7 +118,7 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       yourAnswer: "Q = 0",
       correctAnswerLabel: "CORRECT · C",
       correctAnswer: "Q = Kc",
-      insightTitle: "The bit that changes the answer",
+      insightTitle: "Solution",
       insightBody:
         "At equilibrium the reaction quotient equals the equilibrium constant.",
       insightFormula: "Q = Kc",
@@ -138,7 +138,7 @@ export const MISTAKE_BOOK_DATA: MistakeBookPageData = {
       prompt: "DNA content of a cell after S phase, relative to G1, is:",
       correctAnswerLabel: "CORRECT · A",
       correctAnswer: "Twice G1",
-      insightTitle: "The bit that changes the answer",
+      insightTitle: "Solution",
       insightBody:
         "S phase replicates DNA, so content doubles before mitosis.",
       insightFormula: "G1 → 2C after S",

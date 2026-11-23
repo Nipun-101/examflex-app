@@ -7,7 +7,7 @@ const WAYS = [
   {
     title: "Chapter-wise tests",
     body: "One chapter at a time, so you can fix a weak spot fast.",
-    bestFor: "After a Mistake Book session",
+    bestFor: "After an Equation Book session",
   },
   {
     title: "Sprint tests",
@@ -27,10 +27,10 @@ const PLAN_FEATURES = [
   },
   {
     title: "Equation Book",
-    body: "The formula or line you missed, as a recall card.",
+    body: "The formula or detail you missed, saved for review.",
   },
   {
-    title: "Colleges",
+    title: "Analysis",
     body: "Where your range sits against past cutoffs.",
   },
 ] as const;

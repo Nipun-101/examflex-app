@@ -1,6 +1,6 @@
 import type { AnalysisPageData } from "@/types/analysis";
 
-const CUTOFF_HREF = "https://www.nta.ac.in/";
+const CUTOFF_HREF = "https://mcc.nic.in/ug-medical-counselling/";
 
 /** Shared page chrome for live and illustrative Analysis. */
 export const ANALYSIS_PAGE_CHROME = {

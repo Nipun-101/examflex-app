@@ -89,7 +89,7 @@ export function EquationEmptyState({ chapterLabel }: EquationEmptyStateProps) {
             {sessionTitle}
           </h3>
           <p className="mt-2 text-sm leading-[1.45] text-study-muted-soft">
-            Card 0 of 0. Keep going until the chapter feels automatic.
+            Concept 0 of 0. Keep going until the chapter feels automatic.
           </p>
         </article>
 

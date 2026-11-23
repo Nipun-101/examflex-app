@@ -47,7 +47,7 @@ const detail = {
       yourAnswer: "1",
       correctAnswerLabel: "CORRECT · B",
       correctAnswer: "2",
-      insightTitle: "The bit that changes the answer",
+      insightTitle: "Solution",
       insightBody: "Insight",
       insightFormula: "",
       sourceLabel: "",
