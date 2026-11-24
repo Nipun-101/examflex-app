@@ -9,6 +9,7 @@ import type { FetchPaperPage, PaperPage } from "@/lib/mocks/paper-page";
 const push = vi.fn();
 const startMockTestAttempt = vi.fn();
 const resumeAttempt = vi.fn();
+const getAttempt = vi.fn();
 const getProductsForMockTest = vi.fn();
 
 vi.mock("next/navigation", () => ({
@@ -17,10 +18,41 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-vi.mock("@/lib/api/attempts", () => ({
-  startMockTestAttempt: (id: string) => startMockTestAttempt(id),
-  resumeAttempt: (id: string) => resumeAttempt(id),
-}));
+vi.mock("@/lib/api/attempts", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>(
+    "@/lib/api/attempts"
+  );
+  return {
+    ...actual,
+    startMockTestAttempt: (id: string) => startMockTestAttempt(id),
+    resumeAttempt: (id: string) => resumeAttempt(id),
+    getAttempt: (id: string) => getAttempt(id),
+  };
+});
+
+/** Minimal GET /mock-test-attempts/:id payload for launch checks. */
+function attemptDetails(status: string) {
+  return {
+    ok: true,
+    data: {
+      attemptId: "att9",
+      status,
+      timeRemaining: 120,
+      timeElapsed: 60,
+      test: {
+        title: "Kinematics",
+        durationInMinutes: 30,
+        totalQuestions: 20,
+        startedAt: "2026-01-01T00:00:00.000Z",
+        marksPerQuestion: 4,
+        negativeMarking: 1,
+        passingScore: null,
+        exam: { id: "ex1", name: "Exam", description: "" },
+      },
+      questions: [],
+    },
+  };
+}
 
 vi.mock("@/lib/api/catalog", async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
@@ -83,7 +115,9 @@ describe("PaperList", () => {
     push.mockReset();
     startMockTestAttempt.mockReset();
     resumeAttempt.mockReset();
+    getAttempt.mockReset();
     getProductsForMockTest.mockReset();
+    sessionStorage.clear();
   });
 
   it("shows a loading overlay then the papers", async () => {
@@ -174,26 +208,91 @@ describe("PaperList", () => {
     });
   });
 
-  it("resumes an in-progress paper", async () => {
+  const inProgressCard = () =>
+    card({
+      status: "in_progress",
+      userAttemptAction: "RESUME",
+      resumeAttemptId: "att9",
+      answeredCount: 2,
+      timeRemainingSeconds: 120,
+    });
+
+  it("resumes an in-progress paper without unpausing it from the list", async () => {
     const user = userEvent.setup();
-    resumeAttempt.mockResolvedValue({ ok: true, data: { attemptId: "att9" } });
+    getAttempt.mockResolvedValue(attemptDetails("PAUSED"));
     renderList(
       vi.fn<FetchPaperPage>().mockResolvedValue({
         ok: true,
-        data: page([
-          card({
-            status: "in_progress",
-            userAttemptAction: "RESUME",
-            resumeAttemptId: "att9",
-            answeredCount: 2,
-            timeRemainingSeconds: 120,
-          }),
-        ]),
+        data: page([inProgressCard()]),
       })
     );
     await user.click(await screen.findByRole("button", { name: "Resume →" }));
-    expect(resumeAttempt).toHaveBeenCalledWith("att9");
+    expect(getAttempt).toHaveBeenCalledWith("att9");
+    expect(resumeAttempt).not.toHaveBeenCalled();
     await waitFor(() => expect(push).toHaveBeenCalledWith("/mocks/attempt/att9"));
+    // The attempt page unpauses once the runner is ready.
+    expect(
+      sessionStorage.getItem("examflex:mockAttemptAutoResume:att9")
+    ).toBe("1");
+  });
+
+  it("refreshes the card in place when the attempt already expired", async () => {
+    const user = userEvent.setup();
+    getAttempt.mockResolvedValue(attemptDetails("EXPIRED"));
+    const fetchPage = vi
+      .fn<FetchPaperPage>()
+      .mockResolvedValueOnce({ ok: true, data: page([inProgressCard()]) })
+      .mockResolvedValueOnce({
+        ok: true,
+        data: page([
+          card({
+            status: "completed",
+            userAttemptAction: "RETAKE",
+            attemptCount: 1,
+            lastAttemptId: "att9",
+          }),
+        ]),
+      });
+    renderList(fetchPage);
+
+    await user.click(await screen.findByRole("button", { name: "Resume →" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Time ran out on this attempt"
+    );
+    expect(await screen.findByRole("button", { name: "Retry" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Resume →" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Review" })).toHaveAttribute(
+      "href",
+      "/mocks/attempt/att9/result"
+    );
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+    expect(fetchPage).toHaveBeenLastCalledWith(1);
+    expect(push).not.toHaveBeenCalled();
+    expect(resumeAttempt).not.toHaveBeenCalled();
+  });
+
+  it("refreshes the card when Start finds an attempt already running", async () => {
+    const user = userEvent.setup();
+    startMockTestAttempt.mockResolvedValue({
+      ok: false,
+      status: 409,
+      message: "server",
+      code: "ATTEMPT_ALREADY_ACTIVE",
+    });
+    const fetchPage = vi
+      .fn<FetchPaperPage>()
+      .mockResolvedValueOnce({ ok: true, data: page([card()]) })
+      .mockResolvedValueOnce({ ok: true, data: page([inProgressCard()]) });
+    renderList(fetchPage);
+
+    await user.click(await screen.findByRole("button", { name: "Start" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "You already have this test in progress."
+    );
+    expect(await screen.findByRole("button", { name: "Resume →" })).toBeEnabled();
+    expect(fetchPage).toHaveBeenCalledTimes(2);
   });
 
   it("opens plans for a locked paper", async () => {

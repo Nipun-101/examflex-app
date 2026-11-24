@@ -7,15 +7,22 @@ import { preloadMathpix } from "@/components/attempt/mathpix-boundary";
 import { MockTestRunner } from "@/components/attempt/mock-test-runner";
 import { StudyButton, StudyControlLink } from "@/components/study/study-button";
 import { StudyRouteLoading } from "@/components/study/study-route-loading";
-import { attemptDetailsToRunnerData, getAttempt } from "@/lib/api/attempts";
+import {
+  attemptDetailsToRunnerData,
+  getAttempt,
+  resumeAttempt,
+} from "@/lib/api/attempts";
 import { rememberAttemptLanguage } from "@/lib/mocks/attempt-language";
 import { isAttemptFinished, isAttemptPaused } from "@/lib/mocks/attempt-status";
 import {
+  cacheAttempt,
   clearCachedAttempt,
+  consumeAutoResume,
   readCachedAttempt,
 } from "@/lib/mocks/attempt-storage";
 import { computeAttemptSecondsLeft } from "@/lib/mocks/attempt-sessions";
 import { attemptResultPath } from "@/lib/mocks/exam-test-routes";
+import { mockTestDataFromResume } from "@/lib/mocks/resume-payload";
 import type { StartAttemptData } from "@/types/attempt";
 
 type AttemptPageClientProps = {
@@ -81,6 +88,9 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
 
     void getAttempt(attemptId).then((result) => {
       if (cancelled) return;
+      // One-shot hand-off from the list's Resume. Consumed on every settled
+      // load (even a failed one) so it can never unpause a later visit.
+      const autoResume = consumeAutoResume(attemptId);
 
       if (result.ok) {
         const details = result.data;
@@ -91,14 +101,44 @@ export function AttemptPageClient({ attemptId }: AttemptPageClientProps) {
           return;
         }
         const data = attemptDetailsToRunnerData(details);
-        setState({
-          status: "ready",
-          data,
-          initialSeconds:
-            details.timeRemaining ?? computeAttemptSecondsLeft(data),
-          initialPaused: isAttemptPaused(details.status),
-          fetchKey: key,
-          visitId: Date.now(),
+        const paused = isAttemptPaused(details.status);
+        const showDetails = () =>
+          setState({
+            status: "ready",
+            data,
+            initialSeconds:
+              details.timeRemaining ?? computeAttemptSecondsLeft(data),
+            initialPaused: paused,
+            fetchKey: key,
+            visitId: Date.now(),
+          });
+
+        // Resume pressed on the paper list: unpause only now that the runner
+        // is about to render. A later reload lands on the pause overlay.
+        if (!autoResume || !paused) {
+          showDetails();
+          return;
+        }
+        void resumeAttempt(attemptId).then((resumed) => {
+          if (cancelled) return;
+          if (!resumed.ok) {
+            // Still paused on the server: the overlay's Resume Test retries.
+            showDetails();
+            return;
+          }
+          cacheAttempt(resumed.data);
+          setState({
+            status: "ready",
+            data: {
+              attemptId: resumed.data.attemptId,
+              mockTestData: mockTestDataFromResume(resumed.data),
+              questions: resumed.data.questions,
+            },
+            initialSeconds: resumed.data.timeRemaining,
+            initialPaused: false,
+            fetchKey: key,
+            visitId: Date.now(),
+          });
         });
         return;
       }

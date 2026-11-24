@@ -46,7 +46,7 @@ describe("MistakeNcertCard", () => {
       screen.getByText("The d - and f -Block Elements"),
     ).toBeInTheDocument();
     expect(screen.getByText("Class XII")).toBeInTheDocument();
-    expect(screen.getByText("NCERT Page 105")).toBeInTheDocument();
+    expect(screen.getByText("Page 105")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /Read NCERT text/i }),
     ).toBeInTheDocument();
@@ -60,7 +60,7 @@ describe("MistakeNcertCard", () => {
       }),
     );
     expect(screen.getByText("Class XI")).toBeInTheDocument();
-    expect(screen.queryByText(/NCERT Page/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Page \d/)).not.toBeInTheDocument();
   });
 
   it.each(["pending", "failed", "skipped"] as const)(

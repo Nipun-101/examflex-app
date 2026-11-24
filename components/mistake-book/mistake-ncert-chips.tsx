@@ -32,7 +32,7 @@ export function MistakeNcertChips({
         <li
           className={`${CHIP} border border-study-divider bg-white text-study-muted-soft`}
         >
-          NCERT Page {page}
+          Page {page}
         </li>
       ) : null}
     </ul>

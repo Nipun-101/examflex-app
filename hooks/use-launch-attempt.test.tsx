@@ -4,11 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useLaunchAttempt } from "@/hooks/use-launch-attempt";
 import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
 import type { ApiResult } from "@/lib/api/parse-envelope";
-import type { ResumeAttemptData, StartAttemptData } from "@/types/attempt";
+import type { AttemptDetails, StartAttemptData } from "@/types/attempt";
 
 const push = vi.fn();
 const startMockTestAttempt = vi.fn();
 const resumeAttempt = vi.fn();
+const getAttempt = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
@@ -16,10 +17,43 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-vi.mock("@/lib/api/attempts", () => ({
-  startMockTestAttempt: (id: string) => startMockTestAttempt(id),
-  resumeAttempt: (id: string) => resumeAttempt(id),
-}));
+vi.mock("@/lib/api/attempts", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>(
+    "@/lib/api/attempts"
+  );
+  return {
+    ...actual,
+    startMockTestAttempt: (id: string) => startMockTestAttempt(id),
+    resumeAttempt: (id: string) => resumeAttempt(id),
+    getAttempt: (id: string) => getAttempt(id),
+  };
+});
+
+function details(
+  status: string,
+  attemptId = "att9"
+): ApiResult<AttemptDetails> {
+  return {
+    ok: true,
+    data: {
+      attemptId,
+      status,
+      timeRemaining: 300,
+      timeElapsed: 60,
+      test: {
+        title: "Paper",
+        durationInMinutes: 6,
+        totalQuestions: 1,
+        startedAt: "2026-01-01T00:00:00.000Z",
+        marksPerQuestion: 4,
+        negativeMarking: 1,
+        passingScore: null,
+        exam: { id: "ex1", name: "Exam", description: "" },
+      },
+      questions: [],
+    },
+  };
+}
 
 function wrapper({ children }: { children: ReactNode }) {
   return <StudyLoadingProvider>{children}</StudyLoadingProvider>;
@@ -37,6 +71,8 @@ describe("useLaunchAttempt", () => {
     push.mockReset();
     startMockTestAttempt.mockReset();
     resumeAttempt.mockReset();
+    getAttempt.mockReset();
+    sessionStorage.clear();
   });
 
   it("starts a paper and opens the attempt", async () => {
@@ -54,26 +90,105 @@ describe("useLaunchAttempt", () => {
     expect(result.current.startingTestId).toBeNull();
   });
 
-  it("resumes an in-progress attempt", async () => {
-    resumeAttempt.mockResolvedValue({
-      ok: true,
-      data: { attemptId: "att9" } as ResumeAttemptData,
-    });
+  it("resumes a paused attempt via the attempt page, not from the list", async () => {
+    getAttempt.mockResolvedValue(details("PAUSED"));
     const { result } = renderHook(() => useLaunchAttempt(), { wrapper });
 
     await act(async () => {
       await result.current.resume("t1", "att9");
     });
 
-    expect(resumeAttempt).toHaveBeenCalledWith("att9");
+    expect(getAttempt).toHaveBeenCalledWith("att9");
+    expect(resumeAttempt).not.toHaveBeenCalled();
     expect(push).toHaveBeenCalledWith("/mocks/attempt/att9");
+    expect(
+      sessionStorage.getItem("examflex:mockAttemptAutoResume:att9")
+    ).toBe("1");
+  });
+
+  it("opens a running attempt directly and caches it for offline rescue", async () => {
+    getAttempt.mockResolvedValue(details("IN_PROGRESS"));
+    const { result } = renderHook(() => useLaunchAttempt(), { wrapper });
+
+    await act(async () => {
+      await result.current.resume("t1", "att9");
+    });
+
+    expect(push).toHaveBeenCalledWith("/mocks/attempt/att9");
+    expect(
+      sessionStorage.getItem("examflex:mockAttemptAutoResume:att9")
+    ).toBeNull();
+    const cached = JSON.parse(
+      sessionStorage.getItem("examflex:mockAttempt:att9") ?? "null"
+    );
+    expect(cached).toMatchObject({ attemptId: "att9", timeRemaining: 300 });
+  });
+
+  it.each([
+    ["EXPIRED", "ATTEMPT_EXPIRED", "Time ran out on this attempt"],
+    ["SUBMITTED", "ATTEMPT_CLOSED", "already submitted"],
+  ])(
+    "reports a %s attempt as stale instead of opening it",
+    async (status, code, copy) => {
+      getAttempt.mockResolvedValue(details(status));
+      const onStaleAttempt = vi.fn();
+      const { result } = renderHook(
+        () => useLaunchAttempt({ onStaleAttempt }),
+        { wrapper }
+      );
+
+      await act(async () => {
+        await result.current.resume("t1", "att9");
+      });
+
+      expect(push).not.toHaveBeenCalled();
+      expect(onStaleAttempt).toHaveBeenCalledWith("t1");
+      expect(result.current.startError?.code).toBe(code);
+      expect(result.current.startError?.message).toContain(copy);
+      expect(result.current.startingTestId).toBeNull();
+    }
+  );
+
+  it("reports stale start errors so the list can reload", async () => {
+    startMockTestAttempt.mockResolvedValue({
+      ok: false,
+      status: 409,
+      message: "server",
+      code: "ATTEMPT_ALREADY_ACTIVE",
+    });
+    const onStaleAttempt = vi.fn();
+    const { result } = renderHook(() => useLaunchAttempt({ onStaleAttempt }), {
+      wrapper,
+    });
+
+    await act(async () => {
+      await result.current.start("t1");
+    });
+
+    expect(onStaleAttempt).toHaveBeenCalledWith("t1");
+    expect(result.current.startError).toEqual({
+      message: "You already have this test in progress. Resume it to carry on.",
+      code: "ATTEMPT_ALREADY_ACTIVE",
+    });
+  });
+
+  it("does not reload the list for unrelated errors", async () => {
+    getAttempt.mockResolvedValue({ ok: false, message: "offline" });
+    const onStaleAttempt = vi.fn();
+    const { result } = renderHook(() => useLaunchAttempt({ onStaleAttempt }), {
+      wrapper,
+    });
+
+    await act(async () => {
+      await result.current.resume("t1", "att9");
+    });
+
+    expect(onStaleAttempt).not.toHaveBeenCalled();
+    expect(result.current.startError).toEqual({ message: "offline" });
   });
 
   it("launch resumes when the paper has a resume attempt, otherwise starts", async () => {
-    resumeAttempt.mockResolvedValue({
-      ok: true,
-      data: { attemptId: "att9" } as ResumeAttemptData,
-    });
+    getAttempt.mockResolvedValue(details("IN_PROGRESS"));
     const { result, unmount } = renderHook(() => useLaunchAttempt(), {
       wrapper,
     });
@@ -84,7 +199,7 @@ describe("useLaunchAttempt", () => {
         resumeAttemptId: "att9",
       });
     });
-    expect(resumeAttempt).toHaveBeenCalledWith("att9");
+    expect(getAttempt).toHaveBeenCalledWith("att9");
     expect(startMockTestAttempt).not.toHaveBeenCalled();
     unmount();
 
