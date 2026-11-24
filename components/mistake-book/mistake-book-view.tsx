@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   MathpixBoundary,
   preloadMathpix,
@@ -11,6 +11,10 @@ import {
 } from "@/components/mistake-book/mistake-actions";
 import { MistakeAnswerCompare } from "@/components/mistake-book/mistake-answer-compare";
 import { MistakeFilters } from "@/components/mistake-book/mistake-filters";
+import {
+  MistakeListSheet,
+  MistakeListTrigger,
+} from "@/components/mistake-book/mistake-list-sheet";
 import { MistakeInsightCard } from "@/components/mistake-book/mistake-insight-card";
 import { MistakeNcertCard } from "@/components/mistake-book/mistake-ncert-card";
 import { MistakeProgress } from "@/components/mistake-book/mistake-progress";
@@ -49,6 +53,8 @@ export function MistakeBookView({
   const [chapterId, setChapterId] = useState("all");
   const [removedIds, setRemovedIds] = useState<readonly string[]>([]);
   const [index, setIndex] = useState(0);
+  const [listSheetOpen, setListSheetOpen] = useState(false);
+  const closeListSheet = useCallback(() => setListSheetOpen(false), []);
   const [tripReason, setTripReason] = useState<MistakeTripReason>(
     data.mistakes[0]?.tripReason ?? "concept-gap"
   );
@@ -211,6 +217,11 @@ export function MistakeBookView({
                   value={activeTrip}
                   onChange={handleTripChange}
                 />
+                <MistakeListTrigger
+                  current={safeIndex + 1}
+                  total={remaining.length}
+                  onOpen={() => setListSheetOpen(true)}
+                />
                 <MistakeRail
                   mistakes={remaining}
                   activeIndex={safeIndex}
@@ -240,6 +251,15 @@ export function MistakeBookView({
           )}
         </div>
       </div>
+
+      <MistakeListSheet
+        open={listSheetOpen && remaining.length > 0}
+        onClose={closeListSheet}
+        mockLabel={data.mockLabel}
+        mistakes={remaining}
+        activeIndex={safeIndex}
+        onSelect={handleSelectIndex}
+      />
     </MathpixBoundary>
   );
 }
