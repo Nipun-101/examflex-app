@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Lock, RefreshCw } from "lucide-react";
 import { PaperCard } from "@/components/mocks/paper-card";
 import { PapersEmptyState } from "@/components/mocks/papers-empty-state";
@@ -31,8 +31,6 @@ export function PaperList({
   paperType,
   fetchPage,
 }: PaperListProps) {
-  const { startingTestId, startError, launch, clearError } =
-    useLaunchAttempt();
   const examPage = useContext(ExamPageContext);
   const shellPaused = Boolean(examPage?.loading || examPage?.error);
   const [state, setState] = useState<ListState>({ status: "loading" });
@@ -40,6 +38,32 @@ export function PaperList({
   const [reloadKey, setReloadKey] = useState(0);
   const [plansPaperId, setPlansPaperId] = useState<string | null>(null);
   const fetchKey = `${pageNumber}:${reloadKey}`;
+  const currentRef = useRef({ fetchPage, pageNumber, fetchKey });
+  useEffect(() => {
+    currentRef.current = { fetchPage, pageNumber, fetchKey };
+  }, [fetchPage, pageNumber, fetchKey]);
+
+  /**
+   * Re-read the current page in place (no loader) after the server reported
+   * that a card was out of date, e.g. Resume on an attempt whose time ran out.
+   * Dropped if the student has paged or retried since.
+   */
+  const refreshInPlace = useCallback(() => {
+    const { fetchPage: fetchCurrent, pageNumber: page, fetchKey: key } =
+      currentRef.current;
+    void fetchCurrent(page).then((result) => {
+      if (!result.ok) return;
+      setState((prev) =>
+        prev.status === "ready" && prev.fetchKey === key
+          ? { ...prev, page: result.data }
+          : prev
+      );
+    });
+  }, []);
+
+  const { startingTestId, startError, launch, clearError } = useLaunchAttempt({
+    onStaleAttempt: refreshInPlace,
+  });
 
   useEffect(() => {
     if (shellPaused) return;

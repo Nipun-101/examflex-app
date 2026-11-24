@@ -19,6 +19,7 @@ Base: `/api/v1`. Student lists/attempts need JWT via `apiFetch`.
 | GET | `/sprint-tests?examId=` | Sprint (shown in UI as "Rapid Rounds" — cosmetic rename, API unchanged) |
 
 List items include `userAttemptAction` (`START` \| `RESUME` \| `RETAKE`), `access`, optional `resumeAttemptId`.
+Lists expire abandoned attempts whose time ran out before building cards, so those show `RETAKE`.
 
 ## Attempts
 
@@ -26,7 +27,7 @@ List items include `userAttemptAction` (`START` \| `RESUME` \| `RETAKE`), `acces
 | --- | --- | --- |
 | POST | `/mock-test-attempts/start` | `{ mockTestId }` — entitlement gate |
 | GET | `/mock-test-attempts/:id` | Hydrate / results (does not unpause) |
-| GET | `/mock-test-attempts/:id/resume` | Unpauses if PAUSED |
+| GET | `/mock-test-attempts/:id/resume` | Unpauses if PAUSED (called by the attempt page, never the list) |
 | PATCH | `/mock-test-attempts/:id/answer` | `{ selectedOptionId }` nullable clears |
 | POST | `/mock-test-attempts/:id/pause` | keepalive on unload |
 | POST | `/mock-test-attempts/:id/submit` | Final submit |
@@ -41,3 +42,8 @@ List items include `userAttemptAction` (`START` \| `RESUME` \| `RETAKE`), `acces
 | GET | `/catalog/products/for-mock-test/:mockTestId` |
 
 API repo docs: `MOCK-TEST-ATTEMPTS.md`, `PAUSE_RESUME_API.md`, `QUICK_REFERENCE.md`.
+
+## Launch flow
+
+- Start → `POST /start`. Resume on a card → `GET /:id` (read-only). Finished → banner + in-place list reload; paused → one-shot `sessionStorage` flag, and the attempt page calls `/resume` once the runner is ready.
+- Error `details.code` values `ATTEMPT_EXPIRED`, `ATTEMPT_CLOSED`, `ATTEMPT_ALREADY_ACTIVE` and `RETAKE_NOT_ALLOWED` mean the card is stale: the list reloads in place.

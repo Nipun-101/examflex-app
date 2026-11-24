@@ -3,6 +3,8 @@ import {
   ATTEMPT_STORAGE_PREFIX,
   cacheAttempt,
   clearCachedAttempt,
+  consumeAutoResume,
+  markAutoResume,
   readCachedAttempt,
 } from "@/lib/mocks/attempt-storage";
 import type { StartAttemptData } from "@/types/attempt";
@@ -33,5 +35,17 @@ describe("attempt storage", () => {
     expect(readCachedAttempt("att-1")?.attemptId).toBe("att-1");
     clearCachedAttempt("att-1");
     expect(readCachedAttempt("att-1")).toBeNull();
+  });
+});
+
+describe("auto-resume hand-off", () => {
+  beforeEach(() => sessionStorage.clear());
+
+  it("is read once, then cleared", () => {
+    expect(consumeAutoResume("att1")).toBe(false);
+    markAutoResume("att1");
+    expect(consumeAutoResume("att2")).toBe(false);
+    expect(consumeAutoResume("att1")).toBe(true);
+    expect(consumeAutoResume("att1")).toBe(false);
   });
 });

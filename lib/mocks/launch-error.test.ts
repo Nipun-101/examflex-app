@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ENTITLEMENT_REQUIRED,
   ENTITLEMENT_REQUIRED_MESSAGE,
+  finishedAttemptLaunchError,
+  isStaleAttemptError,
   launchErrorPlansTestId,
   toLaunchError,
 } from "@/lib/mocks/launch-error";
@@ -49,5 +51,47 @@ describe("launchErrorPlansTestId", () => {
         testId: "t1",
       })
     ).toBe("t1");
+  });
+});
+
+describe("stale attempt errors", () => {
+  it("swaps server text for student copy and keeps the code", () => {
+    expect(
+      toLaunchError(
+        { ok: false, status: 400, message: "Use GET /:id", code: "ATTEMPT_EXPIRED" },
+        "t1"
+      )
+    ).toEqual({
+      message: expect.stringContaining("Time ran out on this attempt"),
+      code: "ATTEMPT_EXPIRED",
+    });
+  });
+
+  it("keeps the server message for RETAKE_NOT_ALLOWED", () => {
+    expect(
+      toLaunchError(
+        { ok: false, status: 409, message: "No retakes", code: "RETAKE_NOT_ALLOWED" },
+        "t1"
+      )
+    ).toEqual({ message: "No retakes", code: "RETAKE_NOT_ALLOWED" });
+  });
+
+  it("flags only list-staleness codes", () => {
+    for (const code of [
+      "ATTEMPT_EXPIRED",
+      "ATTEMPT_CLOSED",
+      "ATTEMPT_ALREADY_ACTIVE",
+      "RETAKE_NOT_ALLOWED",
+    ]) {
+      expect(isStaleAttemptError({ code })).toBe(true);
+    }
+    expect(isStaleAttemptError({ code: ENTITLEMENT_REQUIRED })).toBe(false);
+    expect(isStaleAttemptError({})).toBe(false);
+    expect(isStaleAttemptError(null)).toBe(false);
+  });
+
+  it("maps a finished status found via GET", () => {
+    expect(finishedAttemptLaunchError("EXPIRED").code).toBe("ATTEMPT_EXPIRED");
+    expect(finishedAttemptLaunchError("SUBMITTED").code).toBe("ATTEMPT_CLOSED");
   });
 });

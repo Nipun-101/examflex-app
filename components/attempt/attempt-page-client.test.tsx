@@ -5,9 +5,13 @@ import type * as AttemptsApi from "@/lib/api/attempts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AttemptPageClient } from "@/components/attempt/attempt-page-client";
 import { StudyLoadingProvider } from "@/components/study/study-loading-provider";
-import { getAttempt, submitAttempt } from "@/lib/api/attempts";
+import { getAttempt, resumeAttempt, submitAttempt } from "@/lib/api/attempts";
 import { readAttemptLanguage } from "@/lib/mocks/attempt-language";
-import { cacheAttempt, readCachedAttempt } from "@/lib/mocks/attempt-storage";
+import {
+  cacheAttempt,
+  markAutoResume,
+  readCachedAttempt,
+} from "@/lib/mocks/attempt-storage";
 import { makeDetails, makeMockTestData, makeStartData } from "@/test-utils/attempt-fixtures";
 import { mathpixModuleStub } from "@/test-utils/mock-mathpix";
 import type { AttemptDetails } from "@/types/attempt";
@@ -44,6 +48,7 @@ vi.mock("@/lib/api/attempts", async (importOriginal) => {
 
 const getAttemptMock = vi.mocked(getAttempt);
 const submitMock = vi.mocked(submitAttempt);
+const resumeMock = vi.mocked(resumeAttempt);
 
 /** A paper that started just now, so the computed clock is not already at zero. */
 function freshStart() {
@@ -65,6 +70,7 @@ beforeEach(() => {
   pathnameRef.current = "/mocks/attempt/att1";
   getAttemptMock.mockReset();
   submitMock.mockReset();
+  resumeMock.mockReset();
   submitMock.mockReturnValue(new Promise(() => undefined));
   sessionStorage.clear();
 });
@@ -100,6 +106,99 @@ describe("AttemptPageClient", () => {
     getAttemptMock.mockResolvedValue({ ok: true, data: inProgress({ status: "PAUSED" }) });
     renderAttempt(<AttemptPageClient attemptId="att1" />);
     expect(await screen.findByRole("dialog", { name: "Test Paused" })).toBeInTheDocument();
+  });
+
+  describe("Resume pressed on the paper list", () => {
+    it("unpauses once loaded and runs on the resumed server clock", async () => {
+      markAutoResume("att1");
+      getAttemptMock.mockResolvedValue({
+        ok: true,
+        data: inProgress({ status: "PAUSED", timeRemaining: 900 }),
+      });
+      resumeMock.mockResolvedValue({
+        ok: true,
+        data: {
+          ...makeStartData(),
+          attemptId: "att1",
+          timeElapsed: 960,
+          timeRemaining: 840,
+        },
+      });
+      renderAttempt(<AttemptPageClient attemptId="att1" />);
+
+      expect(await screen.findByRole("timer")).toHaveAttribute(
+        "aria-label",
+        "Time left 14:00"
+      );
+      expect(resumeMock).toHaveBeenCalledTimes(1);
+      expect(resumeMock).toHaveBeenCalledWith("att1");
+      expect(
+        screen.queryByRole("dialog", { name: "Test Paused" })
+      ).not.toBeInTheDocument();
+      expect(readCachedAttempt("att1")).toMatchObject({ timeRemaining: 840 });
+      // One-shot: the flag is gone so a reload lands on the pause overlay.
+      expect(
+        sessionStorage.getItem("examflex:mockAttemptAutoResume:att1")
+      ).toBeNull();
+    });
+
+    it("falls back to the pause overlay when the resume call fails", async () => {
+      markAutoResume("att1");
+      getAttemptMock.mockResolvedValue({
+        ok: true,
+        data: inProgress({ status: "PAUSED" }),
+      });
+      resumeMock.mockResolvedValue({ ok: false, message: "offline" });
+      renderAttempt(<AttemptPageClient attemptId="att1" />);
+
+      expect(
+        await screen.findByRole("dialog", { name: "Test Paused" })
+      ).toBeInTheDocument();
+    });
+
+    it("does not call resume for an attempt that is already running", async () => {
+      markAutoResume("att1");
+      getAttemptMock.mockResolvedValue({ ok: true, data: inProgress() });
+      renderAttempt(<AttemptPageClient attemptId="att1" />);
+
+      expect(await screen.findByRole("timer")).toHaveAttribute(
+        "aria-label",
+        "Time left 30:00"
+      );
+      expect(resumeMock).not.toHaveBeenCalled();
+      expect(
+        sessionStorage.getItem("examflex:mockAttemptAutoResume:att1")
+      ).toBeNull();
+    });
+
+    it("drops the hand-off when the load fails", async () => {
+      markAutoResume("att1");
+      getAttemptMock.mockResolvedValue({
+        ok: false,
+        status: 500,
+        message: "Server error",
+      });
+      renderAttempt(<AttemptPageClient attemptId="att1" />);
+
+      expect(await screen.findByText("Server error")).toBeInTheDocument();
+      expect(resumeMock).not.toHaveBeenCalled();
+      expect(
+        sessionStorage.getItem("examflex:mockAttemptAutoResume:att1")
+      ).toBeNull();
+    });
+
+    it("keeps a paused attempt paused without the list hand-off", async () => {
+      getAttemptMock.mockResolvedValue({
+        ok: true,
+        data: inProgress({ status: "PAUSED" }),
+      });
+      renderAttempt(<AttemptPageClient attemptId="att1" />);
+
+      expect(
+        await screen.findByRole("dialog", { name: "Test Paused" })
+      ).toBeInTheDocument();
+      expect(resumeMock).not.toHaveBeenCalled();
+    });
   });
 
   it("hides fixed overlays while Soft Nav keeps the page inactive", async () => {
